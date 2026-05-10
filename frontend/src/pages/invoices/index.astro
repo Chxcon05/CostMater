@@ -1,0 +1,189 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import PageHeader from '../../components/PageHeader.astro';
+---
+
+<Layout title="Facturas">
+  <div class="flex min-h-screen">
+    <Sidebar />
+    
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Facturas" subtitle="Gestiona tu facturación" />
+      
+      <div class="flex flex-wrap gap-3 mb-6">
+        <select id="status-filter" class="input flex-1 min-w-[150px]">
+          <option value="">Todos</option>
+          <option value="borrador">Borrador</option>
+          <option value="emitida">Emitida</option>
+          <option value="pagada">Pagada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg whitespace-nowrap">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Nueva Factura
+        </button>
+      </div>
+
+      <div class="card overflow-x-auto">
+        <table class="w-full min-w-[640px]">
+          <thead><tr class="table-header"><th class="table-cell">Folio</th><th class="table-cell">Cliente</th><th class="table-cell">Fecha</th><th class="table-cell">Total</th><th class="table-cell">Estado</th><th class="table-cell">Acciones</th></tr></thead>
+          <tbody id="table" class="divide-y divide-slate-200"></tbody>
+        </table>
+        <div id="empty" class="hidden p-12 text-center">
+          <p class="text-slate-500 mb-4">No hay facturas</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-2xl">
+      <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold" id="modal-title">Nueva Factura</h3>
+        <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+      </div>
+      <form id="form" class="p-6 space-y-4">
+        <input type="hidden" id="record-id" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div><label class="label">Cliente</label><select id="customer_id" class="input"><option value="">Sin cliente</option></select></div>
+          <div><label class="label">Método de pago</label><select id="payment_method" class="input"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option><option value="cheque">Cheque</option></select></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div><label class="label">Fecha de vencimiento</label><input type="date" id="due_date" class="input" /></div>
+          <div><label class="label">IVA (%)</label><input type="number" id="tax_percent" class="input" step="0.01" value="16" /></div>
+        </div>
+        <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
+        <div class="border border-slate-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="font-medium">Conceptos</h4>
+            <button type="button" onclick="addItem()" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar</button>
+          </div>
+          <div id="items-container" class="space-y-2"></div>
+        </div>
+      </form>
+      <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-sm p-6">
+      <h3 class="text-lg font-semibold mb-4">Cambiar Estado</h3>
+      <select id="new-status" class="input mb-4">
+        <option value="borrador">Borrador</option>
+        <option value="emitida">Emitida</option>
+        <option value="pagada">Pagada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+      <div class="flex gap-3 justify-end">
+        <button id="status-cancel" class="btn-secondary rounded-lg">Cancelar</button>
+        <button id="status-confirm" class="btn-primary rounded-lg">Actualizar</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  console.log('Invoices script loaded');
+  
+  const API_URL = 'http://localhost:3000/api';
+  let data = [], customers = [], currentId = null, items = [];
+
+  function getAuthHeaders() { const token = localStorage.getItem('token'); if (!token) { window.location.href = '/login'; return null; } return { 'Authorization': `Bearer ${token}` }; }
+
+  async function load() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    try {
+      const [invRes, custRes] = await Promise.all([fetch(`${API_URL}/invoices`, { headers }), fetch(`${API_URL}/customers`, { headers })]);
+      data = await invRes.json(); customers = await custRes.json();
+      document.getElementById('customer_id').innerHTML = '<option value="">Sin cliente</option>' + customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      render();
+    } catch (e) { console.error(e); }
+  }
+
+  function render() {
+    const status = document.getElementById('status-filter').value;
+    const filtered = data.filter(d => !status || d.status === status);
+    const tbody = document.getElementById('table');
+    if (filtered.length === 0) { tbody.innerHTML = ''; document.getElementById('empty').classList.remove('hidden'); return; }
+    document.getElementById('empty').classList.add('hidden');
+    tbody.innerHTML = filtered.map(d => `
+      <tr class="hover:bg-slate-50">
+        <td class="table-cell font-mono font-medium">${d.invoice_number}</td>
+        <td class="table-cell">${d.customer_name || '-'}</td>
+        <td class="table-cell">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
+        <td class="table-cell font-mono font-medium">${formatCurrency(d.total)}</td>
+        <td class="table-cell"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status}</span></td>
+        <td class="table-cell">
+          <div class="flex gap-2">
+            <button data-id="${d.id}" class="status-btn p-1 text-slate-400 hover:text-primary-600" title="Cambiar estado"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+            <button data-id="${d.id}" class="delete-btn p-1 text-slate-400 hover:text-red-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    
+    tbody.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => changeStatus(parseInt(btn.dataset.id)));
+    });
+    tbody.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => confirmDelete(parseInt(btn.dataset.id)));
+    });
+  }
+
+  function getStatusClass(s) { const m = { borrador: 'bg-slate-100 text-slate-700', emitida: 'bg-blue-100 text-blue-700', pagada: 'bg-emerald-100 text-emerald-700', cancelada: 'bg-red-100 text-red-700' }; return m[s] || 'bg-slate-100'; }
+  function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
+
+  function addItem() { items.push({ description: '', quantity: 1, unit_price: 0 }); renderItems(); }
+  function renderItems() { document.getElementById('items-container').innerHTML = items.map((item, i) => `<div class="grid grid-cols-4 gap-2"><input type="text" placeholder="Descripción" class="input" value="${item.description}" onchange="items[${i}].description=this.value"><input type="number" placeholder="Cantidad" class="input" value="${item.quantity}" onchange="items[${i}].quantity=parseFloat(this.value)||1"><input type="number" placeholder="Precio" class="input" step="0.01" value="${item.unit_price}" onchange="items[${i}].unit_price=parseFloat(this.value)||0"><button type="button" onclick="items.splice(${i},1);renderItems()" class="text-red-500">✕</button></div>`).join('') || '<p class="text-slate-400 text-sm">Sin conceptos</p>'; }
+
+  function openModal(id = null) { document.getElementById('modal').classList.remove('hidden'); document.getElementById('form').reset(); document.getElementById('record-id').value = ''; items = []; renderItems(); document.getElementById('modal-title').textContent = 'Nueva Factura'; if (id) { const r = data.find(d => d.id === id); if (r) { document.getElementById('record-id').value = r.id; document.getElementById('customer_id').value = r.customer_id || ''; document.getElementById('payment_method').value = r.payment_method || 'efectivo'; document.getElementById('due_date').value = r.due_date || ''; document.getElementById('tax_percent').value = r.tax_percent; document.getElementById('notes').value = r.notes || ''; document.getElementById('modal-title').textContent = 'Editar Factura'; } } }
+  function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+  async function save() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    const id = document.getElementById('record-id').value;
+    const body = { customer_id: document.getElementById('customer_id').value || null, payment_method: document.getElementById('payment_method').value, due_date: document.getElementById('due_date').value, tax_percent: parseFloat(document.getElementById('tax_percent').value) || 16, notes: document.getElementById('notes').value, items: items.filter(i => i.description) };
+    try { const res = await fetch(`${API_URL}/invoices${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (res.ok) { closeModal(); load(); } } catch (e) { alert('Error al guardar'); }
+  }
+
+  function changeStatus(id) { currentId = id; document.getElementById('status-modal').classList.remove('hidden'); }
+  async function updateStatus() {
+    const headers = getAuthHeaders();
+    if (!headers || !currentId) return;
+    const status = document.getElementById('new-status').value;
+    await fetch(`${API_URL}/invoices/${currentId}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ status, payment_date: status === 'pagada' ? new Date().toISOString().split('T')[0] : null }) });
+    document.getElementById('status-modal').classList.add('hidden');
+    currentId = null;
+    load();
+  }
+
+  async function confirmDelete(id) {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    if (confirm('¿Eliminar factura?')) { await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE', headers }); load(); }
+  }
+
+  document.getElementById('status-filter').addEventListener('change', render);
+  document.getElementById('btn-new').addEventListener('click', () => openModal());
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+  document.getElementById('modal-close').addEventListener('click', () => closeModal());
+  document.getElementById('modal-cancel').addEventListener('click', () => closeModal());
+  document.getElementById('modal-save').addEventListener('click', () => save());
+  document.getElementById('status-cancel').addEventListener('click', () => document.getElementById('status-modal').classList.add('hidden'));
+  document.getElementById('status-confirm').addEventListener('click', () => updateStatus());
+  load();
+</script>

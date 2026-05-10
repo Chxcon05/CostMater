@@ -1,0 +1,223 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import PageHeader from '../../components/PageHeader.astro';
+---
+
+<Layout title="Reportes">
+  <div class="flex min-h-screen">
+    <Sidebar />
+    
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Reportes" subtitle="Análisis financiero y estadísticas" />
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+        <div class="card p-5">
+          <div class="text-sm text-[var(--text-muted)] mb-1">Total Costos</div>
+          <div class="text-2xl font-bold font-mono text-gradient" id="kpi-total">$0</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-sm text-[var(--text-muted)] mb-1">Costo Promedio</div>
+          <div class="text-2xl font-bold font-mono text-[var(--text-primary)]" id="kpi-avg">$0</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-sm text-[var(--text-muted)] mb-1">Mayor Costo</div>
+          <div class="text-2xl font-bold font-mono text-red-400" id="kpi-max">$0</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-sm text-[var(--text-muted)] mb-1">Menor Costo</div>
+          <div class="text-2xl font-bold font-mono text-emerald-400" id="kpi-min">$0</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="card p-6">
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Distribución de Costos por Tipo</h3>
+          <div class="h-64"><canvas id="typeChart"></canvas></div>
+        </div>
+        <div class="card p-6">
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Costos por Producto</h3>
+          <div class="h-64"><canvas id="productChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div class="card p-6">
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Análisis de Rentabilidad</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="table-header"><th class="table-cell">Producto</th><th class="table-cell">Costo</th><th class="table-cell">Venta</th><th class="table-cell">Margen</th></tr></thead>
+              <tbody id="rentability-table" class="divide-y divide-[var(--border-color)]"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card p-6">
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Historial de Auditoría</h3>
+          <div class="overflow-y-auto max-h-64">
+            <div id="audit-list" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const API_URL = 'http://localhost:3000/api';
+  let typeChart, productChart;
+
+  function getAuthHeaders() { const token = localStorage.getItem('token'); if (!token) { window.location.href = '/login'; return null; } return { 'Authorization': `Bearer ${token}` }; }
+
+  async function load() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+
+    try {
+      const [distRes, rentRes, auditRes] = await Promise.all([
+        fetch(`${API_URL}/reports/distribution`, { headers }),
+        fetch(`${API_URL}/reports/rentability`, { headers }),
+        fetch(`${API_URL}/audit?limit=20`, { headers })
+      ]);
+
+      const distribution = await distRes.json();
+      const rentability = await rentRes.json();
+      const audit = await auditRes.json();
+
+      const costs = [...(distribution.direct?.items || []), ...(distribution.indirect?.items || [])];
+      const totals = costs.map(c => c.total);
+      const kpiTotal = distribution.grandTotal || 0;
+
+      document.getElementById('kpi-total').textContent = formatCurrency(kpiTotal);
+      document.getElementById('kpi-avg').textContent = formatCurrency(totals.length ? totals.reduce((a, b) => a + b, 0) / totals.length : 0);
+      document.getElementById('kpi-max').textContent = formatCurrency(Math.max(...totals, 0));
+      document.getElementById('kpi-min').textContent = formatCurrency(totals.length ? Math.min(...totals) : 0);
+
+      renderTypeChart(distribution);
+      renderProductChart(rentability);
+      renderRentability(rentability);
+      renderAudit(audit);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
+
+  function renderTypeChart(data) {
+    const ctx = document.getElementById('typeChart').getContext('2d');
+    if (typeChart) typeChart.destroy();
+
+    const directData = data?.direct?.items || [];
+    const indirectData = data?.indirect?.items || [];
+
+    const totals = {
+      materia: directData.find(i => i.type === 'materia_prima')?.total || 0,
+      manoObra: directData.find(i => i.type === 'mano_obra')?.total || 0,
+      empaque: directData.find(i => i.type === 'empaque')?.total || 0,
+      transporte: directData.find(i => i.type === 'transporte')?.total || 0,
+      otroDirect: directData.find(i => i.type === 'otro')?.total || 0,
+      alquiler: indirectData.find(i => i.type === 'alquiler')?.total || 0,
+      servicios: indirectData.find(i => i.type === 'servicios')?.total || 0,
+      depreciacion: indirectData.find(i => i.type === 'depreciacion')?.total || 0,
+      sueldos: indirectData.find(i => i.type === 'sueldos')?.total || 0,
+      otroIndirect: indirectData.find(i => i.type === 'otro')?.total || 0
+    };
+
+    const allZero = Object.values(totals).every(v => v === 0);
+
+    if (allZero) {
+      ctx.font = '14px DM Sans';
+      ctx.fillStyle = '#9ca3af';
+      ctx.textAlign = 'center';
+      ctx.fillText('No hay costos registrados', ctx.canvas.width / 2, ctx.canvas.height / 2);
+      return;
+    }
+
+    typeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Materia Prima', 'Mano Obra', 'Empaque', 'Transp', 'Otro Dir', 'Alquiler', 'Servicios', 'Depreciac', 'Sueldos', 'Otro Ind'],
+        datasets: [{
+          data: Object.values(totals),
+          backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#64748b', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#6b7280']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+  }
+
+  function renderProductChart(data) {
+    const ctx = document.getElementById('productChart').getContext('2d');
+    if (productChart) productChart.destroy();
+
+    if (!data || data.length === 0 || data.every(p => p.total_cost === 0)) {
+      ctx.font = '14px DM Sans';
+      ctx.fillStyle = '#9ca3af';
+      ctx.textAlign = 'center';
+      ctx.fillText('No hay productos con costos', ctx.canvas.width / 2, ctx.canvas.height / 2);
+      return;
+    }
+
+    const top5 = data.slice(0, 5);
+    productChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: top5.map(p => p.name.substring(0, 15)),
+        datasets: [
+          { label: 'Costo', data: top5.map(p => p.total_cost), backgroundColor: '#ef4444' },
+          { label: 'Venta', data: top5.map(p => p.selling_price || 0), backgroundColor: '#10b981' }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  function renderRentability(data) {
+    const tbody = document.getElementById('rentability-table');
+    tbody.innerHTML = data.slice(0, 8).map(p => `
+      <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
+        <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.total_cost)}</td>
+        <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.selling_price || 0)}</td>
+        <td class="table-cell"><span class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.margin >= 20 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : p.margin >= 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">${p.margin.toFixed(1)}%</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="4" class="table-cell text-center text-[var(--text-muted)]">Sin datos</td></tr>';
+  }
+
+  function renderAudit(data) {
+    const container = document.getElementById('audit-list');
+    container.innerHTML = data.map(d => `
+      <div class="text-xs p-3 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+        <div class="flex justify-between">
+          <span class="font-medium text-[var(--text-primary)]">${d.table_name}</span>
+          <span class="text-[var(--text-muted)]">${new Date(d.created_at).toLocaleDateString('es-MX')}</span>
+        </div>
+        <div class="text-[var(--text-muted)]">${d.action} - Registro #${d.record_id}</div>
+      </div>
+    `).join('') || '<p class="text-[var(--text-muted)] text-sm">Sin actividad registrada</p>';
+  }
+
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+
+  load();
+</script>

@@ -1,0 +1,423 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import PageHeader from '../../components/PageHeader.astro';
+---
+
+<Layout title="Costos">
+  <div class="flex min-h-screen">
+    <Sidebar />
+    
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Costos" subtitle="Registra costos directos e indirectos" />
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 animate-fade-in-up">
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-[var(--text-primary)]">Costos Directos</h3>
+            <span class="text-2xl font-bold text-emerald-400 font-mono" id="total-direct">$0</span>
+          </div>
+          <p class="text-sm text-[var(--text-muted)]">Materia prima, mano de obra, empaque</p>
+        </div>
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-[var(--text-primary)]">Costos Indirectos</h3>
+            <span class="text-2xl font-bold text-amber-400 font-mono" id="total-indirect">$0</span>
+          </div>
+          <p class="text-sm text-[var(--text-muted)]">Alquiler, servicios, depreciación</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mb-6 flex-wrap">
+        <select id="product-filter" class="input w-full sm:w-auto flex-1 min-w-[150px]">
+          <option value="">Todos los productos</option>
+        </select>
+        <select id="type-filter" class="input w-full sm:w-auto flex-1 min-w-[120px]">
+          <option value="">Todos los tipos</option>
+        </select>
+        <select id="cost-type-filter" class="input w-full sm:w-auto flex-1 min-w-[100px]">
+          <option value="">Todos</option>
+          <option value="direct">Directos</option>
+          <option value="indirect">Indirectos</option>
+        </select>
+        <button id="btn-new-direct" class="btn-primary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Directo
+        </button>
+        <button id="btn-new-indirect" class="btn-secondary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Indirecto
+        </button>
+      </div>
+
+      <div class="card overflow-x-auto">
+        <table class="w-full min-w-[640px]">
+          <thead><tr class="table-header"><th class="table-cell">Producto</th><th class="table-cell">Tipo</th><th class="table-cell">Descripción</th><th class="table-cell">Monto</th><th class="table-cell">Fecha</th><th class="table-cell">Acciones</th></tr></thead>
+          <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
+        </table>
+        <div id="empty" class="hidden p-12 text-center"><p class="text-[var(--text-muted)]">No hay costos registrados</p></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="direct-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold" id="modal-title-direct">Agregar Costo Directo</h3>
+        <button id="btn-close-direct" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form class="p-6 space-y-4">
+        <input type="hidden" id="direct-id" />
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Producto *</label><select id="direct-product_id" class="input" required></select></div>
+          <div><label class="label">Tipo *</label><select id="direct-type" class="input"><option value="materia_prima">Materia Prima</option><option value="mano_obra">Mano de Obra</option><option value="empaque">Empaque</option><option value="transporte">Transporte</option><option value="otro">Otro</option></select></div>
+        </div>
+        <div><label class="label">Descripción *</label><input type="text" id="direct-description" class="input" required /></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Monto *</label><input type="number" id="direct-amount" class="input" step="0.01" required /></div>
+          <div><label class="label">Cantidad</label><input type="number" id="direct-quantity" class="input" step="0.01" value="1" /></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">N° Factura</label><input type="text" id="direct-invoice" class="input" /></div>
+          <div><label class="label">Fecha de compra</label><input type="date" id="direct-purchase_date" class="input" /></div>
+        </div>
+      </form>
+      <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
+        <button id="btn-cancel-direct" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
+        <button id="btn-save-direct" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="indirect-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold" id="modal-title-indirect">Agregar Costo Indirecto</h3>
+        <button id="btn-close-indirect" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form class="p-6 space-y-4">
+        <input type="hidden" id="indirect-id" />
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Producto (opcional)</label><select id="indirect-product_id" class="input"><option value="">General</option></select></div>
+          <div><label class="label">Tipo *</label><select id="indirect-type" class="input"><option value="alquiler">Alquiler</option><option value="servicios">Servicios</option><option value="depreciacion">Depreciación</option><option value="sueldos">Sueldos</option><option value="seguros">Seguros</option><option value="mantenimiento">Mantenimiento</option><option value="impuestos">Impuestos</option><option value="otro">Otro</option></select></div>
+        </div>
+        <div><label class="label">Descripción *</label><input type="text" id="indirect-description" class="input" required /></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="label">Monto *</label><input type="number" id="indirect-amount" class="input" step="0.01" required /></div>
+          <div><label class="label">Proporción (%)</label><input type="number" id="indirect-proportion" class="input" step="0.01" value="100" /></div>
+        </div>
+      </form>
+      <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
+        <button id="btn-cancel-indirect" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
+        <button id="btn-save-indirect" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const API_URL = 'http://localhost:3000/api';
+  let directCosts = [], indirectCosts = [], products = [], editDirectId = null;
+
+  function getAuthHeaders() { const token = localStorage.getItem('token'); if (!token) { window.location.href = '/login'; return null; } return { 'Authorization': `Bearer ${token}` }; }
+
+  async function load() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    try {
+      console.log('Loading costs...');
+      const [dRes, iRes, pRes] = await Promise.all([
+        fetch(`${API_URL}/costs/direct`, { headers }),
+        fetch(`${API_URL}/costs/indirect`, { headers }),
+        fetch(`${API_URL}/products`, { headers })
+      ]);
+      console.log('Responses:', dRes.status, iRes.status, pRes.status);
+      directCosts = await dRes.json();
+      indirectCosts = await iRes.json();
+      products = await pRes.json();
+      console.log('Data loaded - Direct:', directCosts.length, 'Indirect:', indirectCosts.length, 'Products:', products.length);
+      populateProducts();
+      render();
+    } catch (e) { console.error('Load error:', e); }
+  }
+
+  function populateProducts() {
+    const opts = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    document.getElementById('direct-product_id').innerHTML = opts;
+    document.getElementById('indirect-product_id').innerHTML = '<option value="">General</option>' + opts;
+  }
+
+  function render() {
+    const productFilter = document.getElementById('product-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const productId = productFilter.value;
+    const type = typeFilter.value;
+    
+    productFilter.innerHTML = '<option value="">Todos los productos</option>' + products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    if (productId) productFilter.value = productId;
+    
+    typeFilter.innerHTML = `<option value="">Todos los tipos</option>
+      <option value="materia_prima">Materia Prima</option>
+      <option value="mano_obra">Mano de Obra</option>
+      <option value="empaque">Empaque</option>
+      <option value="transporte">Transporte</option>
+      <option value="alquiler">Alquiler</option>
+      <option value="servicios">Servicios</option>
+      <option value="depreciacion">Depreciación</option>
+      <option value="sueldos">Sueldos</option>
+      <option value="seguros">Seguros</option>
+      <option value="mantenimiento">Mantenimiento</option>
+      <option value="impuestos">Impuestos</option>
+      <option value="otro">Otro</option>`;
+    if (type) typeFilter.value = type;
+    
+    const costTypeFilter = document.getElementById('cost-type-filter').value;
+    
+    const productFilterId = productId ? parseInt(productId) : null;
+    const allCosts = [...directCosts.map(c => ({ ...c, costType: 'direct' })), ...indirectCosts.map(c => ({ ...c, costType: 'indirect' }))].filter(c => {
+      if (productFilterId && c.product_id != productFilterId) return false;
+      if (type && c.type !== type) return false;
+      if (costTypeFilter && c.costType !== costTypeFilter) return false;
+      return true;
+    });
+
+    const totalDirect = directCosts.reduce((s, c) => s + (parseFloat(c.amount) * (parseFloat(c.quantity) || 1)), 0);
+    const totalIndirect = indirectCosts.reduce((s, c) => s + (parseFloat(c.amount) * (parseFloat(c.proportion) || 100) / 100), 0);
+    document.getElementById('total-direct').textContent = formatCurrency(totalDirect);
+    document.getElementById('total-indirect').textContent = formatCurrency(totalIndirect);
+
+    const tbody = document.getElementById('table');
+    if (allCosts.length === 0) { tbody.innerHTML = ''; document.getElementById('empty').classList.remove('hidden'); return; }
+    document.getElementById('empty').classList.add('hidden');
+
+    tbody.innerHTML = allCosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(c => `
+      <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+        <td class="table-cell font-medium text-[var(--text-primary)]">${c.product_name || '-'}</td>
+        <td class="table-cell"><span class="px-3 py-1.5 rounded-lg text-xs font-semibold ${c.costType === 'direct' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${c.type}</span></td>
+        <td class="table-cell text-[var(--text-secondary)]">${c.description}</td>
+        <td class="table-cell font-mono font-semibold text-[var(--text-primary)]">${formatCurrency(parseFloat(c.amount) * (parseFloat(c.quantity) || 1))}</td>
+        <td class="table-cell text-[var(--text-muted)]">${new Date(c.created_at).toLocaleDateString('es-MX')}</td>
+        <td class="table-cell">
+          <button class="btn-edit-cost p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-type="${c.costType}" data-id="${c.id}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          </button>
+          <button class="btn-delete-cost p-2 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors" data-type="${c.costType}" data-id="${c.id}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.btn-edit-cost').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type;
+        const id = parseInt(btn.dataset.id);
+        if (type === 'direct') {
+          const cost = directCosts.find(c => c.id === id);
+          if (cost) openDirectModal(cost);
+        } else {
+          const cost = indirectCosts.find(c => c.id === id);
+          if (cost) openIndirectModal(cost);
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-cost').forEach(btn => {
+      btn.addEventListener('click', () => deleteCost(btn.dataset.type, parseInt(btn.dataset.id)));
+    });
+  }
+
+  function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
+
+  function openDirectModal(cost = null) {
+    const modal = document.getElementById('direct-modal');
+    modal.classList.remove('hidden');
+    if (cost) {
+      const idEl = document.getElementById('direct-id');
+      if (idEl) idEl.value = cost.id || '';
+      const prodEl = document.getElementById('direct-product_id');
+      if (prodEl) prodEl.value = cost.product_id || '';
+      document.getElementById('direct-type').value = cost.type || 'materia_prima';
+      document.getElementById('direct-description').value = cost.description || '';
+      document.getElementById('direct-amount').value = cost.amount || '';
+      document.getElementById('direct-quantity').value = cost.quantity || 1;
+      document.getElementById('direct-invoice').value = cost.invoice_number || '';
+      document.getElementById('direct-purchase_date').value = cost.purchase_date || '';
+    } else {
+      document.getElementById('direct-id').value = '';
+      ['direct-product_id','direct-type','direct-description','direct-amount','direct-quantity','direct-invoice','direct-purchase_date'].forEach(f => {
+        const el = document.getElementById(f);
+        if (el) el.value = '';
+      });
+      document.getElementById('direct-quantity').value = '1';
+    }
+  }
+
+  function openIndirectModal(cost = null) {
+    const modal = document.getElementById('indirect-modal');
+    modal.classList.remove('hidden');
+    if (cost) {
+      console.log('Opening indirect modal for cost:', cost);
+      const idEl = document.getElementById('indirect-id');
+      if (idEl) idEl.value = cost.id || '';
+      document.getElementById('indirect-product_id').value = cost.product_id || '';
+      document.getElementById('indirect-type').value = cost.type || 'alquiler';
+      document.getElementById('indirect-description').value = cost.description || '';
+      document.getElementById('indirect-amount').value = cost.amount || '';
+      document.getElementById('indirect-proportion').value = cost.proportion || 100;
+    } else {
+      document.getElementById('indirect-id').value = '';
+      ['indirect-product_id','indirect-type','indirect-description','indirect-amount','indirect-proportion'].forEach(f => {
+        const el = document.getElementById(f);
+        if (el) el.value = '';
+      });
+      document.getElementById('indirect-proportion').value = '100';
+    }
+  }
+
+function closeDirectModal() { document.getElementById('direct-modal').classList.add('hidden'); }
+  function closeIndirectModal() { document.getElementById('indirect-modal').classList.add('hidden'); }
+
+  async function saveDirect() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+
+    const idElement = document.getElementById('direct-id');
+    const id = idElement ? idElement.value : '';
+    const product_id = document.getElementById('direct-product_id').value;
+
+    const data = {
+      product_id: product_id ? parseInt(product_id) : null,
+      type: document.getElementById('direct-type').value,
+      description: document.getElementById('direct-description').value,
+      amount: parseFloat(document.getElementById('direct-amount').value),
+      quantity: parseFloat(document.getElementById('direct-quantity').value) || 1,
+      invoice_number: document.getElementById('direct-invoice').value,
+      purchase_date: document.getElementById('direct-purchase_date').value
+    };
+
+    try {
+      const url = (id && id !== 'undefined') ? `${API_URL}/costs/direct/${id}` : `${API_URL}/costs/direct`;
+      const res = await fetch(url, {
+        method: (id && id !== 'undefined') ? 'PUT' : 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        closeDirectModal();
+        load();
+      } else {
+        alert('Error al guardar');
+      }
+    } catch (e) {
+      alert('Error');
+    }
+  }
+
+  async function saveIndirect() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+
+    const idElement = document.getElementById('indirect-id');
+    const id = idElement ? idElement.value : '';
+    const productIdElement = document.getElementById('indirect-product_id');
+    const productId = productIdElement ? productIdElement.value : '';
+
+    const data = {
+      product_id: productId ? parseInt(productId) : null,
+      type: document.getElementById('indirect-type').value,
+      description: document.getElementById('indirect-description').value,
+      amount: parseFloat(document.getElementById('indirect-amount').value) || 0,
+      proportion: parseFloat(document.getElementById('indirect-proportion').value) || 100
+    };
+
+    console.log('Saving indirect cost. ID:', JSON.stringify(id), 'Data:', data);
+
+    try {
+      const url = (id && id !== 'undefined') ? `${API_URL}/costs/indirect/${id}` : `${API_URL}/costs/indirect`;
+      console.log('URL:', url);
+      const res = await fetch(url, {
+        method: (id && id !== 'undefined') ? 'PUT' : 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      console.log('Response status:', res.status);
+      if (res.ok) {
+        closeIndirectModal();
+        load();
+      } else {
+        const errorText = await res.text();
+        console.error('Save indirect error response:', errorText);
+        let error;
+        try { error = JSON.parse(errorText); } catch(e) { error = { message: errorText }; }
+        alert('Error al guardar: ' + (error.error || error.message || errorText || 'Desconocido'));
+      }
+    } catch (e) {
+      console.error('Save indirect error:', e);
+      alert('Error al guardar');
+    }
+  }
+
+  async function deleteCost(type, id) {
+    if (!confirm('¿Eliminar costo?')) return;
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    try {
+      await fetch(`${API_URL}/costs/${type}/${id}`, { method: 'DELETE', headers });
+      load();
+    } catch (e) { alert('Error'); }
+  }
+
+  // Event listeners
+  document.getElementById('btn-new-direct').addEventListener('click', openDirectModal);
+  document.getElementById('btn-new-indirect').addEventListener('click', openIndirectModal);
+  document.getElementById('btn-close-direct').addEventListener('click', closeDirectModal);
+  document.getElementById('btn-cancel-direct').addEventListener('click', closeDirectModal);
+  document.getElementById('btn-save-direct').addEventListener('click', saveDirect);
+  document.getElementById('btn-close-indirect').addEventListener('click', closeIndirectModal);
+  document.getElementById('btn-cancel-indirect').addEventListener('click', closeIndirectModal);
+  document.getElementById('btn-save-indirect').addEventListener('click', saveIndirect);
+  document.getElementById('product-filter').addEventListener('change', render);
+  document.getElementById('type-filter').addEventListener('change', render);
+  document.getElementById('cost-type-filter').addEventListener('change', render);
+
+  // Dynamic event listeners for table buttons
+  document.addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.btn-edit-cost');
+    if (editBtn) {
+      const type = editBtn.dataset.type;
+      const id = parseInt(editBtn.dataset.id);
+      if (type === 'direct') {
+        const cost = directCosts.find(c => c.id === id);
+        if (cost) openDirectModal(cost);
+      } else {
+        const cost = indirectCosts.find(c => c.id === id);
+        if (cost) openIndirectModal(cost);
+      }
+    }
+    const deleteBtn = e.target.closest('.btn-delete-cost');
+    if (deleteBtn) {
+      const type = deleteBtn.dataset.type;
+      const id = parseInt(deleteBtn.dataset.id);
+      deleteCost(type, id);
+    }
+  });
+
+  // Cerrar modal al hacer click fuera
+  document.getElementById('direct-modal').addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) closeDirectModal(); });
+  document.getElementById('indirect-modal').addEventListener('click', (e) => { if (e.target.classList.contains('modal-overlay')) closeIndirectModal(); });
+
+  load();
+</script>

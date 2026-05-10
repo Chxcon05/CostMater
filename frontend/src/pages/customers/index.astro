@@ -1,0 +1,509 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Sidebar from "../../components/Sidebar.astro";
+import PageHeader from "../../components/PageHeader.astro";
+---
+
+<Layout title="Clientes">
+  <div class="flex min-h-screen">
+    <Sidebar />
+
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all"
+      >
+        <svg
+          class="w-6 h-6 text-[var(--text-primary)]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <PageHeader title="Clientes" subtitle="Gestiona tu base de clientes" />
+
+      <div class="flex flex-wrap gap-3 mb-6">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Buscar cliente..."
+          class="input flex-1 min-w-[200px]"
+        />
+        <button
+          id="btn-new"
+          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"></path></svg
+          >
+          Nuevo Cliente
+        </button>
+      </div>
+
+      <div class="card overflow-x-auto">
+        <table class="w-full min-w-[640px]">
+          <thead
+            ><tr class="table-header"
+              ><th class="table-cell text-left">Nombre</th><th
+                class="table-cell text-left">Email</th
+              ><th class="table-cell text-center">Teléfono</th><th
+                class="table-cell text-right">Crédito</th
+              ><th class="table-cell text-center">Acciones</th></tr
+            ></thead
+          >
+          <tbody id="table" class="divide-y divide-[var(--border-color)]"
+          ></tbody>
+        </table>
+        <div id="empty" class="hidden p-12 text-center">
+          <p class="text-[var(--text-muted)] mb-4">
+            No hay clientes registrados
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal" class="modal-overlay hidden">
+    <div class="modal-content flex flex-col max-h-[90vh]">
+      <div
+        class="p-6 border-b border-[var(--border-color)] flex justify-between items-center flex-shrink-0"
+      >
+        <h3 class="text-lg font-semibold" id="modal-title">Nuevo Cliente</h3>
+        <button id="modal-close" class="text-slate-400 hover:text-slate-600"
+          ><svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"></path></svg
+          ></button
+        >
+      </div>
+      <form id="form" class="p-6 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="record-id" />
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label">Nombre *</label><input
+              type="text"
+              id="name"
+              class="input"
+              required
+            />
+          </div>
+          <div>
+            <label class="label">Email</label><input
+              type="email"
+              id="email"
+              class="input"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label class="label">Teléfono</label><input
+              type="text"
+              id="phone"
+              class="input"
+            />
+          </div>
+          <div>
+            <label class="label">Dirección</label><input
+              type="text"
+              id="address"
+              class="input"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div>
+            <label class="label">País</label>
+            <select id="country" class="input">
+              <option value="">Seleccionar...</option>
+              <option value="MX">México</option>
+              <option value="CR">Costa Rica</option>
+              <option value="CO">Colombia</option>
+              <option value="AR">Argentina</option>
+              <option value="ES">España</option>
+              <option value="US">Estados Unidos</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Ciudad</label><input
+              type="text"
+              id="city"
+              class="input"
+              list="city-list"
+            /><datalist id="city-list"></datalist>
+          </div>
+          <div>
+            <label class="label">Código Postal</label><input
+              type="text"
+              id="postal_code"
+              class="input"
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label class="label">Límite de crédito</label><input
+              type="number"
+              id="credit_limit"
+              class="input"
+              step="0.01"
+            />
+          </div>
+          <div>
+            <label class="label">Días de crédito</label><input
+              type="number"
+              id="payment_days"
+              class="input"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="label">Notas</label><textarea
+            id="notes"
+            class="input"
+            rows="2"></textarea>
+        </div>
+      </form>
+      <div
+        class="p-6 border-t border-[var(--border-color)] flex gap-3 justify-end flex-shrink-0"
+      >
+        <button
+          type="button"
+          id="modal-cancel"
+          class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button
+        >
+        <button
+          type="button"
+          id="modal-save"
+          class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button
+        >
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-sm p-6 text-center">
+      <h3 class="text-lg font-semibold mb-2">¿Eliminar cliente?</h3>
+      <p class="text-slate-500 mb-6">Esta acción no se puede deshacer.</p>
+      <div class="flex gap-3 justify-center">
+        <button id="delete-cancel" class="btn-secondary rounded-lg"
+          >Cancelar</button
+        >
+        <button id="delete-confirm" class="btn-danger rounded-lg"
+          >Eliminar</button
+        >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  console.log("Customers script loaded");
+
+  const API_URL = "http://localhost:3000/api";
+  let data = [];
+  let currentId = null;
+
+  const citiesByCountry = {
+    MX: [
+      "Ciudad de México",
+      "Guadalajara",
+      "Monterrey",
+      "Puebla",
+      "Tijuana",
+      "Cancún",
+      "Mérida",
+      "Querétaro",
+    ],
+    CR: [
+      "San José",
+      "Cartago",
+      "Heredia",
+      "Alajuela",
+      "Puntarenas",
+      "Limón",
+      "Liberia",
+      "Nicoya",
+    ],
+    CO: [
+      "Bogotá",
+      "Medellín",
+      "Cali",
+      "Barranquilla",
+      "Cartagena",
+      "Bucaramanga",
+      "Pereira",
+      "Manizales",
+    ],
+    AR: [
+      "Buenos Aires",
+      "Córdoba",
+      "Rosario",
+      "Mendoza",
+      "Tucumán",
+      "La Plata",
+      "Mar del Plata",
+      "Salta",
+    ],
+    ES: [
+      "Madrid",
+      "Barcelona",
+      "Valencia",
+      "Sevilla",
+      "Zaragoza",
+      "Málaga",
+      "Murcia",
+      "Palma",
+    ],
+    US: [
+      "Nueva York",
+      "Los Ángeles",
+      "Chicago",
+      "Houston",
+      "Phoenix",
+      "Philadelphia",
+      "San Antonio",
+      "San Diego",
+    ],
+  };
+
+  const countrySelect = document.getElementById("country");
+  const cityInput = document.getElementById("city");
+  const cityList = document.getElementById("city-list");
+
+  if (countrySelect) {
+    countrySelect.addEventListener("change", function () {
+      const cities = citiesByCountry[this.value] || [];
+      cityList.innerHTML = cities.map((c) => `<option value="${c}">`).join("");
+      cityInput.value = "";
+    });
+  }
+
+  function getAuthHeaders() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return null;
+    }
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  async function load() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    try {
+      const res = await fetch(`${API_URL}/customers`, { headers });
+      data = await res.json();
+      render();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function render() {
+    const search = document.getElementById("search-input").value.toLowerCase();
+    const filtered = data.filter(
+      (d) => !search || d.name.toLowerCase().includes(search),
+    );
+    const tbody = document.getElementById("table");
+    const empty = document.getElementById("empty");
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+    empty.classList.add("hidden");
+    tbody.innerHTML = filtered
+      .map(
+        (d) => `
+      <tr class="hover:bg-[#22222c]">
+        <td class="table-cell font-medium text-left text-[var(--text-primary)]">${d.name}</td>
+        <td class="table-cell text-left">${d.email || "-"}</td>
+        <td class="table-cell text-center">${d.phone || "-"}</td>
+        <td class="table-cell font-mono text-right">${formatCurrency(d.credit_limit)}</td>
+        <td class="table-cell text-center">
+          <div class="flex gap-2 justify-center">
+            <button data-id="${d.id}" class="edit-btn p-1 text-slate-400 hover:text-primary-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+            <button data-id="${d.id}" class="delete-btn p-1 text-slate-400 hover:text-red-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+          </div>
+        </td>
+      </tr>
+    `,
+      )
+      .join("");
+
+    tbody.querySelectorAll(".edit-btn").forEach((btn) => {
+      btn.addEventListener("click", () => edit(parseInt(btn.dataset.id)));
+    });
+    tbody.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        confirmDelete(parseInt(btn.dataset.id)),
+      );
+    });
+  }
+
+  function formatCurrency(v) {
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+    }).format(v || 0);
+  }
+
+  function openModal(id = null) {
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("btn-new").classList.add("hidden");
+    document.getElementById("form").reset();
+    document.getElementById("record-id").value = "";
+    document.getElementById("modal-title").textContent = "Nuevo Cliente";
+
+    if (id) {
+      const r = data.find((d) => d.id === id);
+      if (r) {
+        document.getElementById("record-id").value = r.id;
+        [
+          "name",
+          "email",
+          "phone",
+          "address",
+          "city",
+          "postal_code",
+          "credit_limit",
+          "payment_days",
+          "notes",
+          "country",
+        ].forEach((f) => {
+          document.getElementById(f).value = r[f] || "";
+        });
+        if (r.country && countrySelect) {
+          countrySelect.dispatchEvent(new Event("change"));
+        }
+        document.getElementById("modal-title").textContent = "Editar Cliente";
+      }
+    }
+  }
+
+  function closeModal() {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("btn-new").classList.remove("hidden");
+  }
+  function edit(id) {
+    openModal(id);
+  }
+
+  async function save() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+
+    const id = document.getElementById("record-id").value;
+
+    const fields = [
+      "name",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "postal_code",
+      "credit_limit",
+      "payment_days",
+      "notes",
+      "country",
+    ];
+    const body = {};
+    fields.forEach((f) => {
+      const val = document.getElementById(f).value;
+      body[f] =
+        val !== ""
+          ? val
+          : f === "credit_limit" || f === "payment_days"
+            ? 0
+            : "";
+    });
+
+    try {
+      console.log("Saving customer:", body);
+      const res = await fetch(`${API_URL}/customers${id ? "/" + id : ""}`, {
+        method: id ? "PUT" : "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        closeModal();
+        load();
+      } else {
+        const error = await res.json();
+        console.error("Save error:", error);
+        alert("Error al guardar: " + (error.error || "Desconocido"));
+      }
+    } catch (e) {
+      console.error("Save error:", e);
+      alert("Error al guardar");
+    }
+  }
+
+  function confirmDelete(id) {
+    currentId = id;
+    document.getElementById("delete-modal").classList.remove("hidden");
+  }
+
+  async function deleteRecord() {
+    const headers = getAuthHeaders();
+    if (!headers || !currentId) return;
+    await fetch(`${API_URL}/customers/${currentId}`, {
+      method: "DELETE",
+      headers,
+    });
+    document.getElementById("delete-modal").classList.add("hidden");
+    currentId = null;
+    load();
+  }
+
+  document.getElementById("search-input").addEventListener("input", render);
+  document.getElementById("btn-new").addEventListener("click", () => {
+    openModal();
+  });
+  document.getElementById("mobile-menu-btn").addEventListener("click", () => {
+    document.querySelector("aside").classList.toggle("-translate-x-full");
+  });
+  document
+    .getElementById("modal-close")
+    .addEventListener("click", () => closeModal());
+  document
+    .getElementById("modal-cancel")
+    .addEventListener("click", () => closeModal());
+  document.getElementById("modal-save").addEventListener("click", () => save());
+  document
+    .getElementById("delete-cancel")
+    .addEventListener("click", () =>
+      document.getElementById("delete-modal").classList.add("hidden"),
+    );
+  document
+    .getElementById("delete-confirm")
+    .addEventListener("click", () => deleteRecord());
+
+  render();
+  load();
+</script>

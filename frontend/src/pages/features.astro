@@ -1,0 +1,270 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Cómo Funciona - CostMaster">
+  <div class="features-page">
+    <div class="page-bg"></div>
+    
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/80 backdrop-blur-sm border-b border-[var(--border-color)]">
+      <div class="max-w-5xl mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2.5 group">
+          <div class="w-8 h-8 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.5" d="M4 4h8v16H4zM12 4v16M20 4v16" />
+            </svg>
+          </div>
+          <span class="text-lg font-semibold tracking-tight">COSTMASTER</span>
+        </a>
+        <div class="flex items-center gap-2">
+          <a href="/login" class="btn btn-secondary text-sm py-2 px-4" style="border-radius: 2px">Login</a>
+          <a href="/register" class="btn btn-primary text-sm py-2 px-4" style="border-radius: 2px">Comenzar</a>
+        </div>
+      </div>
+    </nav>
+
+    <main style="padding-top: 120px;" class="pb-20 px-6">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16">
+          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+            ¿Qué es <span class="text-[var(--accent-primary)]">CostMaster</span>?
+          </h1>
+          <p class="text-[var(--text-muted)] text-lg">
+            La herramienta profesional para calcular, analizar y optimizar cada peso de tu negocio
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-12">
+          <section class="glass-card">
+            <div class="glass-icon">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <div class="glass-number">01</div>
+            <h2 class="glass-title">Registro de Productos y Servicios</h2>
+            <p class="glass-desc">
+              Cataloga cada producto o servicio que vendes con su nombre, descripción, precio y categoría. 
+              Mantén tu inventario organizado y actualizado.
+            </p>
+            <div class="glass-line"></div>
+          </section>
+
+          <section class="glass-card">
+            <div class="glass-icon green">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1V7" />
+              </svg>
+            </div>
+            <div class="glass-number">02</div>
+            <h2 class="glass-title">Control de Costos</h2>
+            <p class="glass-desc">
+              Registra los costos directos (materia prima, mano de obra) e indirectos (renta, servicios, transporte) 
+              por cada producto. El sistema calcula automáticamente el costo total.
+            </p>
+            <div class="glass-line green"></div>
+          </section>
+
+          <section class="glass-card">
+            <div class="glass-icon orange">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <div class="glass-number">03</div>
+            <h2 class="glass-title">Cálculo de Rentabilidad</h2>
+            <p class="glass-desc">
+              Compara tu precio de venta con el costo total para ver el margen de ganancia por producto. 
+              Identifica cuáles productos son más rentables.
+            </p>
+            <div class="glass-line orange"></div>
+          </section>
+
+          <section class="glass-card">
+            <div class="glass-icon">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div class="glass-number">04</div>
+            <h2 class="glass-title">Gestión de Clientes y Proveedores</h2>
+            <p class="glass-desc">
+              Mantén una base de datos de tus clientes y proveedores con información de contacto. 
+              Controla quién te compra y de quién compras.
+            </p>
+            <div class="glass-line"></div>
+          </section>
+
+          <section class="glass-card">
+            <div class="glass-icon green">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div class="glass-number">05</div>
+            <h2 class="glass-title">Reportes y Análisis</h2>
+            <p class="glass-desc">
+              Genera reportes de ventas, costos y rentabilidad. Visualiza gráficos y tablas 
+              para tomar decisiones basadas en datos reales.
+            </p>
+            <div class="glass-line green"></div>
+          </section>
+
+          <section class="glass-card">
+            <div class="glass-icon orange">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div class="glass-number">06</div>
+            <h2 class="glass-title">¿Por qué CostMaster?</h2>
+            <ul class="glass-list">
+              <li>100% online - accede desde cualquier dispositivo</li>
+              <li>Sin costo inicial - comienza gratis</li>
+              <li>Datos seguros - tu información siempre protegida</li>
+              <li>Interfaz intuitiva - sin conocimientos contables</li>
+            </ul>
+            <div class="glass-line orange"></div>
+          </section>
+        </div>
+
+        <div class="text-center" style="margin-top: 60px; margin-bottom: 60px;">
+          <a href="/register" class="btn btn-primary py-5 px-12 text-xl group inline-flex" style="border-radius: 2px">
+            Comenzar Gratuitamente
+            <svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="py-8 border-t border-[var(--border-color)]">
+      <div class="max-w-6xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 4h8v16H4zM12 4v16M20 4v16" />
+              </svg>
+            </div>
+            <span class="text-sm font-semibold">COSTMASTER</span>
+          </div>
+          <p class="text-xs text-[var(--text-muted)]">
+            © 2026 CostMaster. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</Layout>
+
+<style>
+  .page-bg {
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .features-page {
+    position: relative;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-4px);
+  }
+
+  .glass-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: var(--accent-primary);
+  }
+
+  .glass-icon.green {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--accent-secondary);
+  }
+
+  .glass-icon.orange {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: var(--accent-tertiary);
+  }
+
+  .glass-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .glass-line.green {
+    background: var(--accent-secondary);
+  }
+
+  .glass-line.orange {
+    background: var(--accent-tertiary);
+  }
+
+  .glass-card:hover .glass-line {
+    transform: scaleX(1);
+  }
+
+  .glass-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .glass-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .glass-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .glass-list li {
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-list li:last-child {
+    border-bottom: none;
+  }
+</style>

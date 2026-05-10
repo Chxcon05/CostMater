@@ -1,0 +1,19 @@
+{
+  "name": "costmaster-backend",
+  "version": "2.0.0",
+  "description": "Backend API for CostMaster - Cost Accounting System",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "sql.js": "^1.10.3"
+  }
+}

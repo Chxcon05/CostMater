@@ -1,0 +1,342 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<Layout title="Dashboard">
+  <div class="flex min-h-screen">
+    <Sidebar />
+    <main class="flex-1 p-4 md:p-6 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-2 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Dashboard" subtitle="Resumen de tu contabilidad" />
+      
+      <div id="loading" class="flex items-center justify-center h-64">
+        <div class="flex flex-col items-center gap-4">
+          <div class="w-10 h-10 border-2 border-[var(--border-color)] border-t-[var(--accent-primary)] rounded-full animate-spin"></div>
+          <p class="text-[var(--text-muted)] text-sm">Cargando datos...</p>
+        </div>
+      </div>
+
+      <div id="content" class="hidden">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6">
+          <div class="kpi-card animate-element" data-delay="0">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Productos</span>
+              <div class="w-9 h-9 bg-[var(--accent-primary)]/15 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            </div>
+            <p class="stat-value text-2xl" id="kpi-products">0</p>
+            <p class="stat-label">Productos registrados</p>
+          </div>
+
+          <div class="kpi-card animate-element" data-delay="50">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Costos Directos</span>
+              <div class="w-9 h-9 bg-[var(--accent-secondary)]/15 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1V7" />
+                </svg>
+              </div>
+            </div>
+            <p class="stat-value text-2xl text-[var(--accent-secondary)]" id="kpi-direct-costs">$0</p>
+            <p class="stat-label">Materia prima y mano de obra</p>
+          </div>
+
+          <div class="kpi-card animate-element" data-delay="100">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Costos Indirectos</span>
+              <div class="w-9 h-9 bg-[var(--accent-warning)]/15 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-[var(--accent-warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0l2-2m-2 2l-2-2" />
+                </svg>
+              </div>
+            </div>
+            <p class="stat-value text-2xl text-[var(--accent-warning)]" id="kpi-indirect-costs">$0</p>
+            <p class="stat-label">Gastos generales</p>
+          </div>
+
+          <div class="kpi-card animate-element" data-delay="150">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Rentables</span>
+              <div class="w-9 h-9 bg-[var(--accent-tertiary)]/15 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-[var(--accent-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+            </div>
+            <p class="stat-value text-2xl" id="kpi-profitable">0</p>
+            <p class="stat-label">Con margen positivo</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-5">
+          <div class="card p-5 animate-element" data-delay="200">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+              <span class="w-2 h-2 bg-[var(--accent-primary)] rounded-full"></span>
+              Margen de Rentabilidad Promedio
+            </h3>
+            <div class="h-60">
+              <canvas id="marginChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card p-5 animate-element" data-delay="250">
+            <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+              <span class="w-2 h-2 bg-[var(--accent-tertiary)] rounded-full"></span>
+              Resumen de Costos
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+                <span class="text-sm text-[var(--text-secondary)]">Costo Total</span>
+                <span class="text-base font-semibold text-[var(--text-primary)] font-mono" id="total-costs">$0</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-[var(--accent-secondary)]/10 rounded-lg border border-[var(--accent-secondary)]/30">
+                <span class="text-xs text-[var(--accent-secondary)] uppercase tracking-wide font-medium">Costos Directos</span>
+                <span class="text-base font-semibold text-[var(--accent-secondary)] font-mono" id="summary-direct">$0</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-[var(--accent-warning)]/10 rounded-lg border border-[var(--accent-warning)]/30">
+                <span class="text-xs text-[var(--accent-warning)] uppercase tracking-wide font-medium">Costos Indirectos</span>
+                <span class="text-base font-semibold text-[var(--accent-warning)] font-mono" id="summary-indirect">$0</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-[var(--accent-tertiary)]/10 rounded-lg border border-[var(--accent-tertiary)]/30">
+                <span class="text-xs text-[var(--accent-tertiary)] uppercase tracking-wide font-medium">Costo Promedio</span>
+                <span class="text-base font-semibold text-[var(--accent-tertiary)] font-mono" id="avg-cost">$0</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-[var(--accent-primary)]/10 rounded-lg border border-[var(--accent-primary)]/30">
+                <span class="text-xs text-[var(--accent-primary)] uppercase tracking-wide font-medium">Sin Costos</span>
+                <span class="text-base font-semibold text-[var(--accent-primary)] font-mono" id="products-no-costs">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-5 animate-element" data-delay="300">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 bg-[var(--accent-tertiary)] rounded-full"></span>
+            Top 5 Productos Más Rentables
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="table-header">
+                  <th class="table-cell">Producto</th>
+                  <th class="table-cell hidden sm:table-cell">Costo Total</th>
+                  <th class="table-cell">Precio Venta</th>
+                  <th class="table-cell">Margen</th>
+                  <th class="table-cell">Ganancia</th>
+                </tr>
+              </thead>
+              <tbody id="top-products-table" class="divide-y divide-[var(--border-color)]"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .animate-element {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const animatedElements = document.querySelectorAll('.animate-element');
+
+  const animateOnScroll = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.dataset.delay || 0;
+        setTimeout(() => {
+          entry.target.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }, parseInt(delay));
+      }
+    });
+  }, { threshold: 0.1 });
+
+  animatedElements.forEach(el => animateOnScroll.observe(el));
+
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+
+  async function init() {
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (typeof Chart === 'undefined' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js no se cargó');
+      document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Error al cargar Chart.js</p>';
+      return;
+    }
+    
+    loadDashboard();
+  }
+
+  const API_URL = 'http://localhost:3000/api';
+
+  function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return null;
+    }
+    return { 'Authorization': `Bearer ${token}` };
+  }
+
+  async function loadDashboard() {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+
+    try {
+      const [summaryRes, rentabilityRes] = await Promise.all([
+        fetch(`${API_URL}/reports/summary`, { headers }),
+        fetch(`${API_URL}/reports/rentability`, { headers })
+      ]);
+
+      if (summaryRes.status === 401 || summaryRes.status === 403) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
+
+      const summary = await summaryRes.json();
+      const rentabilityData = await rentabilityRes.json();
+      const rentability = Array.isArray(rentabilityData) ? rentabilityData : [];
+
+      let profitabilityData = [];
+      try {
+        const profRes = await fetch(`${API_URL}/reports/rentability`, { headers });
+        if (profRes.ok) profitabilityData = await profRes.json();
+      } catch (e) { console.error(e); }
+
+      document.getElementById('kpi-products').textContent = summary.totalProducts || 0;
+      document.getElementById('kpi-direct-costs').textContent = formatCurrency(summary.totalDirectCosts);
+      document.getElementById('kpi-indirect-costs').textContent = formatCurrency(summary.totalIndirectCosts);
+      document.getElementById('kpi-profitable').textContent = summary.profitableProducts || 0;
+
+      const totalCosts = (summary.totalDirectCosts || 0) + (summary.totalIndirectCosts || 0);
+      document.getElementById('total-costs').textContent = formatCurrency(totalCosts);
+      document.getElementById('summary-direct').textContent = formatCurrency(summary.totalDirectCosts);
+      document.getElementById('summary-indirect').textContent = formatCurrency(summary.totalIndirectCosts);
+      
+      const avgCost = summary.totalProducts > 0 ? totalCosts / summary.totalProducts : 0;
+      document.getElementById('avg-cost').textContent = formatCurrency(avgCost);
+      
+      const productsNoCosts = rentability.filter(p => (p.total_cost || 0) === 0).length;
+      document.getElementById('products-no-costs').textContent = productsNoCosts;
+
+      renderMarginChart(profitabilityData);
+      renderTopProductsTable(rentability);
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Error al cargar el dashboard</p>';
+    }
+  }
+
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount || 0);
+  }
+
+  function renderMarginChart(data) {
+    const ctx = document.getElementById('marginChart').getContext('2d');
+    if (!data || data.length === 0) {
+      console.log('No profitability data');
+      return;
+    }
+    const top10 = data.slice(0, 10);
+    const labels = top10.map(p => p.name);
+    const margins = top10.map(p => parseFloat(p.margin) || 0);
+    const backgroundColors = margins.map(m => m >= 0 ? '#10b981' : '#ef4444');
+    try {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Margen %',
+            data: margins,
+            backgroundColor: backgroundColors,
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { color: '#2e2e3a' },
+              ticks: { color: '#52525b', font: { size: 10 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#52525b', font: { size: 10 } }
+            }
+          }
+        }
+      });
+     } catch (e) {
+      console.error('Chart error:', e);
+    }
+  }
+
+  function renderTopProductsTable(products) {
+    const tbody = document.getElementById('top-products-table');
+    const top5 = products.slice(0, 5);
+    
+    if (top5.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="table-cell text-center text-[var(--text-muted)]">No hay productos registrados</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = top5.map(p => `
+      <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
+        <td class="table-cell font-mono hidden sm:table-cell text-xs">${formatCurrency(p.total_cost)}</td>
+        <td class="table-cell font-mono text-xs">${formatCurrency(p.selling_price)}</td>
+        <td class="table-cell">
+          <span class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.margin >= 0 ? 'bg-[var(--accent-success)]/20 text-[var(--accent-success)]' : 'bg-[var(--accent-danger)]/20 text-[var(--accent-danger)]'}">
+            ${p.margin.toFixed(1)}%
+          </span>
+        </td>
+        <td class="table-cell font-mono text-xs font-semibold ${p.profit >= 0 ? 'text-[var(--accent-success)]' : 'text-[var(--accent-danger)]'}">
+          ${formatCurrency(p.profit)}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  init();
+</script>

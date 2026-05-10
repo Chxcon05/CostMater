@@ -1,0 +1,355 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import PageHeader from '../../components/PageHeader.astro';
+---
+
+<Layout title="Productos">
+  <div class="flex min-h-screen">
+    <Sidebar />
+    
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Productos y Servicios" subtitle="Gestiona tu inventario y servicios" />
+      
+      <div class="flex gap-3 mb-6 flex-wrap">
+        <input type="text" id="search-input" placeholder="Buscar..." class="input max-w-xs" />
+        <select id="category-filter" class="input w-44">
+          <option value="">Categoría</option>
+        </select>
+        <select id="type-filter" class="input w-36">
+          <option value="">Tipo</option>
+          <option value="producto">Producto</option>
+          <option value="servicio">Servicio</option>
+        </select>
+        <button id="btn-new-product" class="btn-primary rounded-lg px-5 py-2.5 text-sm">+ Nuevo</button>
+        <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm">Categorías</button>
+      </div>
+
+      <div class="card mb-6 overflow-x-auto">
+        <table class="w-full text-sm min-w-[640px]">
+          <thead><tr class="table-header">
+            <th class="table-cell">SKU</th>
+            <th class="table-cell">Producto</th>
+            <th class="table-cell">Categoría</th>
+            <th class="table-cell">Tipo</th>
+            <th class="table-cell text-right">Costo</th>
+            <th class="table-cell text-right">Venta</th>
+            <th class="table-cell text-right">Margen</th>
+            <th class="table-cell w-24">Acciones</th>
+          </tr></thead>
+          <tbody id="products-table" class="divide-y divide-[var(--border-color)]"></tbody>
+        </table>
+        <div id="empty-msg" class="hidden p-12 text-center text-[var(--text-muted)]">No hay productos</div>
+      </div>
+
+      <div id="cats-section" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-[var(--text-primary)]">Categorías</h3>
+          <button id="btn-new-cat" class="btn-primary text-xs rounded-lg px-3 py-1.5">+Nueva</button>
+        </div>
+        <div id="cats-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="product-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-lg">
+      <div class="p-4 border-b flex justify-between">
+        <h3 class="font-semibold" id="prod-title">Nuevo Producto</h3>
+        <button id="prod-close" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+       <form class="p-4 space-y-3">
+         <input type="hidden" id="prod-id" />
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+           <div><label class="label">Nombre *</label><input type="text" id="prod-name" class="input" required /></div>
+           <div><label class="label">SKU</label><input type="text" id="prod-sku" class="input" /></div>
+         </div>
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+           <div><label class="label">Tipo</label><select id="prod-type" class="input"><option value="producto">Producto</option><option value="servicio">Servicio</option></select></div>
+           <div><label class="label">Categoría</label><select id="prod-cat" class="input"><option value="">Sin categoría</option></select></div>
+         </div>
+         <div><label class="label">Descripción</label><textarea id="prod-desc" class="input" rows="2"></textarea></div>
+         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+           <div><label class="label">Unidad</label><input type="text" id="prod-unit" class="input" value="unidad" /></div>
+           <div><label class="label">Cantidad</label><input type="number" id="prod-qty" class="input" value="1" /></div>
+           <div><label class="label">Precio Venta</label><input type="number" id="prod-price" class="input" step="0.01" /></div>
+         </div>
+       </form>
+      <div class="p-4 border-t flex gap-2 justify-end">
+        <button type="button" id="prod-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
+        <button type="button" id="prod-save" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-sm p-6 text-center">
+      <h3 class="font-semibold mb-2">¿Eliminar?</h3>
+      <div class="flex gap-3 justify-center mt-4">
+        <button id="del-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
+        <button id="del-confirm" class="btn-danger rounded-lg text-sm py-2 px-4">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cat-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-sm">
+      <div class="p-4 border-b flex justify-between">
+        <h3 class="font-semibold" id="cat-title">Nueva Categoría</h3>
+        <button id="cat-close" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form class="p-4 space-y-3">
+        <input type="hidden" id="cat-id" />
+        <div><label class="label">Nombre *</label><input type="text" id="cat-name" class="input" /></div>
+        <div><label class="label">Color</label><input type="color" id="cat-color" class="w-full h-10" value="#3b82f6" /></div>
+      </form>
+      <div class="p-4 border-t flex gap-2 justify-end">
+        <button type="button" id="cat-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
+        <button type="button" id="cat-save" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const API = 'http://localhost:3000/api';
+  let products = [], categories = [], delId = null, editCatId = null;
+
+  const $ = id => document.getElementById(id);
+
+  function auth() {
+    const t = localStorage.getItem('token');
+    if (!t) location.href = '/login';
+    return { Authorization: `Bearer ${t}` };
+  }
+
+  async function load() {
+    const h = auth();
+    if (!h) return;
+    [products, categories] = await Promise.all([
+      fetch(`${API}/products`, { headers: h }).then(r => r.json()),
+      fetch(`${API}/categories`, { headers: h }).then(r => r.json())
+    ]);
+    render();
+    renderCats();
+  }
+
+  function populateCategoryDropdowns() {
+    const cats = Array.isArray(categories) ? categories : [];
+    const opts = '<option value="">Categoría</option>' + cats.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+    const currentCatFilter = $('category-filter').value;
+    $('category-filter').innerHTML = opts;
+    if (currentCatFilter) $('category-filter').value = currentCatFilter;
+
+    $('prod-cat').innerHTML = '<option value="">Sin categoría</option>' + cats.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+  }
+
+  function render() {
+    const s = $('search-input').value.toLowerCase();
+    const t = $('type-filter').value;
+    const c = $('category-filter').value;
+    const catId = c ? parseInt(c) : null;
+    
+    let list = products.filter(p => {
+      if (s && !p.name.toLowerCase().includes(s) && !(p.sku || '').toLowerCase().includes(s)) return false;
+      if (t && p.type !== t) return false;
+      if (catId && p.category_id != catId) return false;
+      return true;
+    });
+
+    const cats = Array.isArray(categories) ? categories : [];
+    const catMap = {}; cats.forEach(x => catMap[x.id] = x);
+    $('products-table').innerHTML = list.map(p => {
+      const cat = catMap[p.category_id];
+      const margin = p.selling_price > 0 ? ((p.selling_price - (p.unit_cost || 0)) / p.selling_price * 100).toFixed(0) : 0;
+      return `<tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+        <td class="table-cell text-xs font-mono text-[var(--text-muted)]">${p.sku || '-'}</td>
+        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
+        <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-medium" style="background:${cat?.color || '#6b7280'}20;color:${cat?.color || '#9ca3af'}">${cat?.name || '-'}</span></td>
+        <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-medium ${p.type === 'producto' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}">${p.type === 'producto' ? 'Prod' : 'Serv'}</span></td>
+        <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.unit_cost || 0).toFixed(2)}</td>
+        <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.selling_price || 0).toFixed(2)}</td>
+        <td class="table-cell text-right"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${margin >= 20 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : margin >= 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">${margin}%</span></td>
+        <td class="table-cell">
+          <button class="edit-btn p-2 hover:text-[var(--accent-secondary)] transition-colors" data-id="${p.id}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          </button>
+          <button class="del-btn p-2 hover:text-[var(--accent-danger)] transition-colors" data-id="${p.id}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+    
+    $('empty-msg').classList.toggle('hidden', list.length > 0);
+
+    $('products-table').querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openProd(parseInt(b.dataset.id))));
+    $('products-table').querySelectorAll('.del-btn').forEach(b => b.addEventListener('click', () => { delId = parseInt(b.dataset.id); $('delete-modal').classList.remove('hidden'); }));
+
+    populateCategoryDropdowns();
+  }
+
+  function renderCats() {
+    $('cats-list').innerHTML = categories.length ? categories.map(c => `<div class="card p-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-4 h-4 rounded-lg" style="background:${c.color}"></div>
+        <span class="text-[var(--text-primary)]">${c.name}</span>
+      </div>
+      <div class="flex gap-1">
+        <button class="edit-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-id="${c.id}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        </button>
+        <button class="del-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors" data-id="${c.id}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    </div>`).join('') : '<p class="text-[var(--text-muted)] col-span-4 text-center py-8">Sin categorías</p>';
+
+    $('cats-list').querySelectorAll('.edit-cat').forEach(b => b.addEventListener('click', () => openCat(parseInt(b.dataset.id))));
+    $('cats-list').querySelectorAll('.del-cat').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Eliminar?')) return;
+      await fetch(`${API}/categories/${b.dataset.id}`, { method: 'DELETE', headers: auth() });
+      load();
+    }));
+  }
+
+  function openProd(id = null) {
+    populateCategoryDropdowns();
+    $('product-modal').classList.remove('hidden');
+    $('prod-title').textContent = id ? 'Editar' : 'Nuevo';
+    $('prod-id').value = '';
+    $('prod-name').value = '';
+    $('prod-sku').value = '';
+    $('prod-type').value = 'producto';
+    $('prod-desc').value = '';
+    $('prod-unit').value = 'unidad';
+    $('prod-qty').value = '1';
+    $('prod-price').value = '';
+    $('prod-cat').value = '';
+
+    if (id) {
+      const p = products.find(x => x.id === id);
+      if (p) {
+        $('prod-id').value = p.id;
+        $('prod-name').value = p.name;
+        $('prod-sku').value = p.sku || '';
+        $('prod-type').value = p.type;
+        $('prod-cat').value = p.category_id || '';
+        $('prod-desc').value = p.description || '';
+        $('prod-unit').value = p.unit || 'unidad';
+        $('prod-qty').value = p.quantity || 1;
+        $('prod-price').value = p.selling_price || '';
+      }
+    }
+  }
+
+  function openCat(id = null) {
+    $('cat-modal').classList.remove('hidden');
+    $('cat-title').textContent = id ? 'Editar' : 'Nueva';
+    $('cat-id').value = '';
+    $('cat-name').value = '';
+    $('cat-color').value = '#3b82f6';
+    if (id) {
+      const c = categories.find(x => x.id === id);
+      if (c) { $('cat-id').value = c.id; $('cat-name').value = c.name; $('cat-color').value = c.color || '#3b82f6'; }
+    }
+  }
+
+  async function saveProd() {
+    const h = auth();
+    if (!h) return;
+
+    const id = $('prod-id').value;
+    const catSelect = $('prod-cat');
+    const catVal = catSelect.value;
+    const catId = catVal === '' || catVal === null ? null : parseInt(catVal);
+
+    const data = {
+      name: $('prod-name').value,
+      sku: $('prod-sku').value,
+      type: $('prod-type').value,
+      category_id: catId,
+      description: $('prod-desc').value,
+      unit: $('prod-unit').value,
+      quantity: parseInt($('prod-qty').value) || 1,
+      selling_price: parseFloat($('prod-price').value) || 0
+    };
+
+    const url = id ? `${API}/products/${id}` : `${API}/products`;
+    const res = await fetch(url, {
+      method: id ? 'PUT' : 'POST',
+      headers: { ...h, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      $('product-modal').classList.add('hidden');
+      load();
+    } else {
+      const err = await res.json().catch(() => ({ error: 'Error al guardar' }));
+      alert(err.error || 'Error al guardar el producto');
+    }
+  }
+
+  async function saveCat() {
+    const h = auth();
+    if (!h) return;
+
+    const id = $('cat-id').value;
+    const data = { name: $('cat-name').value, color: $('cat-color').value };
+
+    const res = await fetch(`${API}/categories${id ? '/' + id : ''}`, {
+      method: id ? 'PUT' : 'POST',
+      headers: { ...h, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      $('cat-modal').classList.add('hidden');
+      load();
+    }
+  }
+
+  async function deleteProd() {
+    if (!delId) return;
+    await fetch(`${API}/products/${delId}`, { method: 'DELETE', headers: auth() });
+    $('delete-modal').classList.add('hidden');
+    delId = null;
+    load();
+  }
+
+  // Events
+  $('search-input').addEventListener('input', render);
+  $('type-filter').addEventListener('change', render);
+  $('category-filter').addEventListener('change', () => {
+    console.log('Category filter changed:', $('category-filter').value);
+    render();
+  });
+  $('btn-new-product').addEventListener('click', () => openProd());
+  $('btn-manage-cats').addEventListener('click', () => $('cats-section').classList.toggle('hidden'));
+  $('btn-new-cat').addEventListener('click', () => openCat());
+  $('prod-close').addEventListener('click', () => $('product-modal').classList.add('hidden'));
+  $('prod-cancel').addEventListener('click', () => $('product-modal').classList.add('hidden'));
+  $('prod-save').addEventListener('click', saveProd);
+  $('del-cancel').addEventListener('click', () => $('delete-modal').classList.add('hidden'));
+  $('del-confirm').addEventListener('click', deleteProd);
+  $('cat-close').addEventListener('click', () => $('cat-modal').classList.add('hidden'));
+  $('cat-cancel').addEventListener('click', () => $('cat-modal').classList.add('hidden'));
+  $('cat-save').addEventListener('click', saveCat);
+
+  ['product-modal', 'delete-modal', 'cat-modal'].forEach(id => {
+    $(id).addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) $(id).classList.add('hidden'); });
+  });
+
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+
+  load();
+</script>

@@ -1,0 +1,170 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Registrarse">
+  <script>
+    if (localStorage.getItem('token')) {
+      window.location.href = '/dashboard';
+    }
+  </script>
+  <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div class="login-bg"></div>
+    <div class="login-dots"></div>
+    
+    <div class="w-full max-w-sm relative z-10">
+      <div class="login-header" style="opacity: 0; transform: translateY(-20px);">
+        <a href="/" class="inline-flex items-center gap-3 group">
+          <div class="w-10 h-10 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center">
+            <svg class="w-6 h-6 text-white group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.5" d="M4 4h8v16H4zM12 4v16M20 4v16" />
+            </svg>
+          </div>
+          <div class="text-left">
+            <span class="text-xl font-bold tracking-tight">COSTMASTER</span>
+            <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Contabilidad</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="card p-7 login-form" style="opacity: 0; transform: translateY(20px) scale(0.95);">
+        <h2 class="text-lg font-semibold text-[var(--text-primary)] mb-1">Crear Cuenta</h2>
+        <p class="text-[var(--text-muted)] text-sm mb-6">Únete a CostMaster</p>
+        
+        <form id="register-form" class="space-y-4">
+          <div class="form-group" style="opacity: 0; transform: translateX(-10px);">
+            <label class="label" for="name">Nombre completo</label>
+            <input type="text" id="name" name="name" class="input" placeholder="Tu nombre" required />
+          </div>
+
+          <div class="form-group" style="opacity: 0; transform: translateX(-10px);">
+            <label class="label" for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" class="input" placeholder="tu@email.com" required />
+          </div>
+
+          <div class="form-group" style="opacity: 0; transform: translateX(-10px);">
+            <label class="label" for="password">Contraseña</label>
+            <input type="password" id="password" name="password" class="input" placeholder="••••••••" required minlength="6" />
+          </div>
+
+          <div class="form-group" style="opacity: 0; transform: translateX(-10px);">
+            <label class="label" for="confirm-password">Confirmar contraseña</label>
+            <input type="password" id="confirm-password" name="confirm-password" class="input" placeholder="••••••••" required />
+          </div>
+
+          <div id="error-message" class="text-[var(--accent-danger)] text-xs hidden mt-1"></div>
+
+          <button type="submit" class="btn btn-primary w-full py-2.5" style="border-radius: 4px">
+            <span>Crear Cuenta</span>
+            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </button>
+        </form>
+
+        <p class="text-center text-[var(--text-muted)] text-sm mt-8">
+          ¿Ya tienes cuenta?
+          <a href="/login" class="text-[var(--accent-primary)] hover:text-[var(--accent-primary)] font-semibold transition-colors ml-1">
+            Inicia sesión
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .login-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+  }
+
+  .login-dots {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.12) 1px, transparent 0);
+    background-size: 32px 32px;
+    opacity: 0.4;
+  }
+</style>
+
+<script>
+  const loginHeader = document.querySelector('.login-header');
+  const loginForm = document.querySelector('.login-form');
+  const formGroups = document.querySelectorAll('.form-group');
+
+  setTimeout(() => {
+    loginHeader.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    loginHeader.style.opacity = '1';
+    loginHeader.style.transform = 'translateY(0)';
+  }, 100);
+
+  setTimeout(() => {
+    loginForm.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    loginForm.style.opacity = '1';
+    loginForm.style.transform = 'translateY(0) scale(1)';
+  }, 300);
+
+  formGroups.forEach((group, i) => {
+    setTimeout(() => {
+      group.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      group.style.opacity = '1';
+      group.style.transform = 'translateX(0)';
+    }, 500 + (i * 100));
+  });
+</script>
+
+<script>
+  const API_URL = 'http://localhost:3000/api';
+
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const errorDiv = document.getElementById('error-message');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    errorDiv.classList.add('hidden');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creando cuenta...';
+
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (password !== confirmPassword) {
+      errorDiv.textContent = 'Las contraseñas no coinciden';
+      errorDiv.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear Cuenta';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.errors?.[0]?.msg || 'Error al registrarse');
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      window.location.href = '/dashboard';
+    } catch (error) {
+      errorDiv.textContent = error.message;
+      errorDiv.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Crear Cuenta';
+    }
+  });
+</script>
