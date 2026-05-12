@@ -62,7 +62,9 @@ import PageHeader from "../../components/PageHeader.astro";
               ><th class="table-cell text-left">Nombre</th><th
                 class="table-cell text-left">Email</th
               ><th class="table-cell text-center">Teléfono</th><th
-                class="table-cell text-right">Crédito</th
+                class="table-cell text-left">País</th><th
+                class="table-cell text-left">Ciudad</th
+              ><th class="table-cell text-right">Crédito</th
               ><th class="table-cell text-center">Acciones</th></tr
             ></thead
           >
@@ -291,12 +293,16 @@ import PageHeader from "../../components/PageHeader.astro";
 
   const countrySelect = document.getElementById("country");
   const cityInput = document.getElementById("city");
-  const cityList = document.getElementById("city-list");
+  let cityList = document.getElementById("city-list");
 
   if (countrySelect) {
     countrySelect.addEventListener("change", function () {
       const cities = citiesByCountry[this.value] || [];
-      cityList.innerHTML = cities.map((c) => `<option value="${c}">`).join("");
+      const newList = document.createElement("datalist");
+      newList.id = "city-list";
+      cities.forEach(c => { const o = document.createElement("option"); o.value = c; newList.appendChild(o); });
+      cityList.parentNode.replaceChild(newList, cityList);
+      cityList = newList;
       cityInput.value = "";
     });
   }
@@ -343,6 +349,8 @@ import PageHeader from "../../components/PageHeader.astro";
         <td class="table-cell font-medium text-left text-[var(--text-primary)]">${d.name}</td>
         <td class="table-cell text-left">${d.email || "-"}</td>
         <td class="table-cell text-center">${d.phone || "-"}</td>
+        <td class="table-cell text-left">${d.country || "-"}</td>
+        <td class="table-cell text-left">${d.city || "-"}</td>
         <td class="table-cell font-mono text-right">${formatCurrency(d.credit_limit)}</td>
         <td class="table-cell text-center">
           <div class="flex gap-2 justify-center">

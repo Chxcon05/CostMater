@@ -19,15 +19,15 @@ import PageHeader from '../../components/PageHeader.astro';
       
       <div class="flex flex-wrap gap-3 mb-6">
         <input type="text" id="search-input" placeholder="Buscar proveedor..." class="input flex-1 min-w-[200px]" />
-        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg whitespace-nowrap">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Nuevo Proveedor
         </button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell">Nombre</th><th class="table-cell">RFC</th><th class="table-cell">Email</th><th class="table-cell">Teléfono</th><th class="table-cell">Ciudad</th><th class="table-cell">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell text-left">Nombre</th><th class="table-cell text-left">Email</th><th class="table-cell text-left">Teléfono</th><th class="table-cell text-left">País</th><th class="table-cell text-left">Ciudad</th><th class="table-cell text-left">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
         <div id="empty" class="hidden p-12 text-center">
@@ -47,27 +47,35 @@ import PageHeader from '../../components/PageHeader.astro';
         <input type="hidden" id="record-id" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div><label class="label">Nombre *</label><input type="text" id="name" class="input" required /></div>
-          <div><label class="label">RFC</label><input type="text" id="rfc" class="input" /></div>
+          <div><label class="label">Email</label><input type="email" id="email" class="input" /></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div><label class="label">Email</label><input type="email" id="email" class="input" /></div>
           <div><label class="label">Teléfono</label><input type="text" id="phone" class="input" /></div>
-        </div>
-        <div>
-          <label class="label">Dirección</label>
-          <input type="text" id="address" class="input" />
+          <div><label class="label">Dirección</label><input type="text" id="address" class="input" /></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div><label class="label">Ciudad</label><input type="text" id="city" class="input" /></div>
-          <div><label class="label">Estado</label><input type="text" id="state" class="input" /></div>
+          <div>
+            <label class="label">País</label>
+            <select id="country" class="input">
+              <option value="">Seleccionar...</option>
+              <option value="MX">México</option>
+              <option value="CR">Costa Rica</option>
+              <option value="CO">Colombia</option>
+              <option value="AR">Argentina</option>
+              <option value="ES">España</option>
+              <option value="US">Estados Unidos</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Ciudad</label><input type="text" id="city" class="input" list="city-list" /><datalist id="city-list"></datalist>
+          </div>
           <div><label class="label">Código Postal</label><input type="text" id="postal_code" class="input" /></div>
         </div>
-        <div><label class="label">Persona de contacto</label><input type="text" id="contact_person" class="input" /></div>
         <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
       </form>
       <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg">Cancelar</button>
-        <button type="button" id="modal-save" class="btn-primary rounded-lg">Guardar</button>
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button>
       </div>
     </div>
   </div>
@@ -100,6 +108,31 @@ import PageHeader from '../../components/PageHeader.astro';
     return { 'Authorization': `Bearer ${token}` };
   }
 
+  const citiesByCountry = {
+    MX: ['Ciudad de México', 'Guadalajara', 'Monterrey', 'Puebla', 'Tijuana', 'Cancún', 'Mérida', 'Querétaro'],
+    CR: ['San José', 'Cartago', 'Heredia', 'Alajuela', 'Puntarenas', 'Limón', 'Liberia', 'Nicoya'],
+    CO: ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Bucaramanga', 'Pereira', 'Manizales'],
+    AR: ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'Tucumán', 'La Plata', 'Mar del Plata', 'Salta'],
+    ES: ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Zaragoza', 'Málaga', 'Murcia', 'Palma'],
+    US: ['Nueva York', 'Los Ángeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego'],
+  };
+
+  const countrySelect = document.getElementById('country');
+  const cityInput = document.getElementById('city');
+  let cityList = document.getElementById('city-list');
+
+  if (countrySelect) {
+    countrySelect.addEventListener('change', function () {
+      const cities = citiesByCountry[this.value] || [];
+      const newList = document.createElement('datalist');
+      newList.id = 'city-list';
+      cities.forEach(c => { const o = document.createElement('option'); o.value = c; newList.appendChild(o); });
+      cityList.parentNode.replaceChild(newList, cityList);
+      cityList = newList;
+      cityInput.value = '';
+    });
+  }
+
   async function load() {
     const headers = getAuthHeaders();
     if (!headers) return;
@@ -123,11 +156,11 @@ import PageHeader from '../../components/PageHeader.astro';
     }
     empty.classList.add('hidden');
     tbody.innerHTML = filtered.map(d => `
-      <tr class="hover:bg-slate-50">
-        <td class="table-cell font-medium">${d.name}</td>
-        <td class="table-cell font-mono text-slate-500">${d.rfc || '-'}</td>
+      <tr class="hover:bg-[#22222c]">
+        <td class="table-cell font-medium text-[var(--text-primary)]">${d.name}</td>
         <td class="table-cell">${d.email || '-'}</td>
         <td class="table-cell">${d.phone || '-'}</td>
+        <td class="table-cell">${d.country || '-'}</td>
         <td class="table-cell">${d.city || '-'}</td>
         <td class="table-cell">
           <div class="flex gap-2">
@@ -156,9 +189,13 @@ import PageHeader from '../../components/PageHeader.astro';
       const r = data.find(d => d.id === id);
       if (r) {
         document.getElementById('record-id').value = r.id;
-        ['name', 'rfc', 'email', 'phone', 'address', 'city', 'state', 'postal_code', 'contact_person', 'notes'].forEach(f => {
+        ['name', 'email', 'phone', 'address', 'country', 'city', 'postal_code', 'notes'].forEach(f => {
           document.getElementById(f).value = r[f] || '';
         });
+        if (r.country && document.getElementById('country')) {
+          document.getElementById('country').dispatchEvent(new Event('change'));
+          document.getElementById('city').value = r.city || '';
+        }
         document.getElementById('modal-title').textContent = 'Editar Proveedor';
       }
     }
@@ -173,7 +210,7 @@ import PageHeader from '../../components/PageHeader.astro';
     if (!headers) return;
 
     const id = document.getElementById('record-id').value;
-    const body = ['name', 'rfc', 'email', 'phone', 'address', 'city', 'state', 'postal_code', 'contact_person', 'notes'].reduce((acc, f) => ({
+    const body = ['name', 'email', 'phone', 'address', 'country', 'city', 'postal_code', 'notes'].reduce((acc, f) => ({
       ...acc,
       [f]: document.getElementById(f).value
     }), {});

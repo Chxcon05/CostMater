@@ -107,7 +107,7 @@ async function initDb() {
       db.run('ALTER TABLE products ADD COLUMN sku TEXT');
     }
     if (!pcolNames.includes('updated_at')) {
-      db.run("ALTER TABLE products ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP");
+      db.run("ALTER TABLE products ADD COLUMN updated_at DATETIME");
     }
     saveDb();
   } catch (e) { console.error('Error altering products:', e); }
@@ -140,7 +140,7 @@ async function initDb() {
     if (!ccolNames.includes('credit_limit')) db.run('ALTER TABLE customers ADD COLUMN credit_limit DECIMAL(10,2) DEFAULT 0');
     if (!ccolNames.includes('payment_days')) db.run('ALTER TABLE customers ADD COLUMN payment_days INTEGER DEFAULT 0');
     if (!ccolNames.includes('notes')) db.run('ALTER TABLE customers ADD COLUMN notes TEXT');
-    if (!ccolNames.includes('updated_at')) db.run('ALTER TABLE customers ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+    if (!ccolNames.includes('updated_at')) db.run('ALTER TABLE customers ADD COLUMN updated_at DATETIME');
     if (!ccolNames.includes('is_active')) db.run('ALTER TABLE customers ADD COLUMN is_active INTEGER DEFAULT 1');
     saveDb();
   } catch (e) { console.error('Error altering customers:', e); }
@@ -154,11 +154,23 @@ async function initDb() {
       email TEXT,
       phone TEXT,
       address TEXT,
-      rfc TEXT,
+      country TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  try {
+    const scols = db.exec("PRAGMA table_info(suppliers)");
+    const scolNames = scols[0]?.values.map(c => c[1]) || [];
+    if (!scolNames.includes('city')) db.run('ALTER TABLE suppliers ADD COLUMN city TEXT');
+    if (!scolNames.includes('postal_code')) db.run('ALTER TABLE suppliers ADD COLUMN postal_code TEXT');
+    if (!scolNames.includes('notes')) db.run('ALTER TABLE suppliers ADD COLUMN notes TEXT');
+    if (!scolNames.includes('is_active')) db.run('ALTER TABLE suppliers ADD COLUMN is_active INTEGER DEFAULT 1');
+    if (!scolNames.includes('updated_at')) db.run('ALTER TABLE suppliers ADD COLUMN updated_at DATETIME');
+    if (!scolNames.includes('country')) db.run('ALTER TABLE suppliers ADD COLUMN country TEXT');
+    saveDb();
+  } catch (e) { console.error('Error altering suppliers:', e); }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS direct_costs (
@@ -204,19 +216,65 @@ async function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       customer_id INTEGER,
-      product_id INTEGER,
-      quantity INTEGER DEFAULT 1,
-      unit_price DECIMAL(10,2),
-      total DECIMAL(10,2),
-      status TEXT DEFAULT 'pendiente',
+      quote_number TEXT,
+      subtotal DECIMAL(10,2) DEFAULT 0,
+      discount_percent DECIMAL(5,2) DEFAULT 0,
+      discount_amount DECIMAL(10,2) DEFAULT 0,
+      tax_percent DECIMAL(5,2) DEFAULT 16,
+      tax_amount DECIMAL(10,2) DEFAULT 0,
+      total DECIMAL(10,2) DEFAULT 0,
+      status TEXT DEFAULT 'borrador',
+      validity_days INTEGER DEFAULT 15,
+      valid_from DATE,
       valid_until DATE,
       notes TEXT,
+      terms TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+    );
+  `);
+
+  try {
+    const qcols = db.exec("PRAGMA table_info(quotes)");
+    const qcolNames = qcols[0]?.values.map(c => c[1]) || [];
+    if (!qcolNames.includes('quote_number')) db.run('ALTER TABLE quotes ADD COLUMN quote_number TEXT');
+    if (!qcolNames.includes('subtotal')) db.run('ALTER TABLE quotes ADD COLUMN subtotal DECIMAL(10,2) DEFAULT 0');
+    if (!qcolNames.includes('discount_percent')) db.run('ALTER TABLE quotes ADD COLUMN discount_percent DECIMAL(5,2) DEFAULT 0');
+    if (!qcolNames.includes('discount_amount')) db.run('ALTER TABLE quotes ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0');
+    if (!qcolNames.includes('tax_percent')) db.run('ALTER TABLE quotes ADD COLUMN tax_percent DECIMAL(5,2) DEFAULT 16');
+    if (!qcolNames.includes('tax_amount')) db.run('ALTER TABLE quotes ADD COLUMN tax_amount DECIMAL(10,2) DEFAULT 0');
+    if (!qcolNames.includes('validity_days')) db.run('ALTER TABLE quotes ADD COLUMN validity_days INTEGER DEFAULT 15');
+    if (!qcolNames.includes('valid_from')) db.run('ALTER TABLE quotes ADD COLUMN valid_from DATE');
+    if (!qcolNames.includes('valid_until')) db.run('ALTER TABLE quotes ADD COLUMN valid_until DATE');
+    if (!qcolNames.includes('terms')) db.run('ALTER TABLE quotes ADD COLUMN terms TEXT');
+    if (!qcolNames.includes('updated_at')) db.run('ALTER TABLE quotes ADD COLUMN updated_at DATETIME');
+    saveDb();
+  } catch (e) { console.error('Error altering quotes:', e); }
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quote_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_id INTEGER NOT NULL,
+      product_id INTEGER,
+      description TEXT,
+      quantity DECIMAL(10,2) DEFAULT 1,
+      unit_price DECIMAL(10,2) DEFAULT 0,
+      cost DECIMAL(10,2) DEFAULT 0,
+      total DECIMAL(10,2) DEFAULT 0,
+      FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
       FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
     );
   `);
+
+  try {
+    const qicols = db.exec("PRAGMA table_info(quote_items)");
+    const qicolNames = qicols[0]?.values.map(c => c[1]) || [];
+    if (!qicolNames.includes('description')) db.run('ALTER TABLE quote_items ADD COLUMN description TEXT');
+    if (!qicolNames.includes('cost')) db.run('ALTER TABLE quote_items ADD COLUMN cost DECIMAL(10,2) DEFAULT 0');
+    saveDb();
+  } catch (e) { console.error('Error altering quote_items:', e); }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS invoices (
@@ -227,17 +285,54 @@ async function initDb() {
       invoice_number TEXT,
       subtotal DECIMAL(10,2),
       tax DECIMAL(10,2),
+      tax_percent DECIMAL(5,2) DEFAULT 16,
+      tax_amount DECIMAL(10,2),
       total DECIMAL(10,2),
       status TEXT DEFAULT 'pendiente',
+      payment_method TEXT DEFAULT 'efectivo',
       issue_date DATE,
       due_date DATE,
       notes TEXT,
+      payment_date DATE,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
       FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL
     );
   `);
+
+  try {
+    const icols = db.exec("PRAGMA table_info(invoices)");
+    const icolNames = icols[0]?.values.map(c => c[1]) || [];
+    if (!icolNames.includes('tax_percent')) db.run('ALTER TABLE invoices ADD COLUMN tax_percent DECIMAL(5,2) DEFAULT 16');
+    if (!icolNames.includes('tax_amount')) db.run('ALTER TABLE invoices ADD COLUMN tax_amount DECIMAL(10,2)');
+    if (!icolNames.includes('payment_method')) db.run('ALTER TABLE invoices ADD COLUMN payment_method TEXT DEFAULT \'efectivo\'');
+    if (!icolNames.includes('payment_date')) db.run('ALTER TABLE invoices ADD COLUMN payment_date DATE');
+    if (!icolNames.includes('updated_at')) db.run('ALTER TABLE invoices ADD COLUMN updated_at DATETIME');
+    saveDb();
+  } catch (e) { console.error('Error altering invoices:', e); }
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS invoice_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      invoice_id INTEGER NOT NULL,
+      product_id INTEGER,
+      description TEXT,
+      quantity DECIMAL(10,2) DEFAULT 1,
+      unit_price DECIMAL(10,2) DEFAULT 0,
+      total DECIMAL(10,2) DEFAULT 0,
+      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+    );
+  `);
+
+  try {
+    const iicols = db.exec("PRAGMA table_info(invoice_items)");
+    const iicolNames = iicols[0]?.values.map(c => c[1]) || [];
+    if (!iicolNames.includes('description')) db.run('ALTER TABLE invoice_items ADD COLUMN description TEXT');
+    saveDb();
+  } catch (e) { console.error('Error altering invoice_items:', e); }
 
   db.run(`
      CREATE TABLE IF NOT EXISTS audit_log (

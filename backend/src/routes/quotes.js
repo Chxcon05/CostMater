@@ -99,7 +99,8 @@ router.post('/', authenticateToken, (req, res) => {
 
     res.status(201).json({ ...quote, items: quoteItems });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear cotización' });
+    console.error('Error al crear cotización:', error);
+    res.status(500).json({ error: 'Error al crear cotización: ' + error.message });
   }
 });
 
@@ -139,7 +140,13 @@ router.put('/:id', authenticateToken, (req, res) => {
       db.prepare(`
         UPDATE quotes SET customer_id = ?, status = ?, notes = ?, terms = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).run(customer_id, status, notes, terms, req.params.id);
+      `).run(
+        customer_id ?? quote.customer_id,
+        status ?? quote.status,
+        notes ?? quote.notes,
+        terms ?? quote.terms,
+        req.params.id
+      );
     }
 
     const updated = db.prepare('SELECT * FROM quotes WHERE id = ?').get(req.params.id);
@@ -147,7 +154,8 @@ router.put('/:id', authenticateToken, (req, res) => {
 
     res.json({ ...updated, items: updatedItems });
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar cotización' });
+    console.error('Error al actualizar cotización:', error);
+    res.status(500).json({ error: 'Error al actualizar cotización: ' + error.message });
   }
 });
 

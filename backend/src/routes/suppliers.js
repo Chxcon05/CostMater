@@ -62,13 +62,13 @@ router.post('/', authenticateToken, [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, rfc, email, phone, address, city, state, postal_code, contact_person, notes } = req.body;
+  const { name, email, phone, address, country, city, postal_code, notes } = req.body;
 
   try {
     const result = db.prepare(`
-      INSERT INTO suppliers (user_id, name, rfc, email, phone, address, city, state, postal_code, contact_person, notes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(req.user.id, name, rfc || null, email || null, phone || null, address || null, city || null, state || null, postal_code || null, contact_person || null, notes || null);
+      INSERT INTO suppliers (user_id, name, email, phone, address, country, city, postal_code, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(req.user.id, name, email || null, phone || null, address || null, country || null, city || null, postal_code || null, notes || null);
 
     const supplier = db.prepare('SELECT * FROM suppliers WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(supplier);
@@ -78,7 +78,7 @@ router.post('/', authenticateToken, [
 });
 
 router.put('/:id', authenticateToken, (req, res) => {
-  const { name, rfc, email, phone, address, city, state, postal_code, contact_person, notes, is_active } = req.body;
+  const { name, email, phone, address, country, city, postal_code, notes, is_active } = req.body;
 
   try {
     const supplier = db.prepare('SELECT * FROM suppliers WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
@@ -88,10 +88,10 @@ router.put('/:id', authenticateToken, (req, res) => {
 
     db.prepare(`
       UPDATE suppliers SET 
-        name = ?, rfc = ?, email = ?, phone = ?, address = ?, city = ?, state = ?,
-        postal_code = ?, contact_person = ?, notes = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+        name = ?, email = ?, phone = ?, address = ?, country = ?, city = ?,
+        postal_code = ?, notes = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(name, rfc, email, phone, address, city, state, postal_code, contact_person, notes, is_active ?? 1, req.params.id);
+    `).run(name, email, phone, address, country, city, postal_code, notes, is_active ?? 1, req.params.id);
 
     const updated = db.prepare('SELECT * FROM suppliers WHERE id = ?').get(req.params.id);
     res.json(updated);

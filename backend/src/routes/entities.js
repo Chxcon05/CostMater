@@ -22,11 +22,11 @@ export function supplierRoutes(app) {
   });
 
   app.post('/api/suppliers', authenticateToken, (req, res) => {
-    const { name, rfc, email, phone, address, city, state, postal_code, contact_person, notes } = req.body;
+    const { name, email, phone, address, country, city, postal_code, notes } = req.body;
     try {
       const { lastInsertRowid } = run(
-        `INSERT INTO suppliers (user_id, name, rfc, email, phone, address, city, state, postal_code, contact_person, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [req.user.id, name, rfc, email, phone, address, city, state, postal_code, contact_person, notes]
+        `INSERT INTO suppliers (user_id, name, email, phone, address, country, city, postal_code, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [req.user.id, name, email, phone, address, country, city, postal_code, notes]
       );
       const supplier = get('SELECT * FROM suppliers WHERE id = ?', [lastInsertRowid]);
       if (!supplier) return res.status(500).json({ error: 'Error al recuperar el proveedor creado' });
@@ -35,13 +35,13 @@ export function supplierRoutes(app) {
   });
 
   app.put('/api/suppliers/:id', authenticateToken, (req, res) => {
-    const { name, rfc, email, phone, address, city, state, postal_code, contact_person, notes, is_active } = req.body;
+    const { name, email, phone, address, country, city, postal_code, notes, is_active } = req.body;
     try {
       const supplier = get('SELECT * FROM suppliers WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!supplier) return res.status(404).json({ error: 'Proveedor no encontrado' });
       run(
-        `UPDATE suppliers SET name = ?, rfc = ?, email = ?, phone = ?, address = ?, city = ?, state = ?, postal_code = ?, contact_person = ?, notes = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        [name, rfc, email, phone, address, city, state, postal_code, contact_person, notes, is_active ?? 1, req.params.id]
+        `UPDATE suppliers SET name = ?, email = ?, phone = ?, address = ?, country = ?, city = ?, postal_code = ?, notes = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [name, email, phone, address, country, city, postal_code, notes, is_active ?? 1, req.params.id]
       );
       res.json(get('SELECT * FROM suppliers WHERE id = ?', [req.params.id]));
     } catch (error) { res.status(500).json({ error: 'Error al actualizar proveedor' }); }

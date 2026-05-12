@@ -25,15 +25,15 @@ import PageHeader from '../../components/PageHeader.astro';
           <option value="pagada">Pagada</option>
           <option value="cancelada">Cancelada</option>
         </select>
-        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg whitespace-nowrap">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Nueva Factura
         </button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell">Folio</th><th class="table-cell">Cliente</th><th class="table-cell">Fecha</th><th class="table-cell">Total</th><th class="table-cell">Estado</th><th class="table-cell">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell text-left">Folio</th><th class="table-cell text-left">Cliente</th><th class="table-cell text-left">Fecha</th><th class="table-cell text-left">Total</th><th class="table-cell text-left">Estado</th><th class="table-cell text-left">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-slate-200"></tbody>
         </table>
         <div id="empty" class="hidden p-12 text-center">
@@ -63,14 +63,20 @@ import PageHeader from '../../components/PageHeader.astro';
         <div class="border border-slate-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-4">
             <h4 class="font-medium">Conceptos</h4>
-            <button type="button" onclick="addItem()" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar</button>
+            <button type="button" id="btn-add-item" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar</button>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mb-2 text-xs text-slate-500 font-medium uppercase tracking-wider">
+            <span>Descripción</span>
+            <span>Cantidad</span>
+            <span>Precio</span>
+            <span></span>
           </div>
           <div id="items-container" class="space-y-2"></div>
         </div>
       </form>
       <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg">Cancelar</button>
-        <button type="button" id="modal-save" class="btn-primary rounded-lg">Guardar</button>
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button>
       </div>
     </div>
   </div>
@@ -118,7 +124,7 @@ import PageHeader from '../../components/PageHeader.astro';
     if (filtered.length === 0) { tbody.innerHTML = ''; document.getElementById('empty').classList.remove('hidden'); return; }
     document.getElementById('empty').classList.add('hidden');
     tbody.innerHTML = filtered.map(d => `
-      <tr class="hover:bg-slate-50">
+      <tr class="hover:bg-[#22222c]">
         <td class="table-cell font-mono font-medium">${d.invoice_number}</td>
         <td class="table-cell">${d.customer_name || '-'}</td>
         <td class="table-cell">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
@@ -141,11 +147,14 @@ import PageHeader from '../../components/PageHeader.astro';
     });
   }
 
-  function getStatusClass(s) { const m = { borrador: 'bg-slate-100 text-slate-700', emitida: 'bg-blue-100 text-blue-700', pagada: 'bg-emerald-100 text-emerald-700', cancelada: 'bg-red-100 text-red-700' }; return m[s] || 'bg-slate-100'; }
+  function getStatusClass(s) { const m = { pendiente: 'bg-yellow-500/20 text-yellow-400', borrador: 'bg-slate-500/20 text-slate-300', emitida: 'bg-blue-500/20 text-blue-400', pagada: 'bg-emerald-500/20 text-emerald-400', cancelada: 'bg-red-500/20 text-red-400' }; return m[s] || 'bg-slate-500/20 text-slate-300'; }
   function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
   function addItem() { items.push({ description: '', quantity: 1, unit_price: 0 }); renderItems(); }
-  function renderItems() { document.getElementById('items-container').innerHTML = items.map((item, i) => `<div class="grid grid-cols-4 gap-2"><input type="text" placeholder="Descripción" class="input" value="${item.description}" onchange="items[${i}].description=this.value"><input type="number" placeholder="Cantidad" class="input" value="${item.quantity}" onchange="items[${i}].quantity=parseFloat(this.value)||1"><input type="number" placeholder="Precio" class="input" step="0.01" value="${item.unit_price}" onchange="items[${i}].unit_price=parseFloat(this.value)||0"><button type="button" onclick="items.splice(${i},1);renderItems()" class="text-red-500">✕</button></div>`).join('') || '<p class="text-slate-400 text-sm">Sin conceptos</p>'; }
+  function renderItems() {
+    const container = document.getElementById('items-container');
+    container.innerHTML = items.map((item, i) => `<div class="grid grid-cols-4 gap-2" data-index="${i}"><input type="text" placeholder="Descripción" class="input item-desc" value="${item.description}"><input type="number" placeholder="Cantidad" class="input item-qty" value="${item.quantity}"><input type="number" placeholder="Precio" class="input item-price" step="0.01" value="${item.unit_price}"><button type="button" class="text-red-500 item-remove">✕</button></div>`).join('') || '<p class="text-slate-400 text-sm">Sin conceptos</p>';
+  }
 
   function openModal(id = null) { document.getElementById('modal').classList.remove('hidden'); document.getElementById('form').reset(); document.getElementById('record-id').value = ''; items = []; renderItems(); document.getElementById('modal-title').textContent = 'Nueva Factura'; if (id) { const r = data.find(d => d.id === id); if (r) { document.getElementById('record-id').value = r.id; document.getElementById('customer_id').value = r.customer_id || ''; document.getElementById('payment_method').value = r.payment_method || 'efectivo'; document.getElementById('due_date').value = r.due_date || ''; document.getElementById('tax_percent').value = r.tax_percent; document.getElementById('notes').value = r.notes || ''; document.getElementById('modal-title').textContent = 'Editar Factura'; } } }
   function closeModal() { document.getElementById('modal').classList.add('hidden'); }
@@ -185,5 +194,24 @@ import PageHeader from '../../components/PageHeader.astro';
   document.getElementById('modal-save').addEventListener('click', () => save());
   document.getElementById('status-cancel').addEventListener('click', () => document.getElementById('status-modal').classList.add('hidden'));
   document.getElementById('status-confirm').addEventListener('click', () => updateStatus());
+
+  document.getElementById('btn-add-item').addEventListener('click', () => addItem());
+  document.getElementById('items-container').addEventListener('input', e => {
+    const div = e.target.closest('[data-index]');
+    if (!div) return;
+    const i = parseInt(div.dataset.index);
+    if (e.target.classList.contains('item-desc')) items[i].description = e.target.value;
+    if (e.target.classList.contains('item-qty')) items[i].quantity = parseFloat(e.target.value) || 1;
+    if (e.target.classList.contains('item-price')) items[i].unit_price = parseFloat(e.target.value) || 0;
+  });
+  document.getElementById('items-container').addEventListener('click', e => {
+    if (e.target.classList.contains('item-remove')) {
+      const div = e.target.closest('[data-index]');
+      if (!div) return;
+      items.splice(parseInt(div.dataset.index), 1);
+      renderItems();
+    }
+  });
+
   load();
 </script>

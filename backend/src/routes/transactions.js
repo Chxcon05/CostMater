@@ -73,9 +73,12 @@ export function quoteRoutes(app) {
   app.put('/api/quotes/:id', authenticateToken, (req, res) => {
     const { status, notes, terms } = req.body;
     try {
-      run('UPDATE quotes SET status = ?, notes = ?, terms = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [status, notes, terms, req.params.id]);
+      const current = get('SELECT * FROM quotes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
+      run('UPDATE quotes SET status = ?, notes = ?, terms = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [status ?? current.status, notes ?? current.notes, terms ?? current.terms, req.params.id]);
       res.json(get('SELECT * FROM quotes WHERE id = ?', [req.params.id]));
-    } catch (error) { res.status(500).json({ error: 'Error al actualizar cotización' }); }
+    } catch (error) { console.error('Error al actualizar cotización:', error); res.status(500).json({ error: 'Error al actualizar cotización: ' + error.message }); }
   });
 
   app.delete('/api/quotes/:id', authenticateToken, (req, res) => {
@@ -134,10 +137,33 @@ export function invoiceRoutes(app) {
   });
 
   app.put('/api/invoices/:id', authenticateToken, (req, res) => {
-    const { status, payment_date } = req.body;
+    const { customer_id, status, payment_method, due_date, tax_percent, notes, items } = req.body;
     try {
-      run('UPDATE invoices SET status = ?, payment_date = ? WHERE id = ?', [status, payment_date, req.params.id]);
-      res.json(get('SELECT * FROM invoices WHERE id = ?', [req.params.id]));
+      const now = new Date().toISOString();
+      let subtotal, taxAmount, total;
+      if (items && items.length > 0) {
+        subtotal = items.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0);
+        taxAmount = subtotal * (tax_percent || 16) / 100;
+        total = subtotal + taxAmount;
+      } else {
+        const current = get('SELECT subtotal, tax_amount, total FROM invoices WHERE id = ?', [req.params.id]);
+        subtotal = current?.subtotal || 0;
+        taxAmount = current?.tax_amount || 0;
+        total = current?.total || 0;
+      }
+      run('UPDATE invoices SET customer_id = ?, status = ?, payment_method = ?, due_date = ?, tax_percent = ?, notes = ?, subtotal = ?, tax_amount = ?, total = ?, updated_at = ? WHERE id = ? AND user_id = ?',
+        [customer_id, status || 'pendiente', payment_method, due_date, tax_percent, notes, subtotal, taxAmount, total, now, req.params.id, req.user.id]);
+      if (items) {
+        run('DELETE FROM invoice_items WHERE invoice_id = ?', [req.params.id]);
+        items.forEach(item => {
+          const itemTotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
+          run('INSERT INTO invoice_items (invoice_id, product_id, description, quantity, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)',
+            [req.params.id, item.product_id || null, item.description, item.quantity, item.unit_price, itemTotal]);
+        });
+      }
+      const invoice = get('SELECT * FROM invoices WHERE id = ?', [req.params.id]);
+      invoice.items = all('SELECT * FROM invoice_items WHERE invoice_id = ?', [req.params.id]);
+      res.json(invoice);
     } catch (error) { res.status(500).json({ error: 'Error al actualizar factura' }); }
   });
 

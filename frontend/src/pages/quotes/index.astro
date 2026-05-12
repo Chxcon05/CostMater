@@ -25,19 +25,32 @@ import PageHeader from '../../components/PageHeader.astro';
           <option value="aprobada">Aprobada</option>
           <option value="rechazada">Rechazada</option>
         </select>
-        <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg whitespace-nowrap">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        <button
+          id="btn-new"
+          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"></path></svg
+          >
           Nueva Cotización
         </button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell">Folio</th><th class="table-cell">Cliente</th><th class="table-cell">Fecha</th><th class="table-cell">Total</th><th class="table-cell">Estado</th><th class="table-cell">Acciones</th></tr></thead>
-          <tbody id="table" class="divide-y divide-slate-200"></tbody>
+          <thead><tr class="table-header"><th class="table-cell text-left">Folio</th><th class="table-cell text-left">Cliente</th><th class="table-cell text-left">Fecha</th><th class="table-cell text-right">Total</th><th class="table-cell text-center">Estado</th><th class="table-cell text-center">Acciones</th></tr></thead>
+          <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
         <div id="empty" class="hidden p-12 text-center">
-          <p class="text-slate-500 mb-4">No hay cotizaciones</p>
+          <p class="text-[var(--text-muted)] mb-4">No hay cotizaciones</p>
         </div>
       </div>
     </main>
@@ -45,7 +58,7 @@ import PageHeader from '../../components/PageHeader.astro';
 
   <div id="modal" class="modal-overlay hidden">
     <div class="modal-content max-w-2xl">
-      <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+      <div class="p-6 border-b border-[var(--border-color)] flex justify-between items-center">
         <h3 class="text-lg font-semibold" id="modal-title">Nueva Cotización</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
       </div>
@@ -62,17 +75,23 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
         <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
         
-        <div class="border border-slate-200 rounded-lg p-4">
+        <div class="border border-[var(--border-color)] rounded-lg p-4">
           <div class="flex justify-between items-center mb-4">
             <h4 class="font-medium">Conceptos</h4>
             <button type="button" id="add-item-btn" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar concepto</button>
           </div>
+          <div class="grid grid-cols-4 gap-2 mb-2 text-xs text-[var(--text-muted)] font-medium uppercase tracking-wider">
+            <span>Descripción</span>
+            <span>Cantidad</span>
+            <span>Precio</span>
+            <span></span>
+          </div>
           <div id="items-container" class="space-y-2"></div>
         </div>
       </form>
-      <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg">Cancelar</button>
-        <button type="button" id="modal-save" class="btn-primary rounded-lg">Guardar</button>
+      <div class="p-6 border-t border-[var(--border-color)] flex gap-3 justify-end">
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button>
       </div>
     </div>
   </div>
@@ -83,6 +102,22 @@ import PageHeader from '../../components/PageHeader.astro';
       <div class="flex gap-3 justify-center">
         <button id="delete-cancel" class="btn-secondary rounded-lg">Cancelar</button>
         <button id="delete-confirm" class="btn-danger rounded-lg">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-modal" class="modal-overlay hidden">
+    <div class="modal-content max-w-sm p-6">
+      <h3 class="text-lg font-semibold mb-4">Cambiar Estado</h3>
+      <select id="new-status" class="input mb-4">
+        <option value="borrador">Borrador</option>
+        <option value="enviada">Enviada</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Rechazada</option>
+      </select>
+      <div class="flex gap-3 justify-end">
+        <button id="status-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
+        <button id="status-confirm" class="btn-primary rounded-lg text-sm px-3 py-1.5">Actualizar</button>
       </div>
     </div>
   </div>
@@ -131,23 +166,23 @@ import PageHeader from '../../components/PageHeader.astro';
     if (filtered.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
     tbody.innerHTML = filtered.map(d => `
-      <tr class="hover:bg-slate-50">
-        <td class="table-cell font-mono font-medium">${d.quote_number}</td>
-        <td class="table-cell">${d.customer_name || '-'}</td>
-        <td class="table-cell">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
-        <td class="table-cell font-mono font-medium">${formatCurrency(d.total)}</td>
-        <td class="table-cell"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status}</span></td>
-        <td class="table-cell">
-          <div class="flex gap-2">
-            <button data-id="${d.id}" class="edit-btn p-1 text-slate-400 hover:text-primary-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+      <tr class="hover:bg-[#22222c]">
+        <td class="table-cell font-mono font-medium text-left">${d.quote_number}</td>
+        <td class="table-cell text-left">${d.customer_name || '-'}</td>
+        <td class="table-cell text-left">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
+        <td class="table-cell font-mono font-medium text-right">${formatCurrency(d.total)}</td>
+        <td class="table-cell text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status}</span></td>
+        <td class="table-cell text-center">
+          <div class="flex gap-2 justify-center">
+            <button data-id="${d.id}" class="status-btn p-1 text-slate-400 hover:text-primary-600" title="Cambiar estado"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
             <button data-id="${d.id}" class="delete-btn p-1 text-slate-400 hover:text-red-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           </div>
         </td>
       </tr>
     `).join('');
     
-    tbody.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.addEventListener('click', () => edit(parseInt(btn.dataset.id)));
+    tbody.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => changeStatus(parseInt(btn.dataset.id)));
     });
     tbody.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', () => confirmDelete(parseInt(btn.dataset.id)));
@@ -155,8 +190,8 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function getStatusClass(s) {
-    const classes = { borrador: 'bg-slate-100 text-slate-700', enviada: 'bg-blue-100 text-blue-700', aprobada: 'bg-emerald-100 text-emerald-700', rechazada: 'bg-red-100 text-red-700', vencida: 'bg-amber-100 text-amber-700' };
-    return classes[s] || 'bg-slate-100';
+    const classes = { borrador: 'bg-slate-500/20 text-slate-300', enviada: 'bg-blue-500/20 text-blue-400', aprobada: 'bg-emerald-500/20 text-emerald-400', rechazada: 'bg-red-500/20 text-red-400', vencida: 'bg-amber-500/20 text-amber-400' };
+    return classes[s] || 'bg-slate-500/20 text-slate-300';
   }
 
   function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
@@ -169,11 +204,11 @@ import PageHeader from '../../components/PageHeader.astro';
   function renderItems() {
     const container = document.getElementById('items-container');
     container.innerHTML = items.map((item, i) => `
-      <div class="grid grid-cols-4 gap-2 items-center">
-        <input type="text" placeholder="Descripción" class="input" value="${item.description}" onchange="items[${i}].description = this.value" />
-        <input type="number" placeholder="Cantidad" class="input" value="${item.quantity}" onchange="items[${i}].quantity = parseFloat(this.value) || 1" />
-        <input type="number" placeholder="Precio" class="input" step="0.01" value="${item.unit_price}" onchange="items[${i}].unit_price = parseFloat(this.value) || 0" />
-        <button type="button" onclick="items.splice(${i},1); renderItems()" class="text-red-500 hover:text-red-700">✕</button>
+      <div class="grid grid-cols-4 gap-2 items-center" data-index="${i}">
+        <input type="text" placeholder="Descripción" class="input item-desc" value="${item.description}" />
+        <input type="number" placeholder="Cantidad" class="input item-qty" value="${item.quantity}" />
+        <input type="number" placeholder="Precio" class="input item-price" step="0.01" value="${item.unit_price}" />
+        <button type="button" class="text-red-500 hover:text-red-700 item-remove">✕</button>
       </div>
     `).join('') || '<p class="text-slate-400 text-sm">Sin conceptos agregados</p>';
   }
@@ -190,7 +225,6 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-  function edit(id) { openModal(id); }
 
   async function save() {
     const headers = getAuthHeaders();
@@ -209,6 +243,23 @@ import PageHeader from '../../components/PageHeader.astro';
       const res = await fetch(`${API_URL}/quotes${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) { closeModal(); load(); }
     } catch (e) { alert('Error al guardar'); }
+  }
+
+  function changeStatus(id) {
+    currentId = id;
+    const r = data.find(d => d.id === id);
+    if (r) document.getElementById('new-status').value = r.status || 'borrador';
+    document.getElementById('status-modal').classList.remove('hidden');
+  }
+
+  async function updateStatus() {
+    const headers = getAuthHeaders();
+    if (!headers || !currentId) return;
+    const status = document.getElementById('new-status').value;
+    try {
+      const res = await fetch(`${API_URL}/quotes/${currentId}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      if (res.ok) { document.getElementById('status-modal').classList.add('hidden'); currentId = null; load(); }
+    } catch (e) { alert('Error al actualizar estado'); }
   }
 
   function confirmDelete(id) { currentId = id; document.getElementById('delete-modal').classList.remove('hidden'); }
@@ -233,5 +284,25 @@ import PageHeader from '../../components/PageHeader.astro';
   document.getElementById('add-item-btn').addEventListener('click', () => addItem());
   document.getElementById('delete-cancel').addEventListener('click', () => document.getElementById('delete-modal').classList.add('hidden'));
   document.getElementById('delete-confirm').addEventListener('click', () => deleteRecord());
+  document.getElementById('status-cancel').addEventListener('click', () => document.getElementById('status-modal').classList.add('hidden'));
+  document.getElementById('status-confirm').addEventListener('click', () => updateStatus());
+
+  document.getElementById('items-container').addEventListener('input', e => {
+    const div = e.target.closest('[data-index]');
+    if (!div) return;
+    const i = parseInt(div.dataset.index);
+    if (e.target.classList.contains('item-desc')) items[i].description = e.target.value;
+    if (e.target.classList.contains('item-qty')) items[i].quantity = parseFloat(e.target.value) || 1;
+    if (e.target.classList.contains('item-price')) items[i].unit_price = parseFloat(e.target.value) || 0;
+  });
+  document.getElementById('items-container').addEventListener('click', e => {
+    if (e.target.classList.contains('item-remove')) {
+      const div = e.target.closest('[data-index]');
+      if (!div) return;
+      items.splice(parseInt(div.dataset.index), 1);
+      renderItems();
+    }
+  });
+
   load();
 </script>
