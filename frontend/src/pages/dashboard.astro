@@ -14,12 +14,12 @@ import PageHeader from '../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Dashboard" subtitle="Resumen de tu contabilidad" />
+      <PageHeader title="Dashboard" subtitle="Resumen de tu contabilidad" i18nTitle="dashboard.title" i18nSubtitle="dashboard.subtitle" />
       
       <div id="loading" class="flex items-center justify-center h-64">
         <div class="flex flex-col items-center gap-4">
           <div class="w-10 h-10 border-2 border-[var(--border-color)] border-t-[var(--accent-primary)] rounded-full animate-spin"></div>
-          <p class="text-[var(--text-muted)] text-sm">Cargando datos...</p>
+          <p class="text-[var(--text-muted)] text-sm" data-i18n="dashboard.loading">Cargando datos...</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ import PageHeader from '../components/PageHeader.astro';
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6">
           <div class="kpi-card animate-element" data-delay="0">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Productos</span>
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide" data-i18n="dashboard.products_kpi">Productos</span>
               <div class="w-9 h-9 bg-[var(--accent-primary)]/15 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -35,12 +35,12 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl" id="kpi-products">0</p>
-            <p class="stat-label">Productos registrados</p>
+            <p class="stat-label" data-i18n="dashboard.products_label">Productos registrados</p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="50">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Costos Directos</span>
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide" data-i18n="dashboard.direct_costs">Costos Directos</span>
               <div class="w-9 h-9 bg-[var(--accent-secondary)]/15 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1V7" />
@@ -48,12 +48,12 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl text-[var(--accent-secondary)]" id="kpi-direct-costs">$0</p>
-            <p class="stat-label">Materia prima y mano de obra</p>
+            <p class="stat-label" data-i18n="dashboard.direct_costs_label">Materia prima y mano de obra</p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="100">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Costos Indirectos</span>
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide" data-i18n="dashboard.indirect_costs">Costos Indirectos</span>
               <div class="w-9 h-9 bg-[var(--accent-warning)]/15 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-[var(--accent-warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0l2-2m-2 2l-2-2" />
@@ -61,12 +61,12 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl text-[var(--accent-warning)]" id="kpi-indirect-costs">$0</p>
-            <p class="stat-label">Gastos generales</p>
+            <p class="stat-label" data-i18n="dashboard.indirect_costs_label">Gastos generales</p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="150">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">Rentables</span>
+              <span class="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide" data-i18n="dashboard.profitable">Rentables</span>
               <div class="w-9 h-9 bg-[var(--accent-tertiary)]/15 rounded-lg flex items-center justify-center">
                 <svg class="w-5 h-5 text-[var(--accent-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -74,7 +74,7 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl" id="kpi-profitable">0</p>
-            <p class="stat-label">Con margen positivo</p>
+            <p class="stat-label" data-i18n="dashboard.profitable_label">Con margen positivo</p>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ import PageHeader from '../components/PageHeader.astro';
           <div class="card p-5 animate-element" data-delay="200">
             <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <span class="w-2 h-2 bg-[var(--accent-primary)] rounded-full"></span>
-              Margen de Rentabilidad Promedio
+              <span data-i18n="dashboard.avg_margin">Margen de Rentabilidad Promedio</span>
             </h3>
             <div class="h-60">
               <canvas id="marginChart"></canvas>
@@ -92,27 +92,27 @@ import PageHeader from '../components/PageHeader.astro';
           <div class="card p-5 animate-element" data-delay="250">
             <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <span class="w-2 h-2 bg-[var(--accent-tertiary)] rounded-full"></span>
-              Resumen de Costos
+              <span data-i18n="dashboard.cost_summary">Resumen de Costos</span>
             </h3>
             <div class="space-y-3">
               <div class="flex justify-between items-center p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
-                <span class="text-sm text-[var(--text-secondary)]">Costo Total</span>
+                <span class="text-sm text-[var(--text-secondary)]" data-i18n="dashboard.total_cost">Costo Total</span>
                 <span class="text-base font-semibold text-[var(--text-primary)] font-mono" id="total-costs">$0</span>
               </div>
               <div class="flex justify-between items-center p-4 bg-[var(--accent-secondary)]/10 rounded-lg border border-[var(--accent-secondary)]/30">
-                <span class="text-xs text-[var(--accent-secondary)] uppercase tracking-wide font-medium">Costos Directos</span>
+                <span class="text-xs text-[var(--accent-secondary)] uppercase tracking-wide font-medium" data-i18n="dashboard.direct_costs">Costos Directos</span>
                 <span class="text-base font-semibold text-[var(--accent-secondary)] font-mono" id="summary-direct">$0</span>
               </div>
               <div class="flex justify-between items-center p-4 bg-[var(--accent-warning)]/10 rounded-lg border border-[var(--accent-warning)]/30">
-                <span class="text-xs text-[var(--accent-warning)] uppercase tracking-wide font-medium">Costos Indirectos</span>
+                <span class="text-xs text-[var(--accent-warning)] uppercase tracking-wide font-medium" data-i18n="dashboard.indirect_costs">Costos Indirectos</span>
                 <span class="text-base font-semibold text-[var(--accent-warning)] font-mono" id="summary-indirect">$0</span>
               </div>
               <div class="flex justify-between items-center p-4 bg-[var(--accent-tertiary)]/10 rounded-lg border border-[var(--accent-tertiary)]/30">
-                <span class="text-xs text-[var(--accent-tertiary)] uppercase tracking-wide font-medium">Costo Promedio</span>
+                <span class="text-xs text-[var(--accent-tertiary)] uppercase tracking-wide font-medium" data-i18n="dashboard.avg_cost">Costo Promedio</span>
                 <span class="text-base font-semibold text-[var(--accent-tertiary)] font-mono" id="avg-cost">$0</span>
               </div>
               <div class="flex justify-between items-center p-4 bg-[var(--accent-primary)]/10 rounded-lg border border-[var(--accent-primary)]/30">
-                <span class="text-xs text-[var(--accent-primary)] uppercase tracking-wide font-medium">Sin Costos</span>
+                <span class="text-xs text-[var(--accent-primary)] uppercase tracking-wide font-medium" data-i18n="dashboard.no_costs">Sin Costos</span>
                 <span class="text-base font-semibold text-[var(--accent-primary)] font-mono" id="products-no-costs">0</span>
               </div>
             </div>
@@ -122,17 +122,17 @@ import PageHeader from '../components/PageHeader.astro';
         <div class="card p-5 animate-element" data-delay="300">
           <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <span class="w-2 h-2 bg-[var(--accent-tertiary)] rounded-full"></span>
-            Top 5 Productos Más Rentables
+            <span data-i18n="dashboard.top_products">Top 5 Productos Más Rentables</span>
           </h3>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
                 <tr class="table-header">
-                  <th class="table-cell">Producto</th>
-                  <th class="table-cell hidden sm:table-cell">Costo Total</th>
-                  <th class="table-cell">Precio Venta</th>
-                  <th class="table-cell">Margen</th>
-                  <th class="table-cell">Ganancia</th>
+                  <th class="table-cell" data-i18n="dashboard.table_product">Producto</th>
+                  <th class="table-cell hidden sm:table-cell" data-i18n="dashboard.table_cost">Costo Total</th>
+                  <th class="table-cell" data-i18n="dashboard.table_price">Precio Venta</th>
+                  <th class="table-cell" data-i18n="dashboard.table_margin">Margen</th>
+                  <th class="table-cell" data-i18n="dashboard.table_profit">Ganancia</th>
                 </tr>
               </thead>
               <tbody id="top-products-table" class="divide-y divide-[var(--border-color)]"></tbody>

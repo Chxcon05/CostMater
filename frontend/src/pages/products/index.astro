@@ -15,43 +15,43 @@ import PageHeader from '../../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Productos y Servicios" subtitle="Gestiona tu inventario y servicios" />
+      <PageHeader title="Productos y Servicios" subtitle="Gestiona tu inventario y servicios" i18nTitle="product.page_title" i18nSubtitle="product.page_subtitle" />
       
       <div class="flex gap-3 mb-6 flex-wrap">
-        <input type="text" id="search-input" placeholder="Buscar..." class="input max-w-xs" />
+        <input type="text" id="search-input" placeholder="Buscar..." class="input max-w-xs" data-i18n-placeholder="common.search" />
         <select id="category-filter" class="input w-44">
-          <option value="">Categoría</option>
+<option value="" data-i18n="common.category">Categoría</option>
         </select>
         <select id="type-filter" class="input w-36">
-          <option value="">Tipo</option>
-          <option value="producto">Producto</option>
-          <option value="servicio">Servicio</option>
+          <option value="" data-i18n="common.type">Tipo</option>
+          <option value="producto" data-i18n="product.product">Producto</option>
+          <option value="servicio" data-i18n="product.service">Servicio</option>
         </select>
-        <button id="btn-new-product" class="btn-primary rounded-lg px-5 py-2.5 text-sm">+ Nuevo</button>
-        <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm">Categorías</button>
+        <button id="btn-new-product" class="btn-primary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.new">+ Nuevo</button>
+        <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.category">Categorías</button>
       </div>
 
       <div class="card mb-6 overflow-x-auto">
         <table class="w-full text-sm min-w-[640px]">
           <thead><tr class="table-header">
-            <th class="table-cell">SKU</th>
-            <th class="table-cell">Producto</th>
-            <th class="table-cell">Categoría</th>
-            <th class="table-cell">Tipo</th>
-            <th class="table-cell text-right">Costo</th>
-            <th class="table-cell text-right">Venta</th>
-            <th class="table-cell text-right">Margen</th>
-            <th class="table-cell w-24">Acciones</th>
+            <th class="table-cell" data-i18n="product.sku">SKU</th>
+            <th class="table-cell" data-i18n="common.name">Producto</th>
+            <th class="table-cell" data-i18n="common.category">Categoría</th>
+            <th class="table-cell" data-i18n="common.type">Tipo</th>
+            <th class="table-cell text-right" data-i18n="product.cost">Costo</th>
+            <th class="table-cell text-right" data-i18n="product.selling_price">Venta</th>
+            <th class="table-cell text-right" data-i18n="product.margin">Margen</th>
+            <th class="table-cell w-24" data-i18n="common.actions">Acciones</th>
           </tr></thead>
           <tbody id="products-table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
-        <div id="empty-msg" class="hidden p-12 text-center text-[var(--text-muted)]">No hay productos</div>
+        <div id="empty-msg" class="hidden p-12 text-center text-[var(--text-muted)]" data-i18n="product.empty">No hay productos</div>
       </div>
 
       <div id="cats-section" class="hidden">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold text-[var(--text-primary)]">Categorías</h3>
-          <button id="btn-new-cat" class="btn-primary text-xs rounded-lg px-3 py-1.5">+Nueva</button>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)]" data-i18n="common.category">Categorías</h3>
+          <button id="btn-new-cat" class="btn-primary text-xs rounded-lg px-3 py-1.5" data-i18n="common.new">+Nueva</button>
         </div>
         <div id="cats-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
       </div>
@@ -61,7 +61,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="product-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-lg">
       <div class="p-4 border-b flex justify-between">
-        <h3 class="font-semibold" id="prod-title">Nuevo Producto</h3>
+        <h3 class="font-semibold" id="prod-title" data-i18n="product.new">Nuevo Producto</h3>
         <button id="prod-close" class="text-slate-400 hover:text-slate-600">✕</button>
       </div>
        <form class="p-4 space-y-3">
@@ -82,18 +82,18 @@ import PageHeader from '../../components/PageHeader.astro';
          </div>
        </form>
       <div class="p-4 border-t flex gap-2 justify-end">
-        <button type="button" id="prod-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
-        <button type="button" id="prod-save" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+        <button type="button" id="prod-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
+        <button type="button" id="prod-save" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>
 
   <div id="delete-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6 text-center">
-      <h3 class="font-semibold mb-2">¿Eliminar?</h3>
+      <h3 class="font-semibold mb-2" data-i18n="common.delete">¿Eliminar?</h3>
       <div class="flex gap-3 justify-center mt-4">
-        <button id="del-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
-        <button id="del-confirm" class="btn-danger rounded-lg text-sm py-2 px-4">Eliminar</button>
+        <button id="del-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
+        <button id="del-confirm" class="btn-danger rounded-lg text-sm py-2 px-4" data-i18n="common.delete">Eliminar</button>
       </div>
     </div>
   </div>
@@ -101,7 +101,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="cat-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm">
       <div class="p-4 border-b flex justify-between">
-        <h3 class="font-semibold" id="cat-title">Nueva Categoría</h3>
+        <h3 class="font-semibold" id="cat-title" data-i18n="product.new_category">Nueva Categoría</h3>
         <button id="cat-close" class="text-slate-400 hover:text-slate-600">✕</button>
       </div>
       <form class="p-4 space-y-3">
@@ -110,8 +110,8 @@ import PageHeader from '../../components/PageHeader.astro';
         <div><label class="label">Color</label><input type="color" id="cat-color" class="w-full h-10" value="#3b82f6" /></div>
       </form>
       <div class="p-4 border-t flex gap-2 justify-end">
-        <button type="button" id="cat-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
-        <button type="button" id="cat-save" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+        <button type="button" id="cat-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
+        <button type="button" id="cat-save" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>

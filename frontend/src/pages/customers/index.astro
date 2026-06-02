@@ -27,13 +27,13 @@ import PageHeader from "../../components/PageHeader.astro";
         </svg>
       </button>
 
-      <PageHeader title="Clientes" subtitle="Gestiona tu base de clientes" />
+      <PageHeader title="Clientes" subtitle="Gestiona tu base de clientes" i18nTitle="customer.page_title" i18nSubtitle="customer.page_subtitle" />
 
       <div class="flex flex-wrap gap-3 mb-6">
         <input
           type="text"
           id="search-input"
-          placeholder="Buscar cliente..."
+          placeholder="Buscar cliente..." data-i18n-placeholder="common.search"
           class="input flex-1 min-w-[200px]"
         />
         <button
@@ -51,7 +51,7 @@ import PageHeader from "../../components/PageHeader.astro";
               stroke-width="2"
               d="M12 4v16m8-8H4"></path></svg
           >
-          Nuevo Cliente
+          <span data-i18n="common.new">Nuevo Cliente</span>
         </button>
       </div>
 
@@ -59,13 +59,13 @@ import PageHeader from "../../components/PageHeader.astro";
         <table class="w-full min-w-[640px]">
           <thead
             ><tr class="table-header"
-              ><th class="table-cell text-left">Nombre</th><th
-                class="table-cell text-left">Email</th
-              ><th class="table-cell text-center">Teléfono</th><th
-                class="table-cell text-left">País</th><th
-                class="table-cell text-left">Ciudad</th
-              ><th class="table-cell text-right">Crédito</th
-              ><th class="table-cell text-center">Acciones</th></tr
+              ><th class="table-cell text-left" data-i18n="common.name">Nombre</th><th
+                class="table-cell text-left" data-i18n="common.email">Email</th
+              ><th class="table-cell text-center" data-i18n="common.phone">Teléfono</th><th
+                class="table-cell text-left" data-i18n="customer.country">País</th><th
+                class="table-cell text-left" data-i18n="customer.city">Ciudad</th
+              ><th class="table-cell text-right" data-i18n="customer.credit">Crédito</th
+              ><th class="table-cell text-center" data-i18n="common.actions">Acciones</th></tr
             ></thead
           >
           <tbody id="table" class="divide-y divide-[var(--border-color)]"
@@ -73,7 +73,7 @@ import PageHeader from "../../components/PageHeader.astro";
         </table>
         <div id="empty" class="hidden p-12 text-center">
           <p class="text-[var(--text-muted)] mb-4">
-            No hay clientes registrados
+            <span data-i18n="customer.empty">No hay clientes registrados</span>
           </p>
         </div>
       </div>
@@ -85,7 +85,7 @@ import PageHeader from "../../components/PageHeader.astro";
       <div
         class="p-6 border-b border-[var(--border-color)] flex justify-between items-center flex-shrink-0"
       >
-        <h3 class="text-lg font-semibold" id="modal-title">Nuevo Cliente</h3>
+        <h3 class="text-lg font-semibold" id="modal-title" data-i18n="customer.new">Nuevo Cliente</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"
           ><svg
             class="w-6 h-6"
@@ -191,15 +191,15 @@ import PageHeader from "../../components/PageHeader.astro";
       <div
         class="p-6 border-t border-[var(--border-color)] flex gap-3 justify-end flex-shrink-0"
       >
-        <button
-          type="button"
-          id="modal-cancel"
-          class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button
-        >
-        <button
-          type="button"
-          id="modal-save"
-          class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button
+          <button
+            type="button"
+            id="modal-cancel"
+            class="btn-secondary rounded-lg text-sm px-3 py-1.5" data-i18n="common.cancel">Cancelar</button
+          >
+          <button
+            type="button"
+            id="modal-save"
+            class="btn-primary rounded-lg text-sm px-3 py-1.5" data-i18n="common.save">Guardar</button
         >
       </div>
     </div>
@@ -207,13 +207,13 @@ import PageHeader from "../../components/PageHeader.astro";
 
   <div id="delete-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6 text-center">
-      <h3 class="text-lg font-semibold mb-2">¿Eliminar cliente?</h3>
-      <p class="text-slate-500 mb-6">Esta acción no se puede deshacer.</p>
+      <h3 class="text-lg font-semibold mb-2" data-i18n="customer.delete_confirm">¿Eliminar cliente?</h3>
+      <p class="text-slate-500 mb-6" data-i18n="customer.delete_warning">Esta acción no se puede deshacer.</p>
       <div class="flex gap-3 justify-center">
-        <button id="delete-cancel" class="btn-secondary rounded-lg"
+        <button id="delete-cancel" class="btn-secondary rounded-lg" data-i18n="common.cancel"
           >Cancelar</button
         >
-        <button id="delete-confirm" class="btn-danger rounded-lg"
+        <button id="delete-confirm" class="btn-danger rounded-lg" data-i18n="common.delete"
           >Eliminar</button
         >
       </div>

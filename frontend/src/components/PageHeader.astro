@@ -2,13 +2,15 @@
 interface Props {
   title: string;
   subtitle?: string;
+  i18nTitle?: string;
+  i18nSubtitle?: string;
 }
 
-const { title, subtitle } = Astro.props;
+const { title, subtitle, i18nTitle, i18nSubtitle } = Astro.props;
 ---
 
 <header class="mb-6 animate-fade-in-up">
-  <h1 class="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">{title}</h1>
-  {subtitle && <p class="text-[var(--text-muted)] mt-1 text-sm">{subtitle}</p>}
+  <h1 class="text-2xl font-semibold text-[var(--text-primary)] tracking-tight" data-i18n={i18nTitle}>{title}</h1>
+  {subtitle && <p class="text-[var(--text-muted)] mt-1 text-sm" data-i18n={i18nSubtitle}>{subtitle}</p>}
   <div class="mt-3 h-1 w-16 bg-[var(--accent-primary)] rounded-full"></div>
 </header>

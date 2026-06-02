@@ -15,29 +15,29 @@ import PageHeader from '../../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Facturas" subtitle="Gestiona tu facturación" />
+      <PageHeader title="Facturas" subtitle="Gestiona tu facturación" i18nTitle="invoice.page_title" i18nSubtitle="invoice.page_subtitle" />
       
       <div class="flex flex-wrap gap-3 mb-6">
         <select id="status-filter" class="input flex-1 min-w-[150px]">
-          <option value="">Todos</option>
-          <option value="borrador">Borrador</option>
-          <option value="emitida">Emitida</option>
-          <option value="pagada">Pagada</option>
-          <option value="cancelada">Cancelada</option>
+          <option value="" data-i18n="common.all">Todos</option>
+          <option value="borrador" data-i18n="invoice.draft">Borrador</option>
+          <option value="emitida" data-i18n="invoice.issued">Emitida</option>
+          <option value="pagada" data-i18n="invoice.paid">Pagada</option>
+          <option value="cancelada" data-i18n="invoice.cancelled">Cancelada</option>
         </select>
         <button id="btn-new" class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-          Nueva Factura
+          <span data-i18n="common.new">Nueva Factura</span>
         </button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell text-left">Folio</th><th class="table-cell text-left">Cliente</th><th class="table-cell text-left">Fecha</th><th class="table-cell text-left">Total</th><th class="table-cell text-left">Estado</th><th class="table-cell text-left">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="invoice.folio">Folio</th><th class="table-cell text-left" data-i18n="invoice.customer">Cliente</th><th class="table-cell text-left" data-i18n="common.date">Fecha</th><th class="table-cell text-left" data-i18n="common.total">Total</th><th class="table-cell text-left" data-i18n="common.status">Estado</th><th class="table-cell text-left" data-i18n="common.actions">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-slate-200"></tbody>
         </table>
         <div id="empty" class="hidden p-12 text-center">
-          <p class="text-slate-500 mb-4">No hay facturas</p>
+          <p class="text-slate-500 mb-4" data-i18n="invoice.empty">No hay facturas</p>
         </div>
       </div>
     </main>
@@ -46,7 +46,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="modal" class="modal-overlay hidden">
     <div class="modal-content max-w-2xl">
       <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-        <h3 class="text-lg font-semibold" id="modal-title">Nueva Factura</h3>
+        <h3 class="text-lg font-semibold" id="modal-title" data-i18n="invoice.new">Nueva Factura</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
       </div>
       <form id="form" class="p-6 space-y-4">
@@ -62,37 +62,37 @@ import PageHeader from '../../components/PageHeader.astro';
         <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
         <div class="border border-slate-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-4">
-            <h4 class="font-medium">Conceptos</h4>
-            <button type="button" id="btn-add-item" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar</button>
+            <h4 class="font-medium" data-i18n="invoice.concepts">Conceptos</h4>
+            <button type="button" id="btn-add-item" class="text-primary-600 text-sm font-medium hover:text-primary-700" data-i18n="common.new">+ Agregar</button>
           </div>
           <div class="grid grid-cols-4 gap-2 mb-2 text-xs text-slate-500 font-medium uppercase tracking-wider">
-            <span>Descripción</span>
-            <span>Cantidad</span>
-            <span>Precio</span>
+            <span data-i18n="common.description">Descripción</span>
+            <span data-i18n="common.quantity">Cantidad</span>
+            <span data-i18n="common.price">Precio</span>
             <span></span>
           </div>
           <div id="items-container" class="space-y-2"></div>
         </div>
       </form>
       <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
-        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button>
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5" data-i18n="common.cancel">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>
 
   <div id="status-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6">
-      <h3 class="text-lg font-semibold mb-4">Cambiar Estado</h3>
+      <h3 class="text-lg font-semibold mb-4" data-i18n="invoice.change_status">Cambiar Estado</h3>
       <select id="new-status" class="input mb-4">
-        <option value="borrador">Borrador</option>
-        <option value="emitida">Emitida</option>
-        <option value="pagada">Pagada</option>
-        <option value="cancelada">Cancelada</option>
+        <option value="borrador" data-i18n="invoice.draft">Borrador</option>
+        <option value="emitida" data-i18n="invoice.issued">Emitida</option>
+        <option value="pagada" data-i18n="invoice.paid">Pagada</option>
+        <option value="cancelada" data-i18n="invoice.cancelled">Cancelada</option>
       </select>
       <div class="flex gap-3 justify-end">
-        <button id="status-cancel" class="btn-secondary rounded-lg">Cancelar</button>
-        <button id="status-confirm" class="btn-primary rounded-lg">Actualizar</button>
+        <button id="status-cancel" class="btn-secondary rounded-lg" data-i18n="common.cancel">Cancelar</button>
+        <button id="status-confirm" class="btn-primary rounded-lg" data-i18n="common.save">Actualizar</button>
       </div>
     </div>
   </div>

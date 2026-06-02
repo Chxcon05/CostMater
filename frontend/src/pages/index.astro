@@ -15,8 +15,29 @@ import Layout from '../layouts/Layout.astro';
           <span class="text-lg font-semibold tracking-tight">COSTMASTER</span>
         </a>
         <div class="flex items-center gap-2">
-          <a href="/login" class="btn btn-secondary text-xs py-1.5 px-3" style="border-radius: 2px">Login</a>
-          <a href="/register" class="btn btn-primary text-xs py-1.5 px-3" style="border-radius: 2px">Comenzar</a>
+          <button
+            id="theme-toggle-nav"
+            onclick="window.toggleTheme()"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Toggle theme"
+          >
+            <svg id="theme-icon-sun-nav" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="theme-icon-moon-nav" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          </button>
+          <button
+            id="lang-toggle-nav"
+            onclick="window.toggleLanguage()"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Toggle language"
+          >
+            <span id="lang-icon-nav">EN</span>
+          </button>
+          <a href="/login" class="btn btn-secondary text-xs py-1.5 px-3" style="border-radius: 2px" data-i18n="landing.login">Login</a>
+          <a href="/register" class="btn btn-primary text-xs py-1.5 px-3" style="border-radius: 2px" data-i18n="landing.start">Comenzar</a>
         </div>
       </div>
     </nav>
@@ -70,7 +91,7 @@ import Layout from '../layouts/Layout.astro';
             <span class="w-2 h-2 bg-[var(--accent-success)] rounded-full relative animate-pulse">
               <span class="absolute inset-0 rounded-full bg-[var(--accent-success)] animate-ping"></span>
             </span>
-            <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider">Contabilidad de costos</span>
+            <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider" data-i18n="landing.cost_subtitle">Contabilidad de costos</span>
           </div>
         </div>
         
@@ -87,13 +108,13 @@ import Layout from '../layouts/Layout.astro';
         </p>
         
         <div class="flex flex-col sm:flex-row gap-3 justify-center mb-16 hero-cta" style="opacity: 0; transform: translateY(20px);">
-          <a href="/register" class="btn btn-primary py-3 px-6 text-base group" style="border-radius: 2px">
+          <a href="/register" class="btn btn-primary py-3 px-6 text-base group" style="border-radius: 2px" data-i18n="landing.free">
             Prueba Gratis
             <svg class="w-4 h-4 transition-transform group-hover:translate-x-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </a>
-          <a href="/features" class="btn btn-secondary py-3 px-6 text-base" style="border-radius: 2px">
+          <a href="/features" class="btn btn-secondary py-3 px-6 text-base" style="border-radius: 2px" data-i18n="landing.learn">
             Conocer más
           </a>
         </div>
@@ -145,9 +166,9 @@ import Layout from '../layouts/Layout.astro';
       <div class="max-w-5xl mx-auto px-6 relative">
         <div class="text-center mb-16">
           <h2 class="text-4xl font-semibold mb-4 features-title" style="opacity: 0; transform: translateY(30px);">
-            <span class="text-[var(--accent-primary)]">Características</span>
+            <span class="text-[var(--accent-primary)]" data-i18n="landing.features_title">Características</span>
           </h2>
-          <p class="text-[var(--text-muted)] text-lg features-subtitle" style="opacity: 0; transform: translateY(30px);">
+          <p class="text-[var(--text-muted)] text-lg features-subtitle" style="opacity: 0; transform: translateY(30px);" data-i18n="landing.features_subtitle">
             Todo lo que necesitas para gestionar tu negocio
           </p>
         </div>
@@ -161,7 +182,7 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-primary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-primary)]/20 transition-all"></div>
-              <h3 class="text-lg font-semibold mb-3 relative z-10">Gestión de Productos</h3>
+              <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.products">Gestión de Productos</h3>
               <p class="text-sm text-[var(--text-muted)] relative z-10">Registra y organiza todos tus productos y servicios con facilidad. Control total de tu inventario.</p>
               <div class="feature-line feature-line-1"></div>
             </div>
@@ -175,7 +196,7 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-secondary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-secondary)]/20 transition-all"></div>
-              <h3 class="text-lg font-semibold mb-3 relative z-10">Costos Detallados</h3>
+              <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="landing.cost_title">Costos Detallados</h3>
               <p class="text-sm text-[var(--text-muted)] relative z-10">Controla costos directos e indirectos por producto. Calcula márgenes precisos.</p>
               <div class="feature-line feature-line-2"></div>
             </div>
@@ -189,7 +210,7 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-tertiary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-tertiary)]/20 transition-all"></div>
-              <h3 class="text-lg font-semibold mb-3 relative z-10">Reportes y Análisis</h3>
+              <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.reports">Reportes y Análisis</h3>
               <p class="text-sm text-[var(--text-muted)] relative z-10">Visualiza rentabilidad y toma decisiones informadas con gráficos.</p>
               <div class="feature-line feature-line-3"></div>
             </div>
@@ -205,8 +226,8 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold mb-1">Datos Seguros</h4>
-                <p class="text-xs text-[var(--text-muted)]">Tu información siempre protegida</p>
+                <h4 class="font-semibold mb-1" data-i18n="landing.secure">Datos Seguros</h4>
+                <p class="text-xs text-[var(--text-muted)]" data-i18n="landing.secure_desc">Tu información siempre protegida</p>
               </div>
             </div>
           </div>
@@ -218,8 +239,8 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
               </div>
               <div>
-                <h4 class="font-semibold mb-1">Análisis Instantáneo</h4>
-                <p class="text-xs text-[var(--text-muted)]">Resultados en tiempo real</p>
+                <h4 class="font-semibold mb-1" data-i18n="landing.instant">Análisis Instantáneo</h4>
+                <p class="text-xs text-[var(--text-muted)]" data-i18n="landing.instant_desc">Resultados en tiempo real</p>
               </div>
             </div>
           </div>
@@ -232,10 +253,10 @@ import Layout from '../layouts/Layout.astro';
       
       <div class="max-w-5xl mx-auto px-6 relative">
         <div class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-semibold mb-4">
+          <h2 class="text-3xl md:text-4xl font-semibold mb-4" data-i18n="landing.platform">
             Una plataforma <span class="text-[var(--accent-primary)]">completa</span>
           </h2>
-          <p class="text-[var(--text-muted)]">Todo lo que necesitas en un solo lugar</p>
+          <p class="text-[var(--text-muted)]" data-i18n="landing.platform_desc">Todo lo que necesitas en un solo lugar</p>
         </div>
 
         <div class="demo-mockup">
@@ -326,13 +347,13 @@ import Layout from '../layouts/Layout.astro';
       <div class="absolute inset-0 bg-[var(--bg-secondary)]"></div>
       
       <div class="max-w-2xl mx-auto px-6 text-center relative z-10 cta-content" style="opacity: 0; transform: scale(0.9);">
-        <h2 class="text-4xl font-bold mb-4">
+        <h2 class="text-4xl font-bold mb-4" data-i18n="landing.ready">
           ¿<span class="rainbow-hover">Listo</span> para empezar?
         </h2>
-        <p class="text-[var(--text-muted)] text-lg mb-10">
+        <p class="text-[var(--text-muted)] text-lg mb-10" data-i18n="landing.join">
           Únete a emprendedores que ya optimizan sus costos con CostMaster
         </p>
-        <a href="/register" class="btn btn-primary py-4 px-10 text-lg group inline-flex" style="border-radius: 2px">
+        <a href="/register" class="btn btn-primary py-4 px-10 text-lg group inline-flex" style="border-radius: 2px" data-i18n="landing.cta">
           Comenzar Gratuitamente
           <svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -352,7 +373,7 @@ import Layout from '../layouts/Layout.astro';
             </div>
             <span class="text-sm font-semibold">COSTMASTER</span>
           </div>
-          <p class="text-xs text-[var(--text-muted)]">
+          <p class="text-xs text-[var(--text-muted)]" data-i18n="footer.rights">
             © 2026 CostMaster. Todos los derechos reservados.
           </p>
         </div>

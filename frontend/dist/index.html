@@ -1,22 +1,490 @@
-<!DOCTYPE html><html lang="es"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CostMaster - Sistema de Contabilidad | CostMaster</title><link rel="stylesheet" href="/src/styles/global.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="/_astro/index.DUu-8_v3.css">
-<link rel="stylesheet" href="/_astro/index.DJqlGxsD.css"><script type="module" src="/_astro/hoisted.CDK8edgZ.js"></script></head> <body>  <div class="landing-wrapper" id="landing" data-astro-cid-j7pv25f6> <nav class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/80 backdrop-blur-sm border-b border-[var(--border-color)]" data-astro-cid-j7pv25f6> <div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center" data-astro-cid-j7pv25f6> <a href="/" class="flex items-center gap-2.5 group" data-astro-cid-j7pv25f6> <div class="w-8 h-8 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.5" d="M4 4h8v16H4zM12 4v16M20 4v16" data-astro-cid-j7pv25f6></path> </svg> </div> <span class="text-lg font-semibold tracking-tight" data-astro-cid-j7pv25f6>COSTMASTER</span> </a> <div class="flex items-center gap-2" data-astro-cid-j7pv25f6> <a href="/login" class="btn btn-secondary text-xs py-1.5 px-3" style="border-radius: 2px" data-astro-cid-j7pv25f6>Login</a> <a href="/register" class="btn btn-primary text-xs py-1.5 px-3" style="border-radius: 2px" data-astro-cid-j7pv25f6>Comenzar</a> </div> </div> </nav> <section class="hero min-h-screen flex items-center justify-center relative overflow-hidden" id="hero" data-astro-cid-j7pv25f6> <canvas id="hero-canvas" class="absolute inset-0" data-astro-cid-j7pv25f6></canvas> <div class="hero-glow" data-astro-cid-j7pv25f6></div> <div class="floating-elements" data-astro-cid-j7pv25f6> <div class="float-element" data-delay="0" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-20 h-20 opacity-20" data-astro-cid-j7pv25f6> <rect x="20" y="20" width="60" height="60" fill="none" stroke="var(--accent-primary)" stroke-width="2" transform="rotate(45 50 50)" data-astro-cid-j7pv25f6></rect> </svg> </div> <div class="float-element" data-delay="2000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-16 h-16 opacity-15" data-astro-cid-j7pv25f6> <circle cx="50" cy="50" r="30" fill="none" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></circle> </svg> </div> <div class="float-element" data-delay="4000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-24 h-24 opacity-10" data-astro-cid-j7pv25f6> <polygon points="50,10 90,90 10,90" fill="none" stroke="var(--accent-tertiary)" stroke-width="2" data-astro-cid-j7pv25f6></polygon> </svg> </div> <div class="float-element" data-delay="1000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-12 h-12 opacity-20" data-astro-cid-j7pv25f6> <rect x="20" y="20" width="60" height="60" rx="10" fill="none" stroke="var(--accent-primary)" stroke-width="2" data-astro-cid-j7pv25f6></rect> </svg> </div> <div class="float-element" data-delay="3000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-14 h-14 opacity-15" data-astro-cid-j7pv25f6> <line x1="20" y1="20" x2="80" y2="80" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></line> <line x1="80" y1="20" x2="20" y2="80" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></line> </svg> </div> </div> <div class="connection-lines" data-astro-cid-j7pv25f6> <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" data-astro-cid-j7pv25f6> <line class="conn-line" x1="20%" y1="30%" x2="35%" y2="25%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="80%" y1="25%" x2="65%" y2="30%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="25%" y1="70%" x2="40%" y2="75%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="75%" y1="75%" x2="60%" y2="70%" data-astro-cid-j7pv25f6></line> </svg> </div> <div class="max-w-4xl mx-auto px-6 text-center relative z-10 py-20" data-astro-cid-j7pv25f6> <div class="hero-badges" style="opacity: 0; transform: translateY(-20px);" data-astro-cid-j7pv25f6> <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[var(--bg-card)] border border-[var(--border-color)] mb-8" data-astro-cid-j7pv25f6> <span class="w-2 h-2 bg-[var(--accent-success)] rounded-full relative animate-pulse" data-astro-cid-j7pv25f6> <span class="absolute inset-0 rounded-full bg-[var(--accent-success)] animate-ping" data-astro-cid-j7pv25f6></span> </span> <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider" data-astro-cid-j7pv25f6>Contabilidad de costos</span> </div> </div> <h1 class="text-4xl md:text-7xl font-bold mb-5 tracking-tight leading-tight" data-astro-cid-j7pv25f6> <span class="hero-title" style="opacity: 0; transform: translateY(40px); display: inline-block;" data-astro-cid-j7pv25f6>
+<!DOCTYPE html><html lang="es"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CostMaster - Sistema de Contabilidad | CostMaster</title><link rel="stylesheet" href="/src/styles/global.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="/_astro/Layout.DEBGRyX7.css">
+<link rel="stylesheet" href="/_astro/index.UL6pH02Q.css"></head> <body>  <div class="landing-wrapper" id="landing" data-astro-cid-j7pv25f6> <nav class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/80 backdrop-blur-sm border-b border-[var(--border-color)]" data-astro-cid-j7pv25f6> <div class="max-w-6xl mx-auto px-6 py-3 flex justify-between items-center" data-astro-cid-j7pv25f6> <a href="/" class="flex items-center gap-2.5 group" data-astro-cid-j7pv25f6> <div class="w-8 h-8 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2.5" d="M4 4h8v16H4zM12 4v16M20 4v16" data-astro-cid-j7pv25f6></path> </svg> </div> <span class="text-lg font-semibold tracking-tight" data-astro-cid-j7pv25f6>COSTMASTER</span> </a> <div class="flex items-center gap-2" data-astro-cid-j7pv25f6> <button id="theme-toggle-nav" onclick="window.toggleTheme()" class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Toggle theme" data-astro-cid-j7pv25f6> <svg id="theme-icon-sun-nav" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" data-astro-cid-j7pv25f6></path> </svg> <svg id="theme-icon-moon-nav" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" data-astro-cid-j7pv25f6></path> </svg> </button> <button id="lang-toggle-nav" onclick="window.toggleLanguage()" class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors" title="Toggle language" data-astro-cid-j7pv25f6> <span id="lang-icon-nav" data-astro-cid-j7pv25f6>EN</span> </button> <a href="/login" class="btn btn-secondary text-xs py-1.5 px-3" style="border-radius: 2px" data-i18n="landing.login" data-astro-cid-j7pv25f6>Login</a> <a href="/register" class="btn btn-primary text-xs py-1.5 px-3" style="border-radius: 2px" data-i18n="landing.start" data-astro-cid-j7pv25f6>Comenzar</a> </div> </div> </nav> <section class="hero min-h-screen flex items-center justify-center relative overflow-hidden" id="hero" data-astro-cid-j7pv25f6> <canvas id="hero-canvas" class="absolute inset-0" data-astro-cid-j7pv25f6></canvas> <div class="hero-glow" data-astro-cid-j7pv25f6></div> <div class="floating-elements" data-astro-cid-j7pv25f6> <div class="float-element" data-delay="0" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-20 h-20 opacity-20" data-astro-cid-j7pv25f6> <rect x="20" y="20" width="60" height="60" fill="none" stroke="var(--accent-primary)" stroke-width="2" transform="rotate(45 50 50)" data-astro-cid-j7pv25f6></rect> </svg> </div> <div class="float-element" data-delay="2000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-16 h-16 opacity-15" data-astro-cid-j7pv25f6> <circle cx="50" cy="50" r="30" fill="none" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></circle> </svg> </div> <div class="float-element" data-delay="4000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-24 h-24 opacity-10" data-astro-cid-j7pv25f6> <polygon points="50,10 90,90 10,90" fill="none" stroke="var(--accent-tertiary)" stroke-width="2" data-astro-cid-j7pv25f6></polygon> </svg> </div> <div class="float-element" data-delay="1000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-12 h-12 opacity-20" data-astro-cid-j7pv25f6> <rect x="20" y="20" width="60" height="60" rx="10" fill="none" stroke="var(--accent-primary)" stroke-width="2" data-astro-cid-j7pv25f6></rect> </svg> </div> <div class="float-element" data-delay="3000" data-astro-cid-j7pv25f6> <svg viewBox="0 0 100 100" class="w-14 h-14 opacity-15" data-astro-cid-j7pv25f6> <line x1="20" y1="20" x2="80" y2="80" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></line> <line x1="80" y1="20" x2="20" y2="80" stroke="var(--accent-secondary)" stroke-width="2" data-astro-cid-j7pv25f6></line> </svg> </div> </div> <div class="connection-lines" data-astro-cid-j7pv25f6> <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" data-astro-cid-j7pv25f6> <line class="conn-line" x1="20%" y1="30%" x2="35%" y2="25%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="80%" y1="25%" x2="65%" y2="30%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="25%" y1="70%" x2="40%" y2="75%" data-astro-cid-j7pv25f6></line> <line class="conn-line" x1="75%" y1="75%" x2="60%" y2="70%" data-astro-cid-j7pv25f6></line> </svg> </div> <div class="max-w-4xl mx-auto px-6 text-center relative z-10 py-20" data-astro-cid-j7pv25f6> <div class="hero-badges" style="opacity: 0; transform: translateY(-20px);" data-astro-cid-j7pv25f6> <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[var(--bg-card)] border border-[var(--border-color)] mb-8" data-astro-cid-j7pv25f6> <span class="w-2 h-2 bg-[var(--accent-success)] rounded-full relative animate-pulse" data-astro-cid-j7pv25f6> <span class="absolute inset-0 rounded-full bg-[var(--accent-success)] animate-ping" data-astro-cid-j7pv25f6></span> </span> <span class="text-xs text-[var(--text-muted)] uppercase tracking-wider" data-i18n="landing.cost_subtitle" data-astro-cid-j7pv25f6>Contabilidad de costos</span> </div> </div> <h1 class="text-4xl md:text-7xl font-bold mb-5 tracking-tight leading-tight" data-astro-cid-j7pv25f6> <span class="hero-title" style="opacity: 0; transform: translateY(40px); display: inline-block;" data-astro-cid-j7pv25f6>
 Calcula tus <span class="text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>costos</span>, <br class="hidden md:block" data-astro-cid-j7pv25f6>
 escala tu <span class="text-[var(--accent-secondary)]" data-astro-cid-j7pv25f6>negocio</span> </span> </h1> <p class="text-base md:text-lg text-[var(--text-secondary)] mb-8 max-w-xl mx-auto hero-subtitle" style="opacity: 0; transform: translateY(30px);" data-astro-cid-j7pv25f6>
 La herramienta profesional para calcular, analizar y optimizar cada peso de tu negocio. 
-          Decisione<span class="text-[var(--accent-tertiary)]" data-astro-cid-j7pv25f6>s basadas</span> en datos reales.
-</p> <div class="flex flex-col sm:flex-row gap-3 justify-center mb-16 hero-cta" style="opacity: 0; transform: translateY(20px);" data-astro-cid-j7pv25f6> <a href="/register" class="btn btn-primary py-3 px-6 text-base group" style="border-radius: 2px" data-astro-cid-j7pv25f6>
+          Decisiones basadas en datos reales.
+</p> <div class="flex flex-col sm:flex-row gap-3 justify-center mb-16 hero-cta" style="opacity: 0; transform: translateY(20px);" data-astro-cid-j7pv25f6> <a href="/register" class="btn btn-primary py-3 px-6 text-base group" style="border-radius: 2px" data-i18n="landing.free" data-astro-cid-j7pv25f6>
 Prueba Gratis
-<svg class="w-4 h-4 transition-transform group-hover:translate-x-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-astro-cid-j7pv25f6></path> </svg> </a> <a href="#features" class="btn btn-secondary py-3 px-6 text-base" style="border-radius: 2px" data-astro-cid-j7pv25f6>
+<svg class="w-4 h-4 transition-transform group-hover:translate-x-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-astro-cid-j7pv25f6></path> </svg> </a> <a href="/features" class="btn btn-secondary py-3 px-6 text-base" style="border-radius: 2px" data-i18n="landing.learn" data-astro-cid-j7pv25f6>
 Conocer más
-</a> </div> <div class="grid grid-cols-2 md:grid-cols-4 gap-3 hero-stats" data-astro-cid-j7pv25f6> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9);" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>100%</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Online</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.05s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-secondary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-secondary)]" data-astro-cid-j7pv25f6>0$</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Costo inicial</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-tertiary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-tertiary)]" data-astro-cid-j7pv25f6>∞</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Productos</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.15s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>24/7</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Acceso</div> </div> </div> </div> </div> <div class="hero-wave" data-astro-cid-j7pv25f6> <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute bottom-0 w-full" data-astro-cid-j7pv25f6> <path fill="var(--bg-secondary)" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 5v14M5 12l7 7 7-7" data-astro-cid-j7pv25f6></path> </svg> </div> </section> <section class="features py-28 relative" id="features" data-astro-cid-j7pv25f6> <div class="features-bg" data-astro-cid-j7pv25f6></div> <div class="max-w-5xl mx-auto px-6 relative" data-astro-cid-j7pv25f6> <div class="text-center mb-16" data-astro-cid-j7pv25f6> <h2 class="text-4xl font-semibold mb-4 features-title" style="opacity: 0; transform: translateY(30px);" data-astro-cid-j7pv25f6> <span class="text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>Características</span> </h2> <p class="text-[var(--text-muted)] text-lg features-subtitle" style="opacity: 0; transform: translateY(30px);" data-astro-cid-j7pv25f6>
+</a> </div> <div class="grid grid-cols-2 md:grid-cols-4 gap-3 hero-stats" data-astro-cid-j7pv25f6> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9);" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>100%</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Online</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.05s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-secondary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-secondary)]" data-astro-cid-j7pv25f6>0$</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Costo inicial</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-tertiary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-tertiary)]" data-astro-cid-j7pv25f6>∞</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Productos</div> </div> </div> <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.15s;" data-astro-cid-j7pv25f6> <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10" data-astro-cid-j7pv25f6> <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>24/7</div> <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-astro-cid-j7pv25f6>Acceso</div> </div> </div> </div> </div> <div class="hero-wave" data-astro-cid-j7pv25f6> <svg viewBox="0 0 1440 320" preserveAspectRatio="none" class="absolute bottom-0 w-full" data-astro-cid-j7pv25f6> <path fill="var(--bg-secondary)" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 5v14M5 12l7 7 7-7" data-astro-cid-j7pv25f6></path> </svg> </div> </section> <section class="features py-28 relative" id="features" data-astro-cid-j7pv25f6> <div class="features-bg" data-astro-cid-j7pv25f6></div> <div class="max-w-5xl mx-auto px-6 relative" data-astro-cid-j7pv25f6> <div class="text-center mb-16" data-astro-cid-j7pv25f6> <h2 class="text-4xl font-semibold mb-4 features-title" style="opacity: 0; transform: translateY(30px);" data-astro-cid-j7pv25f6> <span class="text-[var(--accent-primary)]" data-i18n="landing.features_title" data-astro-cid-j7pv25f6>Características</span> </h2> <p class="text-[var(--text-muted)] text-lg features-subtitle" style="opacity: 0; transform: translateY(30px);" data-i18n="landing.features_subtitle" data-astro-cid-j7pv25f6>
 Todo lo que necesitas para gestionar tu negocio
-</p> </div> <div class="grid md:grid-cols-3 gap-5" data-astro-cid-j7pv25f6> <div class="feature-card" style="opacity: 0; transform: translateY(40px);" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-1" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 6h16l-2 12H6L4 6z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-primary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-primary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-astro-cid-j7pv25f6>Gestión de Productos</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Registra y organiza todos tus productos y servicios con facilidad. Control total de tu inventario.</p> <div class="feature-line feature-line-1" data-astro-cid-j7pv25f6></div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateY(40px); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-2" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1V7" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-secondary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-secondary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-astro-cid-j7pv25f6>Costos Detallados</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Controla costos directos e indirectos por producto. Calcula márgenes precisos.</p> <div class="feature-line feature-line-2" data-astro-cid-j7pv25f6></div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateY(40px); animation-delay: 0.2s;" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-3" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-tertiary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-tertiary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-astro-cid-j7pv25f6>Reportes y Análisis</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Visualiza rentabilidad y toma decisiones informadas con gráficos.</p> <div class="feature-line feature-line-3" data-astro-cid-j7pv25f6></div> </div> </div> </div> <div class="mt-16 grid md:grid-cols-2 gap-5" data-astro-cid-j7pv25f6> <div class="feature-card" style="opacity: 0; transform: translateX(-30px);" data-astro-cid-j7pv25f6> <div class="card p-5 flex items-center gap-4" data-astro-cid-j7pv25f6> <div class="feature-mini-icon" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-astro-cid-j7pv25f6></path> </svg> </div> <div data-astro-cid-j7pv25f6> <h4 class="font-semibold mb-1" data-astro-cid-j7pv25f6>Datos Seguros</h4> <p class="text-xs text-[var(--text-muted)]" data-astro-cid-j7pv25f6>Tu información siempre protegida</p> </div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateX(30px); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-5 flex items-center gap-4" data-astro-cid-j7pv25f6> <div class="feature-mini-icon" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" data-astro-cid-j7pv25f6></path> </svg> </div> <div data-astro-cid-j7pv25f6> <h4 class="font-semibold mb-1" data-astro-cid-j7pv25f6>Análisis Instantáneo</h4> <p class="text-xs text-[var(--text-muted)]" data-astro-cid-j7pv25f6>Resultados en tiempo real</p> </div> </div> </div> </div> </div> </section> <section class="demo py-28 relative overflow-hidden" id="demo" data-astro-cid-j7pv25f6> <div class="demo-bg" data-astro-cid-j7pv25f6></div> <div class="max-w-5xl mx-auto px-6 relative" data-astro-cid-j7pv25f6> <div class="text-center mb-12" data-astro-cid-j7pv25f6> <h2 class="text-3xl md:text-4xl font-semibold mb-4" data-astro-cid-j7pv25f6>
-Una plataforma <span class="text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>completa</span> </h2> <p class="text-[var(--text-muted)]" data-astro-cid-j7pv25f6>Todo lo que necesitas en un solo lugar</p> </div> <div class="demo-mockup" data-astro-cid-j7pv25f6> <div class="mockup-header" data-astro-cid-j7pv25f6> <div class="mockup-dots" data-astro-cid-j7pv25f6> <span data-astro-cid-j7pv25f6></span><span data-astro-cid-j7pv25f6></span><span data-astro-cid-j7pv25f6></span> </div> <div class="mockup-title" data-astro-cid-j7pv25f6>CostMaster</div> </div> <div class="mockup-content" data-astro-cid-j7pv25f6> <div class="mockup-sidebar" data-astro-cid-j7pv25f6> <div class="mockup-nav-item active" data-astro-cid-j7pv25f6></div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6></div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6></div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-main" data-astro-cid-j7pv25f6> <div class="mockup-cards" data-astro-cid-j7pv25f6> <div class="mockup-card" data-astro-cid-j7pv25f6></div> <div class="mockup-card" data-astro-cid-j7pv25f6></div> <div class="mockup-card" data-astro-cid-j7pv25f6></div> <div class="mockup-card" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-chart" data-astro-cid-j7pv25f6></div> </div> </div> </div> </div> </section> <section class="cta py-28 relative overflow-hidden" data-speed="0.1" data-astro-cid-j7pv25f6> <div class="cta-particles" data-astro-cid-j7pv25f6></div> <div class="absolute inset-0 bg-[var(--bg-secondary)]" data-astro-cid-j7pv25f6></div> <div class="max-w-2xl mx-auto px-6 text-center relative z-10 cta-content" style="opacity: 0; transform: scale(0.9);" data-astro-cid-j7pv25f6> <h2 class="text-4xl font-bold mb-4" data-astro-cid-j7pv25f6>
-¿<span class="text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>Listo</span> para empezar?
-</h2> <p class="text-[var(--text-muted)] text-lg mb-10" data-astro-cid-j7pv25f6>
+</p> </div> <div class="grid md:grid-cols-3 gap-5" data-astro-cid-j7pv25f6> <div class="feature-card" style="opacity: 0; transform: translateY(40px);" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-1" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 6h16l-2 12H6L4 6z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-primary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-primary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.products" data-astro-cid-j7pv25f6>Gestión de Productos</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Registra y organiza todos tus productos y servicios con facilidad. Control total de tu inventario.</p> <div class="feature-line feature-line-1" data-astro-cid-j7pv25f6></div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateY(40px); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-2" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1V7" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-secondary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-secondary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="landing.cost_title" data-astro-cid-j7pv25f6>Costos Detallados</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Controla costos directos e indirectos por producto. Calcula márgenes precisos.</p> <div class="feature-line feature-line-2" data-astro-cid-j7pv25f6></div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateY(40px); animation-delay: 0.2s;" data-astro-cid-j7pv25f6> <div class="card p-6 h-full relative overflow-hidden group" data-astro-cid-j7pv25f6> <div class="feature-icon feature-icon-3" data-astro-cid-j7pv25f6> <svg class="w-6 h-6 text-[var(--accent-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" data-astro-cid-j7pv25f6></path> </svg> </div> <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-tertiary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-tertiary)]/20 transition-all" data-astro-cid-j7pv25f6></div> <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.reports" data-astro-cid-j7pv25f6>Reportes y Análisis</h3> <p class="text-sm text-[var(--text-muted)] relative z-10" data-astro-cid-j7pv25f6>Visualiza rentabilidad y toma decisiones informadas con gráficos.</p> <div class="feature-line feature-line-3" data-astro-cid-j7pv25f6></div> </div> </div> </div> <div class="mt-16 grid md:grid-cols-2 gap-5" data-astro-cid-j7pv25f6> <div class="feature-card" style="opacity: 0; transform: translateX(-30px);" data-astro-cid-j7pv25f6> <div class="card p-5 flex items-center gap-4" data-astro-cid-j7pv25f6> <div class="feature-mini-icon" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-[var(--accent-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" data-astro-cid-j7pv25f6></path> </svg> </div> <div data-astro-cid-j7pv25f6> <h4 class="font-semibold mb-1" data-i18n="landing.secure" data-astro-cid-j7pv25f6>Datos Seguros</h4> <p class="text-xs text-[var(--text-muted)]" data-i18n="landing.secure_desc" data-astro-cid-j7pv25f6>Tu información siempre protegida</p> </div> </div> </div> <div class="feature-card" style="opacity: 0; transform: translateX(30px); animation-delay: 0.1s;" data-astro-cid-j7pv25f6> <div class="card p-5 flex items-center gap-4" data-astro-cid-j7pv25f6> <div class="feature-mini-icon" data-astro-cid-j7pv25f6> <svg class="w-5 h-5 text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" data-astro-cid-j7pv25f6></path> </svg> </div> <div data-astro-cid-j7pv25f6> <h4 class="font-semibold mb-1" data-i18n="landing.instant" data-astro-cid-j7pv25f6>Análisis Instantáneo</h4> <p class="text-xs text-[var(--text-muted)]" data-i18n="landing.instant_desc" data-astro-cid-j7pv25f6>Resultados en tiempo real</p> </div> </div> </div> </div> </div> </section> <section class="demo py-28 relative overflow-hidden" id="demo" data-astro-cid-j7pv25f6> <div class="demo-bg" data-astro-cid-j7pv25f6></div> <div class="max-w-5xl mx-auto px-6 relative" data-astro-cid-j7pv25f6> <div class="text-center mb-12" data-astro-cid-j7pv25f6> <h2 class="text-3xl md:text-4xl font-semibold mb-4" data-i18n="landing.platform" data-astro-cid-j7pv25f6>
+Una plataforma <span class="text-[var(--accent-primary)]" data-astro-cid-j7pv25f6>completa</span> </h2> <p class="text-[var(--text-muted)]" data-i18n="landing.platform_desc" data-astro-cid-j7pv25f6>Todo lo que necesitas en un solo lugar</p> </div> <div class="demo-mockup" data-astro-cid-j7pv25f6> <div class="mockup-header" data-astro-cid-j7pv25f6> <div class="mockup-dots" data-astro-cid-j7pv25f6> <span data-astro-cid-j7pv25f6></span><span data-astro-cid-j7pv25f6></span><span data-astro-cid-j7pv25f6></span> </div> <div class="mockup-title" data-astro-cid-j7pv25f6>CostMaster - Dashboard</div> <div class="mockup-url" data-astro-cid-j7pv25f6>costmaster.app</div> </div> <div class="mockup-content" data-astro-cid-j7pv25f6> <div class="mockup-sidebar" data-astro-cid-j7pv25f6> <div class="mockup-nav-item active" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-nav-item" data-astro-cid-j7pv25f6> <div class="mockup-nav-icon" data-astro-cid-j7pv25f6></div> </div> </div> <div class="mockup-main" data-astro-cid-j7pv25f6> <div class="mockup-header-bar" data-astro-cid-j7pv25f6> <div class="mockup-search" data-astro-cid-j7pv25f6></div> <div class="mockup-user" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-cards" data-astro-cid-j7pv25f6> <div class="mockup-card" data-astro-cid-j7pv25f6> <div class="mockup-card-label" data-astro-cid-j7pv25f6>Total Ingresos</div> <div class="mockup-card-value" data-astro-cid-j7pv25f6>$24,580</div> <div class="mockup-card-trend up" data-astro-cid-j7pv25f6>+12.5%</div> </div> <div class="mockup-card" data-astro-cid-j7pv25f6> <div class="mockup-card-label" data-astro-cid-j7pv25f6>Productos</div> <div class="mockup-card-value" data-astro-cid-j7pv25f6>156</div> <div class="mockup-card-trend up" data-astro-cid-j7pv25f6>+8</div> </div> <div class="mockup-card" data-astro-cid-j7pv25f6> <div class="mockup-card-label" data-astro-cid-j7pv25f6>Costos</div> <div class="mockup-card-value" data-astro-cid-j7pv25f6>$8,420</div> <div class="mockup-card-trend down" data-astro-cid-j7pv25f6>-3.2%</div> </div> <div class="mockup-card" data-astro-cid-j7pv25f6> <div class="mockup-card-label" data-astro-cid-j7pv25f6>Margen</div> <div class="mockup-card-value" data-astro-cid-j7pv25f6>65.7%</div> <div class="mockup-card-trend up" data-astro-cid-j7pv25f6>+5.1%</div> </div> </div> <div class="mockup-chart" data-astro-cid-j7pv25f6> <div class="mockup-chart-title" data-astro-cid-j7pv25f6>Rentabilidad por Producto</div> <div class="mockup-chart-area" data-astro-cid-j7pv25f6> <div class="mockup-bar" style="height: 80%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 60%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 95%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 45%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 70%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 55%" data-astro-cid-j7pv25f6></div> <div class="mockup-bar" style="height: 85%" data-astro-cid-j7pv25f6></div> </div> <div class="mockup-chart-labels" data-astro-cid-j7pv25f6> <span data-astro-cid-j7pv25f6> Producto A</span> <span data-astro-cid-j7pv25f6> Producto B</span> <span data-astro-cid-j7pv25f6> Producto C</span> <span data-astro-cid-j7pv25f6> Producto D</span> <span data-astro-cid-j7pv25f6> Producto E</span> <span data-astro-cid-j7pv25f6> Producto F</span> <span data-astro-cid-j7pv25f6> Producto G</span> </div> </div> </div> </div> </div> </div> </section> <section class="cta py-28 relative overflow-hidden" data-speed="0.1" data-astro-cid-j7pv25f6> <div class="cta-particles" data-astro-cid-j7pv25f6></div> <div class="absolute inset-0 bg-[var(--bg-secondary)]" data-astro-cid-j7pv25f6></div> <div class="max-w-2xl mx-auto px-6 text-center relative z-10 cta-content" style="opacity: 0; transform: scale(0.9);" data-astro-cid-j7pv25f6> <h2 class="text-4xl font-bold mb-4" data-i18n="landing.ready" data-astro-cid-j7pv25f6>
+¿<span class="rainbow-hover" data-astro-cid-j7pv25f6>Listo</span> para empezar?
+</h2> <p class="text-[var(--text-muted)] text-lg mb-10" data-i18n="landing.join" data-astro-cid-j7pv25f6>
 Únete a emprendedores que ya optimizan sus costos con CostMaster
-</p> <a href="/register" class="btn btn-primary py-4 px-10 text-lg group inline-flex" style="border-radius: 2px" data-astro-cid-j7pv25f6>
+</p> <a href="/register" class="btn btn-primary py-4 px-10 text-lg group inline-flex" style="border-radius: 2px" data-i18n="landing.cta" data-astro-cid-j7pv25f6>
 Comenzar Gratuitamente
-<svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-astro-cid-j7pv25f6></path> </svg> </a> </div> </section> <footer class="py-8 border-t border-[var(--border-color)]" data-astro-cid-j7pv25f6> <div class="max-w-6xl mx-auto px-6" data-astro-cid-j7pv25f6> <div class="flex flex-col md:flex-row justify-between items-center gap-4" data-astro-cid-j7pv25f6> <div class="flex items-center gap-2" data-astro-cid-j7pv25f6> <div class="w-6 h-6 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center" data-astro-cid-j7pv25f6> <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 4h8v16H4zM12 4v16M20 4v16" data-astro-cid-j7pv25f6></path> </svg> </div> <span class="text-sm font-semibold" data-astro-cid-j7pv25f6>COSTMASTER</span> </div> <p class="text-xs text-[var(--text-muted)]" data-astro-cid-j7pv25f6>
+<svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" data-astro-cid-j7pv25f6></path> </svg> </a> </div> </section> <footer class="py-8 border-t border-[var(--border-color)]" data-astro-cid-j7pv25f6> <div class="max-w-6xl mx-auto px-6" data-astro-cid-j7pv25f6> <div class="flex flex-col md:flex-row justify-between items-center gap-4" data-astro-cid-j7pv25f6> <div class="flex items-center gap-2" data-astro-cid-j7pv25f6> <div class="w-6 h-6 bg-[var(--accent-primary)] rounded-sm flex items-center justify-center" data-astro-cid-j7pv25f6> <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-astro-cid-j7pv25f6> <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M4 4h8v16H4zM12 4v16M20 4v16" data-astro-cid-j7pv25f6></path> </svg> </div> <span class="text-sm font-semibold" data-astro-cid-j7pv25f6>COSTMASTER</span> </div> <p class="text-xs text-[var(--text-muted)]" data-i18n="footer.rights" data-astro-cid-j7pv25f6>
 © 2026 CostMaster. Todos los derechos reservados.
-</p> </div> </div> </footer> </div>   </body> </html>  
+</p> </div> </div> </footer> </div>  <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.Ds9P6cqp.js"></script> <script>
+    (function() {
+      const DICT = {
+        'nav.dashboard': { es: 'Dashboard', en: 'Dashboard' },
+        'nav.products': { es: 'Productos', en: 'Products' },
+        'nav.costs': { es: 'Costos', en: 'Costs' },
+        'nav.reports': { es: 'Reportes', en: 'Reports' },
+        'nav.customers': { es: 'Clientes', en: 'Customers' },
+        'nav.suppliers': { es: 'Proveedores', en: 'Suppliers' },
+        'nav.invoices': { es: 'Facturas', en: 'Invoices' },
+        'nav.quotes': { es: 'Cotizaciones', en: 'Quotes' },
+        'nav.logout': { es: 'Cerrar sesión', en: 'Logout' },
+        'theme.light': { es: 'Modo claro', en: 'Light mode' },
+        'theme.dark': { es: 'Modo oscuro', en: 'Dark mode' },
+        'lang.switch': { es: 'English', en: 'Español' },
+        'common.save': { es: 'Guardar', en: 'Save' },
+        'common.cancel': { es: 'Cancelar', en: 'Cancel' },
+        'common.delete': { es: 'Eliminar', en: 'Delete' },
+        'common.new': { es: 'Nuevo', en: 'New' },
+        'common.search': { es: 'Buscar...', en: 'Search...' },
+        'common.edit': { es: 'Editar', en: 'Edit' },
+        'common.close': { es: 'Cerrar', en: 'Close' },
+        'common.back': { es: 'Volver', en: 'Back' },
+        'common.confirm': { es: 'Confirmar', en: 'Confirm' },
+        'common.yes': { es: 'Sí', en: 'Yes' },
+        'common.no': { es: 'No', en: 'No' },
+        'common.export': { es: 'Exportar', en: 'Export' },
+        'common.filter': { es: 'Filtrar', en: 'Filter' },
+        'common.apply': { es: 'Aplicar', en: 'Apply' },
+        'common.clear': { es: 'Limpiar', en: 'Clear' },
+        'common.loading': { es: 'Cargando...', en: 'Loading...' },
+        'common.total': { es: 'Total', en: 'Total' },
+        'common.actions': { es: 'Acciones', en: 'Actions' },
+        'common.status': { es: 'Estado', en: 'Status' },
+        'common.date': { es: 'Fecha', en: 'Date' },
+        'common.amount': { es: 'Monto', en: 'Amount' },
+        'common.description': { es: 'Descripción', en: 'Description' },
+        'common.name': { es: 'Nombre', en: 'Name' },
+        'common.email': { es: 'Correo', en: 'Email' },
+        'common.phone': { es: 'Teléfono', en: 'Phone' },
+        'common.address': { es: 'Dirección', en: 'Address' },
+        'common.price': { es: 'Precio', en: 'Price' },
+        'common.quantity': { es: 'Cantidad', en: 'Quantity' },
+        'common.category': { es: 'Categoría', en: 'Category' },
+        'common.notes': { es: 'Notas', en: 'Notes' },
+        'common.active': { es: 'Activo', en: 'Active' },
+        'common.inactive': { es: 'Inactivo', en: 'Inactive' },
+        'common.all': { es: 'Todos', en: 'All' },
+        'common.none': { es: 'Ninguno', en: 'None' },
+        'common.add': { es: 'Agregar', en: 'Add' },
+        'common.remove': { es: 'Remover', en: 'Remove' },
+        'common.update': { es: 'Actualizar', en: 'Update' },
+        'common.details': { es: 'Detalles', en: 'Details' },
+        'common.summary': { es: 'Resumen', en: 'Summary' },
+        'auth.login_title': { es: 'Iniciar Sesión', en: 'Sign In' },
+        'auth.register_title': { es: 'Registrarse', en: 'Sign Up' },
+        'auth.email_label': { es: 'Correo electrónico', en: 'Email' },
+        'auth.password': { es: 'Contraseña', en: 'Password' },
+        'auth.name': { es: 'Nombre', en: 'Name' },
+        'auth.no_account': { es: '¿No tienes cuenta?', en: "Don't have an account?" },
+        'auth.has_account': { es: '¿Ya tienes cuenta?', en: 'Already have an account?' },
+        'auth.login_btn': { es: 'Iniciar Sesión', en: 'Sign In' },
+        'auth.register_btn': { es: 'Registrarse', en: 'Sign Up' },
+        'auth.logout': { es: 'Cerrar sesión', en: 'Logout' },
+        'auth.welcome': { es: 'Bienvenido', en: 'Welcome' },
+        'auth.enter_credentials': { es: 'Ingresa tus credenciales', en: 'Enter your credentials' },
+        'auth.create_account': { es: 'Crear Cuenta', en: 'Create Account' },
+        'auth.join': { es: 'Únete a CostMaster', en: 'Join CostMaster' },
+        'auth.full_name': { es: 'Nombre completo', en: 'Full name' },
+        'auth.confirm_password': { es: 'Confirmar contraseña', en: 'Confirm password' },
+        'auth.signup': { es: 'Crear Cuenta', en: 'Create Account' },
+        'auth.signin_link': { es: 'Inicia sesión', en: 'Sign in' },
+        'auth.register_link': { es: 'Regístrate', en: 'Sign up' },
+        'auth.no_account_text': { es: '¿No tienes cuenta?', en: "Don't have an account?" },
+        'auth.has_account_text': { es: '¿Ya tienes cuenta?', en: 'Already have an account?' },
+        'landing.login': { es: 'Login', en: 'Login' },
+        'landing.start': { es: 'Comenzar', en: 'Get started' },
+        'landing.free': { es: 'Prueba Gratis', en: 'Free Trial' },
+        'landing.learn': { es: 'Conocer más', en: 'Learn more' },
+        'landing.cta': { es: 'Comenzar Gratuitamente', en: 'Start for Free' },
+        'landing.ready': { es: '¿Listo para empezar?', en: 'Ready to start?' },
+        'landing.join': { es: 'Únete a emprendedores que ya optimizan sus costos con CostMaster', en: 'Join entrepreneurs who already optimize their costs with CostMaster' },
+        'landing.features_title': { es: 'Características', en: 'Features' },
+        'landing.features_subtitle': { es: 'Todo lo que necesitas para gestionar tu negocio', en: 'Everything you need to manage your business' },
+        'landing.cost_title': { es: 'Gestión de Costos', en: 'Cost Management' },
+        'landing.secure': { es: 'Datos Seguros', en: 'Secure Data' },
+        'landing.secure_desc': { es: 'Tu información siempre protegida', en: 'Your information always protected' },
+        'landing.instant': { es: 'Análisis Instantáneo', en: 'Instant Analysis' },
+        'landing.instant_desc': { es: 'Resultados en tiempo real', en: 'Real-time results' },
+        'landing.cost_subtitle': { es: 'Contabilidad de costos', en: 'Cost accounting' },
+        'landing.platform': { es: 'Una plataforma completa', en: 'A complete platform' },
+        'landing.platform_desc': { es: 'Todo lo que necesitas en un solo lugar', en: 'Everything you need in one place' },
+        'features.title': { es: '¿Qué es CostMaster?', en: 'What is CostMaster?' },
+        'features.subtitle': { es: 'La herramienta profesional para calcular, analizar y optimizar cada peso de tu negocio', en: 'The professional tool to calculate, analyze and optimize every peso of your business' },
+        'features.f1_title': { es: 'Registro de Productos y Servicios', en: 'Product & Service Registration' },
+        'features.f1_desc': { es: 'Cataloga cada producto o servicio que vendes con su nombre, descripción, precio y categoría. Mantén tu inventario organizado y actualizado.', en: 'Catalog every product or service you sell with name, description, price and category. Keep your inventory organized and up to date.' },
+        'features.f2_title': { es: 'Control de Costos', en: 'Cost Control' },
+        'features.f2_desc': { es: 'Registra los costos directos (materia prima, mano de obra) e indirectos (renta, servicios, transporte) por cada producto. El sistema calcula automáticamente el costo total.', en: 'Record direct costs (raw materials, labor) and indirect costs (rent, utilities, transportation) for each product. The system automatically calculates total cost.' },
+        'features.f3_title': { es: 'Cálculo de Rentabilidad', en: 'Profitability Calculation' },
+        'features.f3_desc': { es: 'Compara tu precio de venta con el costo total para ver el margen de ganancia por producto. Identifica cuáles productos son más rentables.', en: 'Compare your sale price with total cost to see the profit margin per product. Identify which products are most profitable.' },
+        'features.f4_title': { es: 'Gestión de Clientes y Proveedores', en: 'Customer & Supplier Management' },
+        'features.f4_desc': { es: 'Mantén una base de datos de tus clientes y proveedores con información de contacto. Controla quién te compra y de quién compras.', en: 'Keep a database of your customers and suppliers with contact information. Control who buys from you and who you buy from.' },
+        'features.f5_title': { es: 'Reportes y Análisis', en: 'Reports & Analytics' },
+        'features.f5_desc': { es: 'Genera reportes de ventas, costos y rentabilidad. Visualiza gráficos y tablas para tomar decisiones basadas en datos reales.', en: 'Generate sales, costs and profitability reports. Visualize charts and tables to make data-driven decisions.' },
+        'features.f6_title': { es: '¿Por qué CostMaster?', en: 'Why CostMaster?' },
+        'features.f6_l1': { es: '100% online - accede desde cualquier dispositivo', en: '100% online - access from any device' },
+        'features.f6_l2': { es: 'Sin costo inicial - comienza gratis', en: 'No upfront cost - start for free' },
+        'features.f6_l3': { es: 'Datos seguros - tu información siempre protegida', en: 'Secure data - your information always protected' },
+        'features.f6_l4': { es: 'Interfaz intuitiva - sin conocimientos contables', en: 'Intuitive interface - no accounting knowledge needed' },
+        'footer.rights': { es: '© 2026 CostMaster. Todos los derechos reservados.', en: '© 2026 CostMaster. All rights reserved.' },
+        'page.dashboard': { es: 'Dashboard', en: 'Dashboard' },
+        'page.products': { es: 'Productos', en: 'Products' },
+        'page.costs': { es: 'Costos', en: 'Costs' },
+        'page.customers': { es: 'Clientes', en: 'Customers' },
+        'page.suppliers': { es: 'Proveedores', en: 'Suppliers' },
+        'page.invoices': { es: 'Facturas', en: 'Invoices' },
+        'page.quotes': { es: 'Cotizaciones', en: 'Quotes' },
+        'page.reports': { es: 'Reportes', en: 'Reports' },
+        'page.login': { es: 'Iniciar Sesión', en: 'Sign In' },
+        'page.register': { es: 'Registrarse', en: 'Sign Up' },
+        'product.title': { es: 'Gestión de Productos', en: 'Product Management' },
+        'cost.title': { es: 'Gestión de Costos', en: 'Cost Management' },
+        'customer.title': { es: 'Gestión de Clientes', en: 'Customer Management' },
+        'supplier.title': { es: 'Gestión de Proveedores', en: 'Supplier Management' },
+        'invoice.title': { es: 'Facturación', en: 'Invoicing' },
+        'quote.title': { es: 'Cotizaciones', en: 'Quotes' },
+        'report.title': { es: 'Reportes y Estadísticas', en: 'Reports & Statistics' },
+        'dashboard.title': { es: 'Panel Principal', en: 'Dashboard' },
+        'dashboard.subtitle': { es: 'Resumen de tu contabilidad', en: 'Your accounting summary' },
+        'dashboard.products_kpi': { es: 'Productos', en: 'Products' },
+        'dashboard.products_label': { es: 'Productos registrados', en: 'Registered products' },
+        'dashboard.direct_costs': { es: 'Costos Directos', en: 'Direct Costs' },
+        'dashboard.direct_costs_label': { es: 'Materia prima y mano de obra', en: 'Raw materials and labor' },
+        'dashboard.indirect_costs': { es: 'Costos Indirectos', en: 'Indirect Costs' },
+        'dashboard.indirect_costs_label': { es: 'Gastos generales', en: 'Overhead expenses' },
+        'dashboard.profitable': { es: 'Rentables', en: 'Profitable' },
+        'dashboard.profitable_label': { es: 'Con margen positivo', en: 'With positive margin' },
+        'dashboard.avg_margin': { es: 'Margen de Rentabilidad Promedio', en: 'Average Profitability Margin' },
+        'dashboard.cost_summary': { es: 'Resumen de Costos', en: 'Cost Summary' },
+        'dashboard.total_cost': { es: 'Costo Total', en: 'Total Cost' },
+        'dashboard.avg_cost': { es: 'Costo Promedio', en: 'Average Cost' },
+        'dashboard.no_costs': { es: 'Sin Costos', en: 'No Costs' },
+        'dashboard.top_products': { es: 'Top 5 Productos Más Rentables', en: 'Top 5 Most Profitable Products' },
+        'dashboard.table_product': { es: 'Producto', en: 'Product' },
+        'dashboard.table_cost': { es: 'Costo Total', en: 'Total Cost' },
+        'dashboard.table_price': { es: 'Precio Venta', en: 'Sale Price' },
+        'dashboard.table_margin': { es: 'Margen', en: 'Margin' },
+        'dashboard.table_profit': { es: 'Ganancia', en: 'Profit' },
+        'dashboard.loading': { es: 'Cargando datos...', en: 'Loading data...' },
+        'product.page_title': { es: 'Productos y Servicios', en: 'Products & Services' },
+        'product.page_subtitle': { es: 'Gestiona tu inventario y servicios', en: 'Manage your inventory and services' },
+        'product.new': { es: '+ Nuevo', en: '+ New' },
+        'product.categories': { es: 'Categorías', en: 'Categories' },
+        'product.table_sku': { es: 'SKU', en: 'SKU' },
+        'product.table_name': { es: 'Producto', en: 'Product' },
+        'product.table_category': { es: 'Categoría', en: 'Category' },
+        'product.table_type': { es: 'Tipo', en: 'Type' },
+        'product.table_cost': { es: 'Costo', en: 'Cost' },
+        'product.table_price': { es: 'Venta', en: 'Sale' },
+        'product.table_margin': { es: 'Margen', en: 'Margin' },
+        'product.table_actions': { es: 'Acciones', en: 'Actions' },
+        'product.empty': { es: 'No hay productos', en: 'No products' },
+        'product.modal_title': { es: 'Nuevo Producto', en: 'New Product' },
+        'product.form_name': { es: 'Nombre *', en: 'Name *' },
+        'product.form_sku': { es: 'SKU', en: 'SKU' },
+        'product.form_type': { es: 'Tipo', en: 'Type' },
+        'product.form_category': { es: 'Categoría', en: 'Category' },
+        'product.form_description': { es: 'Descripción', en: 'Description' },
+        'product.form_unit': { es: 'Unidad', en: 'Unit' },
+        'product.form_qty': { es: 'Cantidad', en: 'Quantity' },
+        'product.form_price': { es: 'Precio Venta', en: 'Sale Price' },
+        'product.no_category': { es: 'Sin categoría', en: 'No category' },
+        'product.unit_default': { es: 'unidad', en: 'unit' },
+        'product.type_product': { es: 'Producto', en: 'Product' },
+        'product.type_service': { es: 'Servicio', en: 'Service' },
+        'product.delete_confirm': { es: '¿Eliminar?', en: 'Delete?' },
+        'cost.page_title': { es: 'Costos', en: 'Costs' },
+        'cost.page_subtitle': { es: 'Registra costos directos e indirectos', en: 'Record direct and indirect costs' },
+        'cost.direct_summary': { es: 'Costos Directos', en: 'Direct Costs' },
+        'cost.direct_desc': { es: 'Materia prima, mano de obra, empaque', en: 'Raw materials, labor, packaging' },
+        'cost.indirect_summary': { es: 'Costos Indirectos', en: 'Indirect Costs' },
+        'cost.indirect_desc': { es: 'Alquiler, servicios, depreciación', en: 'Rent, utilities, depreciation' },
+        'cost.filter_all_products': { es: 'Todos los productos', en: 'All products' },
+        'cost.filter_all_types': { es: 'Todos los tipos', en: 'All types' },
+        'cost.filter_all': { es: 'Todos', en: 'All' },
+        'cost.type_direct': { es: 'Directo', en: 'Direct' },
+        'cost.type_indirect': { es: 'Indirecto', en: 'Indirect' },
+        'cost.btn_direct': { es: 'Directo', en: 'Direct' },
+        'cost.btn_indirect': { es: 'Indirecto', en: 'Indirect' },
+        'cost.table_product': { es: 'Producto', en: 'Product' },
+        'cost.table_type': { es: 'Tipo', en: 'Type' },
+        'cost.table_description': { es: 'Descripción', en: 'Description' },
+        'cost.table_amount': { es: 'Monto', en: 'Amount' },
+        'cost.table_date': { es: 'Fecha', en: 'Date' },
+        'cost.table_actions': { es: 'Acciones', en: 'Actions' },
+        'cost.empty': { es: 'No hay costos registrados', en: 'No costs recorded' },
+        'cost.modal_direct_title': { es: 'Agregar Costo Directo', en: 'Add Direct Cost' },
+        'cost.modal_indirect_title': { es: 'Agregar Costo Indirecto', en: 'Add Indirect Cost' },
+        'cost.form_product': { es: 'Producto *', en: 'Product *' },
+        'cost.form_type_label': { es: 'Tipo *', en: 'Type *' },
+        'cost.form_description': { es: 'Descripción *', en: 'Description *' },
+        'cost.form_amount': { es: 'Monto *', en: 'Amount *' },
+        'cost.form_qty': { es: 'Cantidad', en: 'Quantity' },
+        'cost.form_invoice': { es: 'N° Factura', en: 'Invoice #' },
+        'cost.form_date': { es: 'Fecha de compra', en: 'Purchase date' },
+        'cost.form_product_opt': { es: 'Producto (opcional)', en: 'Product (optional)' },
+        'cost.form_proportion': { es: 'Proporción (%)', en: 'Proportion (%)' },
+        'cost.type_raw': { es: 'Materia Prima', en: 'Raw Material' },
+        'cost.type_labor': { es: 'Mano de Obra', en: 'Labor' },
+        'cost.type_packaging': { es: 'Empaque', en: 'Packaging' },
+        'cost.type_transport': { es: 'Transporte', en: 'Transport' },
+        'cost.type_rent': { es: 'Alquiler', en: 'Rent' },
+        'cost.type_utilities': { es: 'Servicios', en: 'Utilities' },
+        'cost.type_depreciation': { es: 'Depreciación', en: 'Depreciation' },
+        'cost.type_salaries': { es: 'Sueldos', en: 'Salaries' },
+        'cost.type_insurance': { es: 'Seguros', en: 'Insurance' },
+        'cost.type_maintenance': { es: 'Mantenimiento', en: 'Maintenance' },
+        'cost.type_taxes': { es: 'Impuestos', en: 'Taxes' },
+        'cost.type_other': { es: 'Otro', en: 'Other' },
+        'cost.general': { es: 'General', en: 'General' },
+        'cost.delete_confirm': { es: '¿Eliminar costo?', en: 'Delete cost?' },
+        'customer.page_title': { es: 'Clientes', en: 'Customers' },
+        'customer.page_subtitle': { es: 'Gestiona tu base de clientes', en: 'Manage your customer base' },
+        'customer.new': { es: 'Nuevo Cliente', en: 'New Customer' },
+        'customer.search': { es: 'Buscar cliente...', en: 'Search customer...' },
+        'customer.table_name': { es: 'Nombre', en: 'Name' },
+        'customer.table_email': { es: 'Email', en: 'Email' },
+        'customer.table_phone': { es: 'Teléfono', en: 'Phone' },
+        'customer.table_country': { es: 'País', en: 'Country' },
+        'customer.table_city': { es: 'Ciudad', en: 'City' },
+        'customer.table_credit': { es: 'Crédito', en: 'Credit' },
+        'customer.table_actions': { es: 'Acciones', en: 'Actions' },
+        'customer.empty': { es: 'No hay clientes registrados', en: 'No customers registered' },
+        'customer.modal_title': { es: 'Nuevo Cliente', en: 'New Customer' },
+        'customer.form_name': { es: 'Nombre *', en: 'Name *' },
+        'customer.form_email': { es: 'Email', en: 'Email' },
+        'customer.form_phone': { es: 'Teléfono', en: 'Phone' },
+        'customer.form_address': { es: 'Dirección', en: 'Address' },
+        'customer.form_country': { es: 'País', en: 'Country' },
+        'customer.form_city': { es: 'Ciudad', en: 'City' },
+        'customer.form_zip': { es: 'Código Postal', en: 'Postal Code' },
+        'customer.form_credit_limit': { es: 'Límite de crédito', en: 'Credit limit' },
+        'customer.form_credit_days': { es: 'Días de crédito', en: 'Credit days' },
+        'customer.form_notes': { es: 'Notas', en: 'Notes' },
+        'customer.select_country': { es: 'Seleccionar...', en: 'Select...' },
+        'customer.delete_confirm': { es: '¿Eliminar cliente?', en: 'Delete customer?' },
+        'customer.delete_warning': { es: 'Esta acción no se puede deshacer.', en: 'This action cannot be undone.' },
+        'supplier.page_title': { es: 'Proveedores', en: 'Suppliers' },
+        'supplier.page_subtitle': { es: 'Gestiona tu red de proveedores', en: 'Manage your supplier network' },
+        'supplier.new': { es: 'Nuevo Proveedor', en: 'New Supplier' },
+        'supplier.search': { es: 'Buscar proveedor...', en: 'Search supplier...' },
+        'supplier.table_name': { es: 'Nombre', en: 'Name' },
+        'supplier.table_email': { es: 'Email', en: 'Email' },
+        'supplier.table_phone': { es: 'Teléfono', en: 'Phone' },
+        'supplier.table_country': { es: 'País', en: 'Country' },
+        'supplier.table_city': { es: 'Ciudad', en: 'City' },
+        'supplier.table_actions': { es: 'Acciones', en: 'Actions' },
+        'supplier.empty': { es: 'No hay proveedores registrados', en: 'No suppliers registered' },
+        'supplier.modal_title': { es: 'Nuevo Proveedor', en: 'New Supplier' },
+        'supplier.form_name': { es: 'Nombre *', en: 'Name *' },
+        'supplier.form_email': { es: 'Email', en: 'Email' },
+        'supplier.form_phone': { es: 'Teléfono', en: 'Phone' },
+        'supplier.form_address': { es: 'Dirección', en: 'Address' },
+        'supplier.form_country': { es: 'País', en: 'Country' },
+        'supplier.form_city': { es: 'Ciudad', en: 'City' },
+        'supplier.form_zip': { es: 'Código Postal', en: 'Postal Code' },
+        'supplier.form_notes': { es: 'Notas', en: 'Notes' },
+        'supplier.delete_confirm': { es: '¿Eliminar proveedor?', en: 'Delete supplier?' },
+        'supplier.delete_warning': { es: 'Esta acción no se puede deshacer.', en: 'This action cannot be undone.' },
+        'invoice.page_title': { es: 'Facturas', en: 'Invoices' },
+        'invoice.page_subtitle': { es: 'Gestiona tu facturación', en: 'Manage your invoicing' },
+        'invoice.new': { es: 'Nueva Factura', en: 'New Invoice' },
+        'invoice.filter_all': { es: 'Todos', en: 'All' },
+        'invoice.status_draft': { es: 'Borrador', en: 'Draft' },
+        'invoice.status_issued': { es: 'Emitida', en: 'Issued' },
+        'invoice.status_paid': { es: 'Pagada', en: 'Paid' },
+        'invoice.status_cancelled': { es: 'Cancelada', en: 'Cancelled' },
+        'invoice.table_folio': { es: 'Folio', en: 'Folio' },
+        'invoice.table_client': { es: 'Cliente', en: 'Client' },
+        'invoice.table_date': { es: 'Fecha', en: 'Date' },
+        'invoice.table_total': { es: 'Total', en: 'Total' },
+        'invoice.table_status': { es: 'Estado', en: 'Status' },
+        'invoice.table_actions': { es: 'Acciones', en: 'Actions' },
+        'invoice.empty': { es: 'No hay facturas', en: 'No invoices' },
+        'invoice.modal_title': { es: 'Nueva Factura', en: 'New Invoice' },
+        'invoice.form_client': { es: 'Cliente', en: 'Client' },
+        'invoice.form_payment': { es: 'Método de pago', en: 'Payment method' },
+        'invoice.form_due': { es: 'Fecha de vencimiento', en: 'Due date' },
+        'invoice.form_vat': { es: 'IVA (%)', en: 'VAT (%)' },
+        'invoice.form_notes': { es: 'Notas', en: 'Notes' },
+        'invoice.payment_cash': { es: 'Efectivo', en: 'Cash' },
+        'invoice.payment_transfer': { es: 'Transferencia', en: 'Transfer' },
+        'invoice.payment_card': { es: 'Tarjeta', en: 'Card' },
+        'invoice.payment_check': { es: 'Cheque', en: 'Check' },
+        'invoice.no_client': { es: 'Sin cliente', en: 'No client' },
+        'invoice.items_title': { es: 'Conceptos', en: 'Items' },
+        'invoice.add_item': { es: '+ Agregar', en: '+ Add' },
+        'invoice.item_desc': { es: 'Descripción', en: 'Description' },
+        'invoice.item_qty': { es: 'Cantidad', en: 'Quantity' },
+        'invoice.item_price': { es: 'Precio', en: 'Price' },
+        'invoice.no_items': { es: 'Sin conceptos', en: 'No items' },
+        'invoice.status_modal_title': { es: 'Cambiar Estado', en: 'Change Status' },
+        'invoice.status_update': { es: 'Actualizar', en: 'Update' },
+        'invoice.delete_confirm': { es: '¿Eliminar factura?', en: 'Delete invoice?' },
+        'quote.page_title': { es: 'Cotizaciones', en: 'Quotes' },
+        'quote.page_subtitle': { es: 'Genera y gestiona presupuestos', en: 'Generate and manage quotes' },
+        'quote.new': { es: 'Nueva Cotización', en: 'New Quote' },
+        'quote.filter_all': { es: 'Todos los estados', en: 'All statuses' },
+        'quote.status_draft': { es: 'Borrador', en: 'Draft' },
+        'quote.status_sent': { es: 'Enviada', en: 'Sent' },
+        'quote.status_approved': { es: 'Aprobada', en: 'Approved' },
+        'quote.status_rejected': { es: 'Rechazada', en: 'Rejected' },
+        'quote.table_folio': { es: 'Folio', en: 'Folio' },
+        'quote.table_client': { es: 'Cliente', en: 'Client' },
+        'quote.table_date': { es: 'Fecha', en: 'Date' },
+        'quote.table_total': { es: 'Total', en: 'Total' },
+        'quote.table_status': { es: 'Estado', en: 'Status' },
+        'quote.table_actions': { es: 'Acciones', en: 'Actions' },
+        'quote.empty': { es: 'No hay cotizaciones', en: 'No quotes' },
+        'quote.modal_title': { es: 'Nueva Cotización', en: 'New Quote' },
+        'quote.form_client': { es: 'Cliente', en: 'Client' },
+        'quote.form_validity': { es: 'Validez (días)', en: 'Validity (days)' },
+        'quote.form_discount': { es: 'Descuento (%)', en: 'Discount (%)' },
+        'quote.form_vat': { es: 'IVA (%)', en: 'VAT (%)' },
+        'quote.form_valid_from': { es: 'Válida desde', en: 'Valid from' },
+        'quote.form_notes': { es: 'Notas', en: 'Notes' },
+        'quote.no_client': { es: 'Sin cliente', en: 'No client' },
+        'quote.items_title': { es: 'Conceptos', en: 'Items' },
+        'quote.add_item': { es: '+ Agregar concepto', en: '+ Add item' },
+        'quote.item_desc': { es: 'Descripción', en: 'Description' },
+        'quote.item_qty': { es: 'Cantidad', en: 'Quantity' },
+        'quote.item_price': { es: 'Precio', en: 'Price' },
+        'quote.no_items': { es: 'Sin conceptos agregados', en: 'No items added' },
+        'quote.status_modal_title': { es: 'Cambiar Estado', en: 'Change Status' },
+        'quote.status_update': { es: 'Actualizar', en: 'Update' },
+        'quote.delete_confirm': { es: '¿Eliminar cotización?', en: 'Delete quote?' },
+        'report.page_title': { es: 'Reportes', en: 'Reports' },
+        'report.page_subtitle': { es: 'Análisis financiero y estadísticas', en: 'Financial analysis and statistics' },
+        'report.total_costs': { es: 'Total Costos', en: 'Total Costs' },
+        'report.avg_cost': { es: 'Costo Promedio', en: 'Average Cost' },
+        'report.max_cost': { es: 'Mayor Costo', en: 'Max Cost' },
+        'report.min_cost': { es: 'Menor Costo', en: 'Min Cost' },
+        'report.chart_type_title': { es: 'Distribución de Costos por Tipo', en: 'Cost Distribution by Type' },
+        'report.chart_product_title': { es: 'Costos por Producto', en: 'Costs by Product' },
+        'report.rentability_title': { es: 'Análisis de Rentabilidad', en: 'Profitability Analysis' },
+        'report.rentability_product': { es: 'Producto', en: 'Product' },
+        'report.rentability_cost': { es: 'Costo', en: 'Cost' },
+        'report.rentability_price': { es: 'Venta', en: 'Sale' },
+        'report.rentability_margin': { es: 'Margen', en: 'Margin' },
+        'report.rentability_empty': { es: 'Sin datos', en: 'No data' },
+        'report.audit_title': { es: 'Historial de Auditoría', en: 'Audit History' },
+        'report.audit_empty': { es: 'Sin actividad registrada', en: 'No activity recorded' },
+        'report.no_costs': { es: 'No hay costos registrados', en: 'No costs recorded' },
+        'report.no_products': { es: 'No hay productos con costos', en: 'No products with costs' },
+        'common.edit': { es: 'Editar', en: 'Edit' },
+        'common.export': { es: 'Exportar', en: 'Export' },
+        'common.import': { es: 'Importar', en: 'Import' },
+        'common.print': { es: 'Imprimir', en: 'Print' },
+        'common.download': { es: 'Descargar', en: 'Download' },
+        'common.upload': { es: 'Subir', en: 'Upload' },
+        'common.refresh': { es: 'Actualizar', en: 'Refresh' },
+        'common.view': { es: 'Ver', en: 'View' },
+        'common.hide': { es: 'Ocultar', en: 'Hide' },
+        'common.show': { es: 'Mostrar', en: 'Show' },
+        'common.next': { es: 'Siguiente', en: 'Next' },
+        'common.prev': { es: 'Anterior', en: 'Previous' },
+        'common.first': { es: 'Primero', en: 'First' },
+        'common.last': { es: 'Último', en: 'Last' },
+        'common.page': { es: 'Página', en: 'Page' },
+        'common.of': { es: 'de', en: 'of' },
+        'common.items': { es: 'elementos', en: 'items' },
+        'common.no_results': { es: 'Sin resultados', en: 'No results' },
+        'common.required': { es: 'Requerido', en: 'Required' },
+        'common.optional': { es: 'Opcional', en: 'Optional' },
+        'common.error': { es: 'Error', en: 'Error' },
+        'common.success': { es: 'Éxito', en: 'Success' },
+        'common.warning': { es: 'Advertencia', en: 'Warning' },
+        'common.info': { es: 'Información', en: 'Info' },
+        'common.are_you_sure': { es: '¿Estás seguro?', en: 'Are you sure?' },
+        'common.continue': { es: 'Continuar', en: 'Continue' },
+        'common.retry': { es: 'Reintentar', en: 'Retry' },
+      };
+
+      function getLang() {
+        return localStorage.getItem('lang') || 'es';
+      }
+
+      function getTheme() {
+        return localStorage.getItem('theme') || 'dark';
+      }
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          document.documentElement.classList.add('light');
+        } else {
+          document.documentElement.classList.remove('light');
+        }
+      }
+
+      function applyTranslations(lang) {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (DICT[key] && DICT[key][lang]) {
+            el.textContent = DICT[key][lang];
+          }
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          if (DICT[key] && DICT[key][lang]) {
+            el.placeholder = DICT[key][lang];
+          }
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+          const key = el.getAttribute('data-i18n-title');
+          if (DICT[key] && DICT[key][lang]) {
+            el.title = DICT[key][lang];
+          }
+        });
+        document.documentElement.lang = lang === 'en' ? 'en' : 'es';
+      }
+
+      function updateToggleUI() {
+        const isLight = document.documentElement.classList.contains('light');
+        const lang = getLang();
+
+        document.querySelectorAll('[data-i18n="theme.light"], [data-i18n="theme.dark"]').forEach(el => {
+          const key = isLight ? 'theme.dark' : 'theme.light';
+          if (DICT[key]) el.textContent = DICT[key][lang];
+        });
+        document.querySelectorAll('[data-i18n="lang.switch"]').forEach(el => {
+          if (DICT['lang.switch']) el.textContent = DICT['lang.switch'][lang];
+        });
+
+        document.getElementById('theme-icon-sun')?.classList.toggle('hidden', !isLight);
+        document.getElementById('theme-icon-moon')?.classList.toggle('hidden', isLight);
+        document.getElementById('theme-icon-sun-nav')?.classList.toggle('hidden', !isLight);
+        document.getElementById('theme-icon-moon-nav')?.classList.toggle('hidden', isLight);
+        const langIcon = document.getElementById('lang-icon');
+        if (langIcon) langIcon.textContent = lang === 'es' ? 'EN' : 'ES';
+        const langIconNav = document.getElementById('lang-icon-nav');
+        if (langIconNav) langIconNav.textContent = lang === 'es' ? 'EN' : 'ES';
+      }
+
+      applyTheme(getTheme());
+      applyTranslations(getLang());
+      updateToggleUI();
+
+      window.toggleTheme = function() {
+        const isLight = document.documentElement.classList.contains('light');
+        const newTheme = isLight ? 'dark' : 'light';
+        applyTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateToggleUI();
+      };
+
+      window.toggleLanguage = function() {
+        const newLang = getLang() === 'es' ? 'en' : 'es';
+        localStorage.setItem('lang', newLang);
+        applyTranslations(newLang);
+        updateToggleUI();
+      };
+
+      document.addEventListener('astro:after-swap', function() {
+        applyTheme(getTheme());
+        applyTranslations(getLang());
+        updateToggleUI();
+      });
+    })();
+  </script> </body> </html>  <script type="module">const s=document.getElementById("hero-canvas"),o=s.getContext("2d");function h(){s.width=window.innerWidth,s.height=window.innerHeight}h();window.addEventListener("resize",h);const c=[],f=50;for(let e=0;e<f;e++)c.push({x:Math.random()*s.width,y:Math.random()*s.height,size:Math.random()*2+.5,speedX:(Math.random()-.5)*.3,speedY:(Math.random()-.5)*.3,opacity:Math.random()*.3+.1});function d(){o.clearRect(0,0,s.width,s.height),c.forEach(e=>{e.x+=e.speedX,e.y+=e.speedY,e.x<0&&(e.x=s.width),e.x>s.width&&(e.x=0),e.y<0&&(e.y=s.height),e.y>s.height&&(e.y=0),o.beginPath(),o.arc(e.x,e.y,e.size,0,Math.PI*2),o.fillStyle=`rgba(139, 92, 246, ${e.opacity})`,o.fill()}),c.forEach((e,t)=>{c.slice(t+1).forEach(r=>{const i=e.x-r.x,n=e.y-r.y,a=Math.sqrt(i*i+n*n);a<120&&(o.beginPath(),o.moveTo(e.x,e.y),o.lineTo(r.x,r.y),o.strokeStyle=`rgba(139, 92, 246, ${.1*(1-a/120)})`,o.lineWidth=.5,o.stroke())})}),requestAnimationFrame(d)}d();const m=document.getElementById("hero");let l=!1;function y(){if(l)return;l=!0;const e=document.querySelector(".hero-badges"),t=document.querySelector(".hero-title"),r=document.querySelector(".hero-subtitle"),i=document.querySelector(".hero-cta"),n=document.querySelectorAll(".stat-card");setTimeout(()=>{e.style.transition="all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)",e.style.opacity="1",e.style.transform="translateY(0)"},200),setTimeout(()=>{t.style.transition="all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)",t.style.opacity="1",t.style.transform="translateY(0)"},400),setTimeout(()=>{r.style.transition="all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",r.style.opacity="1",r.style.transform="translateY(0)"},600),setTimeout(()=>{i.style.transition="all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",i.style.opacity="1",i.style.transform="translateY(0)"},800),n.forEach((a,u)=>{setTimeout(()=>{a.style.transition="all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)",a.style.opacity="1",a.style.transform="translateY(0) scale(1)"},1e3+u*100)})}const b=new IntersectionObserver(e=>{e.forEach(t=>{t.isIntersecting&&y()})},{threshold:.3});b.observe(m);const g=document.querySelectorAll(".features-title, .features-subtitle, .feature-card, .cta-content"),v=new IntersectionObserver(e=>{e.forEach(t=>{t.isIntersecting&&(t.target.style.transition="all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",t.target.style.opacity="1",t.target.style.transform="translateY(0)")})},{threshold:.2});g.forEach(e=>v.observe(e));document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(t){t.preventDefault();const r=document.querySelector(this.getAttribute("href"));r&&r.scrollIntoView({behavior:"smooth",block:"start"})})});y();</script>

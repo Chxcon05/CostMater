@@ -15,19 +15,19 @@ import PageHeader from '../../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Costos" subtitle="Registra costos directos e indirectos" />
+      <PageHeader title="Costos" subtitle="Registra costos directos e indirectos" i18nTitle="cost.page_title" i18nSubtitle="cost.page_subtitle" />
       
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 animate-fade-in-up">
         <div class="card p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-[var(--text-primary)]">Costos Directos</h3>
+            <h3 class="font-semibold text-[var(--text-primary)]" data-i18n="cost.direct_title">Costos Directos</h3>
             <span class="text-2xl font-bold text-emerald-400 font-mono" id="total-direct">$0</span>
           </div>
           <p class="text-sm text-[var(--text-muted)]">Materia prima, mano de obra, empaque</p>
         </div>
         <div class="card p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-[var(--text-primary)]">Costos Indirectos</h3>
+            <h3 class="font-semibold text-[var(--text-primary)]" data-i18n="cost.indirect_title">Costos Indirectos</h3>
             <span class="text-2xl font-bold text-amber-400 font-mono" id="total-indirect">$0</span>
           </div>
           <p class="text-sm text-[var(--text-muted)]">Alquiler, servicios, depreciación</p>
@@ -36,21 +36,21 @@ import PageHeader from '../../components/PageHeader.astro';
 
       <div class="flex gap-3 mb-6 flex-wrap">
         <select id="product-filter" class="input w-full sm:w-auto flex-1 min-w-[150px]">
-          <option value="">Todos los productos</option>
+<option value="" data-i18n="cost.all_products">Todos los productos</option>
         </select>
         <select id="type-filter" class="input w-full sm:w-auto flex-1 min-w-[120px]">
-          <option value="">Todos los tipos</option>
+<option value="" data-i18n="cost.all_types">Todos los tipos</option>
         </select>
         <select id="cost-type-filter" class="input w-full sm:w-auto flex-1 min-w-[100px]">
-          <option value="">Todos</option>
-          <option value="direct">Directos</option>
-          <option value="indirect">Indirectos</option>
+          <option value="" data-i18n="common.all">Todos</option>
+          <option value="direct" data-i18n="cost.direct">Directos</option>
+          <option value="indirect" data-i18n="cost.indirect">Indirectos</option>
         </select>
-        <button id="btn-new-direct" class="btn-primary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
+        <button id="btn-new-direct" class="btn-primary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_direct">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Directo
         </button>
-        <button id="btn-new-indirect" class="btn-secondary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
+        <button id="btn-new-indirect" class="btn-secondary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_indirect">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Indirecto
         </button>
@@ -58,10 +58,10 @@ import PageHeader from '../../components/PageHeader.astro';
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell">Producto</th><th class="table-cell">Tipo</th><th class="table-cell">Descripción</th><th class="table-cell">Monto</th><th class="table-cell">Fecha</th><th class="table-cell">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="common.type">Tipo</th><th class="table-cell" data-i18n="common.description">Descripción</th><th class="table-cell" data-i18n="common.amount">Monto</th><th class="table-cell" data-i18n="common.date">Fecha</th><th class="table-cell" data-i18n="common.actions">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
-        <div id="empty" class="hidden p-12 text-center"><p class="text-[var(--text-muted)]">No hay costos registrados</p></div>
+        <div id="empty" class="hidden p-12 text-center"><p class="text-[var(--text-muted)]" data-i18n="cost.empty">No hay costos registrados</p></div>
       </div>
     </main>
   </div>
@@ -69,7 +69,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="direct-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-        <h3 class="text-lg font-semibold" id="modal-title-direct">Agregar Costo Directo</h3>
+        <h3 class="text-lg font-semibold" id="modal-title-direct" data-i18n="cost.add_direct">Agregar Costo Directo</h3>
         <button id="btn-close-direct" class="text-slate-400 hover:text-slate-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
@@ -91,8 +91,8 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
       </form>
       <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button id="btn-cancel-direct" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
-        <button id="btn-save-direct" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+        <button id="btn-cancel-direct" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
+        <button id="btn-save-direct" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>
@@ -100,7 +100,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="indirect-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <div class="p-6 border-b border-slate-200 flex justify-between items-center">
-        <h3 class="text-lg font-semibold" id="modal-title-indirect">Agregar Costo Indirecto</h3>
+        <h3 class="text-lg font-semibold" id="modal-title-indirect" data-i18n="cost.add_indirect">Agregar Costo Indirecto</h3>
         <button id="btn-close-indirect" class="text-slate-400 hover:text-slate-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
@@ -118,8 +118,8 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
       </form>
       <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
-        <button id="btn-cancel-indirect" class="btn-secondary rounded-lg text-sm py-2 px-4">Cancelar</button>
-        <button id="btn-save-indirect" class="btn-primary rounded-lg text-sm py-2 px-4">Guardar</button>
+        <button id="btn-cancel-indirect" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
+        <button id="btn-save-indirect" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>

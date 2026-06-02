@@ -15,15 +15,15 @@ import PageHeader from '../../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Cotizaciones" subtitle="Genera y gestiona presupuestos" />
+      <PageHeader title="Cotizaciones" subtitle="Genera y gestiona presupuestos" i18nTitle="quote.page_title" i18nSubtitle="quote.page_subtitle" />
       
       <div class="flex flex-wrap gap-3 mb-6">
         <select id="status-filter" class="input flex-1 min-w-[180px]">
-          <option value="">Todos los estados</option>
-          <option value="borrador">Borrador</option>
-          <option value="enviada">Enviada</option>
-          <option value="aprobada">Aprobada</option>
-          <option value="rechazada">Rechazada</option>
+          <option value="" data-i18n="common.all">Todos los estados</option>
+          <option value="borrador" data-i18n="quote.draft">Borrador</option>
+          <option value="enviada" data-i18n="quote.sent">Enviada</option>
+          <option value="aprobada" data-i18n="quote.approved">Aprobada</option>
+          <option value="rechazada" data-i18n="quote.rejected">Rechazada</option>
         </select>
         <button
           id="btn-new"
@@ -40,17 +40,17 @@ import PageHeader from '../../components/PageHeader.astro';
               stroke-width="2"
               d="M12 4v16m8-8H4"></path></svg
           >
-          Nueva Cotización
+          <span data-i18n="common.new">Nueva Cotización</span>
         </button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell text-left">Folio</th><th class="table-cell text-left">Cliente</th><th class="table-cell text-left">Fecha</th><th class="table-cell text-right">Total</th><th class="table-cell text-center">Estado</th><th class="table-cell text-center">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="quote.folio">Folio</th><th class="table-cell text-left" data-i18n="quote.customer">Cliente</th><th class="table-cell text-left" data-i18n="common.date">Fecha</th><th class="table-cell text-right" data-i18n="common.total">Total</th><th class="table-cell text-center" data-i18n="common.status">Estado</th><th class="table-cell text-center" data-i18n="common.actions">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
         <div id="empty" class="hidden p-12 text-center">
-          <p class="text-[var(--text-muted)] mb-4">No hay cotizaciones</p>
+          <p class="text-[var(--text-muted)] mb-4" data-i18n="quote.empty">No hay cotizaciones</p>
         </div>
       </div>
     </main>
@@ -59,7 +59,7 @@ import PageHeader from '../../components/PageHeader.astro';
   <div id="modal" class="modal-overlay hidden">
     <div class="modal-content max-w-2xl">
       <div class="p-6 border-b border-[var(--border-color)] flex justify-between items-center">
-        <h3 class="text-lg font-semibold" id="modal-title">Nueva Cotización</h3>
+        <h3 class="text-lg font-semibold" id="modal-title" data-i18n="quote.new">Nueva Cotización</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
       </div>
       <form id="form" class="p-6 space-y-4">
@@ -77,47 +77,47 @@ import PageHeader from '../../components/PageHeader.astro';
         
         <div class="border border-[var(--border-color)] rounded-lg p-4">
           <div class="flex justify-between items-center mb-4">
-            <h4 class="font-medium">Conceptos</h4>
-            <button type="button" id="add-item-btn" class="text-primary-600 text-sm font-medium hover:text-primary-700">+ Agregar concepto</button>
+            <h4 class="font-medium" data-i18n="quote.concepts">Conceptos</h4>
+            <button type="button" id="add-item-btn" class="text-primary-600 text-sm font-medium hover:text-primary-700" data-i18n="common.new">+ Agregar concepto</button>
           </div>
           <div class="grid grid-cols-4 gap-2 mb-2 text-xs text-[var(--text-muted)] font-medium uppercase tracking-wider">
-            <span>Descripción</span>
-            <span>Cantidad</span>
-            <span>Precio</span>
+            <span data-i18n="common.description">Descripción</span>
+            <span data-i18n="common.quantity">Cantidad</span>
+            <span data-i18n="common.price">Precio</span>
             <span></span>
           </div>
           <div id="items-container" class="space-y-2"></div>
         </div>
       </form>
       <div class="p-6 border-t border-[var(--border-color)] flex gap-3 justify-end">
-        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
-        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5">Guardar</button>
+        <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5" data-i18n="common.cancel">Cancelar</button>
+        <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5" data-i18n="common.save">Guardar</button>
       </div>
     </div>
   </div>
 
   <div id="delete-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6 text-center">
-      <h3 class="text-lg font-semibold mb-2">¿Eliminar cotización?</h3>
+      <h3 class="text-lg font-semibold mb-2" data-i18n="quote.delete_confirm">¿Eliminar cotización?</h3>
       <div class="flex gap-3 justify-center">
-        <button id="delete-cancel" class="btn-secondary rounded-lg">Cancelar</button>
-        <button id="delete-confirm" class="btn-danger rounded-lg">Eliminar</button>
+        <button id="delete-cancel" class="btn-secondary rounded-lg" data-i18n="common.cancel">Cancelar</button>
+        <button id="delete-confirm" class="btn-danger rounded-lg" data-i18n="common.delete">Eliminar</button>
       </div>
     </div>
   </div>
 
   <div id="status-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6">
-      <h3 class="text-lg font-semibold mb-4">Cambiar Estado</h3>
+      <h3 class="text-lg font-semibold mb-4" data-i18n="quote.change_status">Cambiar Estado</h3>
       <select id="new-status" class="input mb-4">
-        <option value="borrador">Borrador</option>
-        <option value="enviada">Enviada</option>
-        <option value="aprobada">Aprobada</option>
-        <option value="rechazada">Rechazada</option>
+        <option value="borrador" data-i18n="quote.draft">Borrador</option>
+        <option value="enviada" data-i18n="quote.sent">Enviada</option>
+        <option value="aprobada" data-i18n="quote.approved">Aprobada</option>
+        <option value="rechazada" data-i18n="quote.rejected">Rechazada</option>
       </select>
       <div class="flex gap-3 justify-end">
-        <button id="status-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5">Cancelar</button>
-        <button id="status-confirm" class="btn-primary rounded-lg text-sm px-3 py-1.5">Actualizar</button>
+        <button id="status-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5" data-i18n="common.cancel">Cancelar</button>
+        <button id="status-confirm" class="btn-primary rounded-lg text-sm px-3 py-1.5" data-i18n="common.save">Actualizar</button>
       </div>
     </div>
   </div>

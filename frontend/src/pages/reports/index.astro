@@ -15,50 +15,50 @@ import PageHeader from '../../components/PageHeader.astro';
         </svg>
       </button>
 
-      <PageHeader title="Reportes" subtitle="Análisis financiero y estadísticas" />
+      <PageHeader title="Reportes" subtitle="Análisis financiero y estadísticas" i18nTitle="report.page_title" i18nSubtitle="report.page_subtitle" />
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <div class="card p-5">
-          <div class="text-sm text-[var(--text-muted)] mb-1">Total Costos</div>
+          <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.total_costs">Total Costos</div>
           <div class="text-2xl font-bold font-mono text-gradient" id="kpi-total">$0</div>
         </div>
         <div class="card p-5">
-          <div class="text-sm text-[var(--text-muted)] mb-1">Costo Promedio</div>
+          <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.avg_cost">Costo Promedio</div>
           <div class="text-2xl font-bold font-mono text-[var(--text-primary)]" id="kpi-avg">$0</div>
         </div>
         <div class="card p-5">
-          <div class="text-sm text-[var(--text-muted)] mb-1">Mayor Costo</div>
+          <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.max_cost">Mayor Costo</div>
           <div class="text-2xl font-bold font-mono text-red-400" id="kpi-max">$0</div>
         </div>
         <div class="card p-5">
-          <div class="text-sm text-[var(--text-muted)] mb-1">Menor Costo</div>
+          <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.min_cost">Menor Costo</div>
           <div class="text-2xl font-bold font-mono text-emerald-400" id="kpi-min">$0</div>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div class="card p-6">
-          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Distribución de Costos por Tipo</h3>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.distribution_title">Distribución de Costos por Tipo</h3>
           <div class="h-64"><canvas id="typeChart"></canvas></div>
         </div>
         <div class="card p-6">
-          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Costos por Producto</h3>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.by_product_title">Costos por Producto</h3>
           <div class="h-64"><canvas id="productChart"></canvas></div>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-6">
         <div class="card p-6">
-          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Análisis de Rentabilidad</h3>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.rentability_title">Análisis de Rentabilidad</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
-              <thead><tr class="table-header"><th class="table-cell">Producto</th><th class="table-cell">Costo</th><th class="table-cell">Venta</th><th class="table-cell">Margen</th></tr></thead>
+              <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="report.cost">Costo</th><th class="table-cell" data-i18n="report.selling_price">Venta</th><th class="table-cell" data-i18n="report.margin">Margen</th></tr></thead>
               <tbody id="rentability-table" class="divide-y divide-[var(--border-color)]"></tbody>
             </table>
           </div>
         </div>
         <div class="card p-6">
-          <h3 class="font-semibold text-[var(--text-primary)] mb-4">Historial de Auditoría</h3>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.audit_title">Historial de Auditoría</h3>
           <div class="overflow-y-auto max-h-64">
             <div id="audit-list" class="space-y-2"></div>
           </div>

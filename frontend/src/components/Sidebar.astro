@@ -2,14 +2,14 @@
 const currentPath = Astro.url.pathname;
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
-  { path: '/products', label: 'Productos', icon: 'package' },
-  { path: '/costs', label: 'Costos', icon: 'wallet' },
-  { path: '/reports', label: 'Reportes', icon: 'bar-chart-2' },
-  { path: '/customers', label: 'Clientes', icon: 'users' },
-  { path: '/suppliers', label: 'Proveedores', icon: 'truck' },
-  { path: '/invoices', label: 'Facturas', icon: 'file-text' },
-  { path: '/quotes', label: 'Cotizaciones', icon: 'file' },
+  { path: '/dashboard', label: 'Dashboard', key: 'nav.dashboard', icon: 'layout-dashboard' },
+  { path: '/products', label: 'Productos', key: 'nav.products', icon: 'package' },
+  { path: '/costs', label: 'Costos', key: 'nav.costs', icon: 'wallet' },
+  { path: '/reports', label: 'Reportes', key: 'nav.reports', icon: 'bar-chart-2' },
+  { path: '/customers', label: 'Clientes', key: 'nav.customers', icon: 'users' },
+  { path: '/suppliers', label: 'Proveedores', key: 'nav.suppliers', icon: 'truck' },
+  { path: '/invoices', label: 'Facturas', key: 'nav.invoices', icon: 'file-text' },
+  { path: '/quotes', label: 'Cotizaciones', key: 'nav.quotes', icon: 'file' },
 ];
 
 const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
@@ -81,10 +81,34 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
             <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         )}
-        <span>{item.label}</span>
+        <span data-i18n={item.key}>{item.label}</span>
       </a>
     ))}
   </nav>
+
+  <div class="p-3 border-t border-[var(--border-color)] space-y-0.5">
+    <button
+      id="theme-toggle"
+      onclick="window.toggleTheme()"
+      class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
+    >
+      <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <svg id="theme-icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      </svg>
+      <span data-i18n="theme.light">Modo claro</span>
+    </button>
+    <button
+      id="lang-toggle"
+      onclick="window.toggleLanguage()"
+      class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
+    >
+      <span id="lang-icon" class="w-5 h-5 flex items-center justify-center text-xs font-bold">EN</span>
+      <span data-i18n="lang.switch">English</span>
+    </button>
+  </div>
 
   <div class="p-3 border-t border-[var(--border-color)]">
     <div class="flex items-center gap-3 px-3 py-3 rounded-lg bg-[var(--bg-tertiary)] mb-2">
@@ -103,7 +127,7 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m10-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2" />
       </svg>
-      <span>Cerrar sesión</span>
+      <span data-i18n="nav.logout">Cerrar sesión</span>
     </button>
   </div>
 </aside>

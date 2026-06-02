@@ -17,8 +17,29 @@ import Layout from '../layouts/Layout.astro';
           <span class="text-lg font-semibold tracking-tight">COSTMASTER</span>
         </a>
         <div class="flex items-center gap-2">
-          <a href="/login" class="btn btn-secondary text-sm py-2 px-4" style="border-radius: 2px">Login</a>
-          <a href="/register" class="btn btn-primary text-sm py-2 px-4" style="border-radius: 2px">Comenzar</a>
+          <button
+            id="theme-toggle-nav"
+            onclick="window.toggleTheme()"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Toggle theme"
+          >
+            <svg id="theme-icon-sun-nav" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="theme-icon-moon-nav" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          </button>
+          <button
+            id="lang-toggle-nav"
+            onclick="window.toggleLanguage()"
+            class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+            title="Toggle language"
+          >
+            <span id="lang-icon-nav">EN</span>
+          </button>
+          <a href="/login" class="btn btn-secondary text-sm py-2 px-4" style="border-radius: 2px" data-i18n="landing.login">Login</a>
+          <a href="/register" class="btn btn-primary text-sm py-2 px-4" style="border-radius: 2px" data-i18n="landing.start">Comenzar</a>
         </div>
       </div>
     </nav>
@@ -26,10 +47,10 @@ import Layout from '../layouts/Layout.astro';
     <main style="padding-top: 120px;" class="pb-20 px-6">
       <div class="max-w-5xl mx-auto">
         <div class="text-center mb-16">
-          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+          <h1 class="text-4xl md:text-5xl font-bold mb-4" data-i18n="features.title">
             ¿Qué es <span class="text-[var(--accent-primary)]">CostMaster</span>?
           </h1>
-          <p class="text-[var(--text-muted)] text-lg">
+          <p class="text-[var(--text-muted)] text-lg" data-i18n="features.subtitle">
             La herramienta profesional para calcular, analizar y optimizar cada peso de tu negocio
           </p>
         </div>
@@ -42,8 +63,8 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">01</div>
-            <h2 class="glass-title">Registro de Productos y Servicios</h2>
-            <p class="glass-desc">
+            <h2 class="glass-title" data-i18n="features.f1_title">Registro de Productos y Servicios</h2>
+            <p class="glass-desc" data-i18n="features.f1_desc">
               Cataloga cada producto o servicio que vendes con su nombre, descripción, precio y categoría. 
               Mantén tu inventario organizado y actualizado.
             </p>
@@ -57,8 +78,8 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">02</div>
-            <h2 class="glass-title">Control de Costos</h2>
-            <p class="glass-desc">
+            <h2 class="glass-title" data-i18n="features.f2_title">Control de Costos</h2>
+            <p class="glass-desc" data-i18n="features.f2_desc">
               Registra los costos directos (materia prima, mano de obra) e indirectos (renta, servicios, transporte) 
               por cada producto. El sistema calcula automáticamente el costo total.
             </p>
@@ -72,8 +93,8 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">03</div>
-            <h2 class="glass-title">Cálculo de Rentabilidad</h2>
-            <p class="glass-desc">
+            <h2 class="glass-title" data-i18n="features.f3_title">Cálculo de Rentabilidad</h2>
+            <p class="glass-desc" data-i18n="features.f3_desc">
               Compara tu precio de venta con el costo total para ver el margen de ganancia por producto. 
               Identifica cuáles productos son más rentables.
             </p>
@@ -87,8 +108,8 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">04</div>
-            <h2 class="glass-title">Gestión de Clientes y Proveedores</h2>
-            <p class="glass-desc">
+            <h2 class="glass-title" data-i18n="features.f4_title">Gestión de Clientes y Proveedores</h2>
+            <p class="glass-desc" data-i18n="features.f4_desc">
               Mantén una base de datos de tus clientes y proveedores con información de contacto. 
               Controla quién te compra y de quién compras.
             </p>
@@ -102,8 +123,8 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">05</div>
-            <h2 class="glass-title">Reportes y Análisis</h2>
-            <p class="glass-desc">
+            <h2 class="glass-title" data-i18n="features.f5_title">Reportes y Análisis</h2>
+            <p class="glass-desc" data-i18n="features.f5_desc">
               Genera reportes de ventas, costos y rentabilidad. Visualiza gráficos y tablas 
               para tomar decisiones basadas en datos reales.
             </p>
@@ -117,19 +138,19 @@ import Layout from '../layouts/Layout.astro';
               </svg>
             </div>
             <div class="glass-number">06</div>
-            <h2 class="glass-title">¿Por qué CostMaster?</h2>
+            <h2 class="glass-title" data-i18n="features.f6_title">¿Por qué CostMaster?</h2>
             <ul class="glass-list">
-              <li>100% online - accede desde cualquier dispositivo</li>
-              <li>Sin costo inicial - comienza gratis</li>
-              <li>Datos seguros - tu información siempre protegida</li>
-              <li>Interfaz intuitiva - sin conocimientos contables</li>
+              <li data-i18n="features.f6_l1">100% online - accede desde cualquier dispositivo</li>
+              <li data-i18n="features.f6_l2">Sin costo inicial - comienza gratis</li>
+              <li data-i18n="features.f6_l3">Datos seguros - tu información siempre protegida</li>
+              <li data-i18n="features.f6_l4">Interfaz intuitiva - sin conocimientos contables</li>
             </ul>
             <div class="glass-line orange"></div>
           </section>
         </div>
 
         <div class="text-center" style="margin-top: 60px; margin-bottom: 60px;">
-          <a href="/register" class="btn btn-primary py-5 px-12 text-xl group inline-flex" style="border-radius: 2px">
+          <a href="/register" class="btn btn-primary py-5 px-12 text-xl group inline-flex" style="border-radius: 2px" data-i18n="landing.cta">
             Comenzar Gratuitamente
             <svg class="w-5 h-5 transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -150,7 +171,7 @@ import Layout from '../layouts/Layout.astro';
             </div>
             <span class="text-sm font-semibold">COSTMASTER</span>
           </div>
-          <p class="text-xs text-[var(--text-muted)]">
+          <p class="text-xs text-[var(--text-muted)]" data-i18n="footer.rights">
             © 2026 CostMaster. Todos los derechos reservados.
           </p>
         </div>
@@ -175,26 +196,27 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 28px;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
 
   .glass-card:hover {
-    border-color: rgba(139, 92, 246, 0.4);
+    border-color: var(--accent-primary);
     transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
   }
 
   .glass-icon {
     width: 44px;
     height: 44px;
-    background: rgba(139, 92, 246, 0.15);
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -204,14 +226,10 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .glass-icon.green {
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
     color: var(--accent-secondary);
   }
 
   .glass-icon.orange {
-    background: rgba(245, 158, 11, 0.15);
-    border-color: rgba(245, 158, 11, 0.3);
     color: var(--accent-tertiary);
   }
 
@@ -261,7 +279,7 @@ import Layout from '../layouts/Layout.astro';
     font-size: 14px;
     color: var(--text-muted);
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-color);
   }
 
   .glass-list li:last-child {
