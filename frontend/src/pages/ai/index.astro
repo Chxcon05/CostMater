@@ -1,0 +1,491 @@
+﻿---
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import PageHeader from '../../components/PageHeader.astro';
+---
+
+<Layout title="Análisis IA">
+  <div class="flex min-h-screen">
+    <Sidebar />
+
+    <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
+      <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
+        <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <PageHeader title="Análisis IA" subtitle="Recomendaciones inteligentes de precios, costos y optimización" i18nTitle="ai.title" i18nSubtitle="ai.subtitle" />
+
+      <div class="tab-bar mb-6">
+        <button class="tab-btn active" data-tab="prices" data-i18n="ai.tab_prices">Precios</button>
+        <button class="tab-btn" data-tab="forecast" data-i18n="ai.tab_forecast">Proyecciones</button>
+        <button class="tab-btn" data-tab="simulator" data-i18n="ai.tab_simulator">Simulador</button>
+        <button class="tab-btn" data-tab="optimization" data-i18n="ai.tab_optimization">Optimización</button>
+      </div>
+
+      <!-- Tab: Precios -->
+      <div id="tab-prices" class="tab-content">
+        <div class="card p-6">
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end mb-6">
+            <div class="flex-1 w-full">
+              <label class="label" data-i18n="ai.select_product">Producto</label>
+              <select id="price-product" class="input w-full"></select>
+            </div>
+            <button id="btn-get-price" class="btn-primary rounded-lg px-5 py-2.5 text-sm whitespace-nowrap" data-i18n="ai.get_recommendation">Obtener recomendación</button>
+          </div>
+
+          <div id="price-result" class="hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.current_price">Precio actual</p>
+                <p class="text-xl font-bold font-mono text-[var(--text-primary)]" id="price-current">$0</p>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.total_cost">Costo total</p>
+                <p class="text-xl font-bold font-mono text-amber-400" id="price-cost">$0</p>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.suggested_price">Precio sugerido</p>
+                <p class="text-xl font-bold font-mono text-emerald-400" id="price-suggested">$0</p>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.expected_margin">Margen esperado</p>
+                <p class="text-xl font-bold font-mono text-blue-400" id="price-margin">0%</p>
+              </div>
+            </div>
+            <div class="card p-4">
+              <p class="text-xs text-[var(--text-muted)] mb-2" data-i18n="ai.reasoning">Razonamiento</p>
+              <p class="text-sm text-[var(--text-secondary)] leading-relaxed" id="price-reasoning"></p>
+            </div>
+          </div>
+
+          <div id="price-empty" class="empty-state">
+            <div class="empty-state-icon">
+              <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            </div>
+            <p class="empty-state-title" data-i18n="ai.price_empty">Selecciona un producto para obtener una recomendación de precio</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Proyecciones -->
+      <div id="tab-forecast" class="tab-content hidden">
+        <div class="card p-6">
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end mb-6">
+            <div class="flex-1 w-full">
+              <label class="label" data-i18n="ai.select_product">Producto</label>
+              <select id="forecast-product" class="input w-full"></select>
+            </div>
+            <button id="btn-get-forecast" class="btn-primary rounded-lg px-5 py-2.5 text-sm whitespace-nowrap" data-i18n="ai.generate_forecast">Generar proyección</button>
+          </div>
+
+          <div id="forecast-result" class="hidden">
+            <div class="card p-4">
+              <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="ai.forecast_chart_title">Proyección de costos</h3>
+              <div class="h-72">
+                <canvas id="forecastChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div id="forecast-empty" class="empty-state">
+            <div class="empty-state-icon">
+              <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+            </div>
+            <p class="empty-state-title" data-i18n="ai.forecast_empty">Selecciona un producto para generar una proyección de costos</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Simulador -->
+      <div id="tab-simulator" class="tab-content hidden">
+        <div class="card p-6">
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end mb-6">
+            <div class="flex-1 w-full">
+              <label class="label" data-i18n="ai.select_product">Producto</label>
+              <select id="sim-product" class="input w-full"></select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+              <label class="label flex justify-between" data-i18n="ai.sim_price">Precio de venta
+                <span class="font-mono text-[var(--accent-primary)]" id="sim-price-val">$500</span>
+              </label>
+              <input type="range" id="sim-price" min="0" max="10000" step="10" value="500" class="w-full accent-[var(--accent-primary)]" />
+            </div>
+            <div>
+              <label class="label flex justify-between" data-i18n="ai.sim_cost">Costo total
+                <span class="font-mono text-amber-400" id="sim-cost-val">$300</span>
+              </label>
+              <input type="range" id="sim-cost" min="0" max="10000" step="10" value="300" class="w-full accent-[var(--accent-primary)]" />
+            </div>
+            <div>
+              <label class="label flex justify-between" data-i18n="ai.sim_volume">Volumen (unidades)
+                <span class="font-mono text-blue-400" id="sim-volume-val">100</span>
+              </label>
+              <input type="range" id="sim-volume" min="1" max="1000" step="1" value="100" class="w-full accent-[var(--accent-primary)]" />
+            </div>
+          </div>
+
+          <div id="sim-result" class="hidden mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.sim_profit">Beneficio simulado</p>
+                <p class="text-xl font-bold font-mono text-emerald-400" id="sim-profit">$0</p>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.sim_resulting_margin">Margen resultante</p>
+                <p class="text-xl font-bold font-mono text-blue-400" id="sim-resulting-margin">0%</p>
+              </div>
+              <div class="card p-4">
+                <p class="text-xs text-[var(--text-muted)] mb-1" data-i18n="ai.sim_impact">Comparación de impacto</p>
+                <p class="text-xl font-bold font-mono" id="sim-impact">-</p>
+              </div>
+            </div>
+            <div class="card p-4">
+              <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="ai.sim_chart_title">Comparación actual vs simulado</h3>
+              <div class="h-64">
+                <canvas id="simChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div id="sim-empty" class="empty-state">
+            <div class="empty-state-icon">
+              <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            </div>
+            <p class="empty-state-title" data-i18n="ai.sim_empty">Selecciona un producto y ajusta los parámetros para simular escenarios</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Optimización -->
+      <div id="tab-optimization" class="tab-content hidden">
+        <div class="card p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-semibold text-[var(--text-primary)]" data-i18n="ai.optim_title">Análisis de optimización de productos</h3>
+            <button id="btn-optimize" class="btn-primary rounded-lg px-5 py-2.5 text-sm" data-i18n="ai.analyze_products">Analizar productos</button>
+          </div>
+
+          <div id="optim-result" class="hidden">
+            <div class="card mb-4 overflow-x-auto">
+              <table class="w-full text-sm min-w-[640px]">
+                <thead><tr class="table-header">
+                  <th class="table-cell" data-i18n="common.name">Producto</th>
+                  <th class="table-cell" data-i18n="ai.optim_margin">Margen</th>
+                  <th class="table-cell" data-i18n="ai.optim_issues">Problemas</th>
+                  <th class="table-cell" data-i18n="ai.optim_suggestions">Sugerencias</th>
+                </tr></thead>
+                <tbody id="optim-table" class="divide-y divide-[var(--border-color)]"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="optim-empty" class="empty-state">
+            <div class="empty-state-icon">
+              <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            </div>
+            <p class="empty-state-title" data-i18n="ai.optim_empty">Haz clic en "Analizar productos" para recibir sugerencias de optimización</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/pagination.js"></script>
+<script>
+  const API_URL = CostMaster.API_URL;
+  let products = [];
+  let forecastChart = null;
+  let simChart = null;
+
+  const $ = id => document.getElementById(id);
+
+  function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = '/login'; return null; }
+    return { 'Authorization': `Bearer ${token}` };
+  }
+
+  function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
+
+  async function loadProducts() {
+    const h = getAuthHeaders();
+    if (!h) return;
+    try {
+      products = await fetch(`${API_URL}/products`, { headers: h }).then(r => r.json());
+      if (!Array.isArray(products)) products = [];
+      const esc = CostMaster.sanitize.escapeHtml;
+      const opts = products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+      const emptyOpt = '<option value="">' + (window.t ? window.t('ai.select_one') : 'Seleccionar...') + '</option>';
+      $('price-product').innerHTML = emptyOpt + opts;
+      $('forecast-product').innerHTML = emptyOpt + opts;
+      $('sim-product').innerHTML = emptyOpt + opts;
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error_loading') : 'Error al cargar productos');
+    }
+  }
+
+  function getSelectedProduct(selectId) {
+    const id = $(selectId).value;
+    if (!id) return null;
+    return products.find(p => p.id === parseInt(id));
+  }
+
+  // === Tab Navigation ===
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      $('tab-' + btn.dataset.tab).classList.remove('hidden');
+    });
+  });
+
+  // === Tab 1: Price Recommendation ===
+  $('btn-get-price').addEventListener('click', async () => {
+    const p = getSelectedProduct('price-product');
+    if (!p) { toast.warning('Selecciona un producto'); return; }
+
+    const h = getAuthHeaders();
+    if (!h) return;
+
+    const btn = $('btn-get-price');
+    btn.classList.add('btn-loading');
+    try {
+      const res = await fetch(`${API_URL}/ai/price-recommendation`, {
+        method: 'POST',
+        headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: p.id })
+      });
+
+      if (!res.ok) throw new Error('Error');
+      const data = await res.json();
+
+      $('price-current').textContent = formatCurrency(data.current_price);
+      $('price-cost').textContent = formatCurrency(data.total_cost);
+      $('price-suggested').textContent = formatCurrency(data.suggested_price);
+      $('price-margin').textContent = (data.expected_margin || 0).toFixed(1) + '%';
+      $('price-reasoning').textContent = data.reasoning || '';
+      $('price-result').classList.remove('hidden');
+      $('price-empty').classList.add('hidden');
+
+      toast.success('Recomendación generada');
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error al obtener recomendación');
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
+  });
+
+  // === Tab 2: Cost Forecast ===
+  $('btn-get-forecast').addEventListener('click', async () => {
+    const p = getSelectedProduct('forecast-product');
+    if (!p) { toast.warning('Selecciona un producto'); return; }
+
+    const h = getAuthHeaders();
+    if (!h) return;
+
+    const btn = $('btn-get-forecast');
+    btn.classList.add('btn-loading');
+    try {
+      const res = await fetch(`${API_URL}/ai/cost-forecast`, {
+        method: 'POST',
+        headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: p.id, months: 3 })
+      });
+
+      if (!res.ok) throw new Error('Error');
+      const data = await res.json();
+
+      renderForecastChart(data);
+      $('forecast-result').classList.remove('hidden');
+      $('forecast-empty').classList.add('hidden');
+
+      toast.success('Proyección generada');
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error al generar proyección');
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
+  });
+
+  function renderForecastChart(data) {
+    const container = $('forecast-result').querySelector('.card');
+    if (forecastChart) forecastChart.destroy();
+    container.innerHTML = '<h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="ai.forecast_chart_title">Proyección de costos</h3><div class="h-72"><canvas id="forecastChart"></canvas></div>';
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+
+    const histArr = data.historical || [];
+    const foreArr = data.forecast || [];
+    const labels = [...histArr.map(h => h.month), ...foreArr.map(f => f.month)];
+    const historicalData = [...histArr.map(h => h.cost), ...new Array(foreArr.length).fill(null)];
+    const forecastData = [...new Array(histArr.length).fill(null), ...foreArr.map(f => f.cost)];
+
+    forecastChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Histórico',
+            data: historicalData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4,
+            spanGaps: false
+          },
+          {
+            label: 'Proyección',
+            data: forecastData,
+            borderColor: '#8b5cf6',
+            borderDash: [6, 4],
+            backgroundColor: 'transparent',
+            tension: 0.4,
+            spanGaps: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: false } },
+        interaction: { intersect: false, mode: 'index' }
+      }
+    });
+  }
+
+  // === Tab 3: Simulator ===
+  ['sim-price', 'sim-cost', 'sim-volume'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      $('sim-price-val').textContent = formatCurrency($('sim-price').value);
+      $('sim-cost-val').textContent = formatCurrency($('sim-cost').value);
+      $('sim-volume-val').textContent = $('sim-volume').value;
+      updateSimulator();
+    });
+  });
+
+  $('sim-product').addEventListener('change', async () => {
+    const p = getSelectedProduct('sim-product');
+    if (p) {
+      $('sim-cost').value = Math.round((p.unit_cost || 0) * 100) / 100 * Math.max(parseInt($('sim-volume').value), 1);
+      $('sim-cost').value = Math.min(parseInt($('sim-cost').value), 10000);
+      $('sim-price').value = p.selling_price || 500;
+      $('sim-price-val').textContent = formatCurrency($('sim-price').value);
+      $('sim-cost-val').textContent = formatCurrency($('sim-cost').value);
+      $('sim-volume-val').textContent = $('sim-volume').value;
+      updateSimulator();
+    }
+  });
+
+  async function updateSimulator() {
+    const p = getSelectedProduct('sim-product');
+    const h = getAuthHeaders();
+    if (!h) return;
+
+    const price = parseFloat($('sim-price').value);
+    const cost = parseFloat($('sim-cost').value);
+    const volume = parseInt($('sim-volume').value);
+
+    const profit = (price - cost) * volume;
+    const margin = price > 0 ? ((price - cost) / price * 100) : 0;
+
+    $('sim-profit').textContent = formatCurrency(profit);
+    $('sim-resulting-margin').textContent = margin.toFixed(1) + '%';
+
+    if (margin > 20) {
+      $('sim-impact').textContent = 'Óptimo';
+      $('sim-impact').className = 'text-xl font-bold font-mono text-emerald-400';
+    } else if (margin > 0) {
+      $('sim-impact').textContent = 'Aceptable';
+      $('sim-impact').className = 'text-xl font-bold font-mono text-amber-400';
+    } else {
+      $('sim-impact').textContent = 'Pérdida';
+      $('sim-impact').className = 'text-xl font-bold font-mono text-red-400';
+    }
+
+    const currentProfit = p ? ((p.selling_price || 0) - (p.unit_cost || 0)) * volume : 0;
+
+    $('sim-result').classList.remove('hidden');
+    $('sim-empty').classList.add('hidden');
+
+    renderSimChart(currentProfit, profit);
+  }
+
+  function renderSimChart(currentProfit, simProfit) {
+    if (simChart) simChart.destroy();
+    const container = $('sim-result').querySelector('.card:last-child');
+    container.innerHTML = '<h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="ai.sim_chart_title">Comparación actual vs simulado</h3><div class="h-64"><canvas id="simChart"></canvas></div>';
+    const ctx = document.getElementById('simChart').getContext('2d');
+
+    simChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Actual', 'Simulado'],
+        datasets: [{
+          label: 'Beneficio',
+          data: [currentProfit, simProfit],
+          backgroundColor: ['#3b82f6', '#10b981']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // === Tab 4: Optimization ===
+  $('btn-optimize').addEventListener('click', async () => {
+    const h = getAuthHeaders();
+    if (!h) return;
+
+    const btn = $('btn-optimize');
+    btn.classList.add('btn-loading');
+    try {
+      const res = await fetch(`${API_URL}/ai/optimization`, { method: 'GET', headers: h });
+      if (!res.ok) throw new Error('Error');
+      const data = await res.json();
+
+      const esc = CostMaster.sanitize.escapeHtml;
+      const items = Array.isArray(data) ? data : (data.products || data.items || []);
+      $('optim-table').innerHTML = items.map(item => {
+        const margin = item.margin || 0;
+        let marginClass = 'bg-red-500/20 text-red-400 border border-red-500/30';
+        if (margin > 20) marginClass = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        else if (margin > 10) marginClass = 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
+
+        return `<tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+          <td class="table-cell font-medium text-[var(--text-primary)]">${esc(item.name) || '-'}</td>
+          <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${marginClass}">${margin.toFixed(1)}%</span></td>
+          <td class="table-cell text-sm text-[var(--text-secondary)]">${esc((item.issues || []).join(', ')) || '-'}</td>
+          <td class="table-cell text-sm text-[var(--text-secondary)]">${esc((item.suggestions || []).join('. ')) || '-'}</td>
+        </tr>`;
+      }).join('');
+
+      $('optim-result').classList.remove('hidden');
+      $('optim-empty').classList.add('hidden');
+
+      toast.success('Análisis completado');
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error al analizar productos');
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
+  });
+
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+
+  loadProducts();
+</script>

@@ -36,7 +36,7 @@ export function categoryRoutes(app) {
       const updated = get('SELECT * FROM categories WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'categories', req.params.id, 'UPDATE', old, updated);
       res.json(updated);
-    } catch (error) { console.error('PUT /api/categories/:id error:', error); res.status(500).json({ error: 'Error al actualizar categoría', details: error.message }); }
+    } catch (error) { console.error('PUT /api/categories/:id error:', error); res.status(500).json({ error: 'Error al actualizar categoría' }); }
   });
 
   app.delete('/api/categories/:id', authenticateToken, (req, res) => {

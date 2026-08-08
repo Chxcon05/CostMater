@@ -1,5 +1,6 @@
 import { get, all, run } from '../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { audit } from '../utils/audit.js';
 
 export function supplierRoutes(app) {
   app.get('/api/suppliers', authenticateToken, (req, res) => {
@@ -30,6 +31,7 @@ export function supplierRoutes(app) {
       );
       const supplier = get('SELECT * FROM suppliers WHERE id = ?', [lastInsertRowid]);
       if (!supplier) return res.status(500).json({ error: 'Error al recuperar el proveedor creado' });
+      audit(req.user.id, 'suppliers', supplier.id, 'CREATE', null, supplier);
       res.status(201).json(supplier);
     } catch (error) { res.status(500).json({ error: 'Error al crear proveedor' }); }
   });
@@ -43,7 +45,9 @@ export function supplierRoutes(app) {
         `UPDATE suppliers SET name = ?, email = ?, phone = ?, address = ?, country = ?, city = ?, postal_code = ?, notes = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         [name, email, phone, address, country, city, postal_code, notes, is_active ?? 1, req.params.id]
       );
-      res.json(get('SELECT * FROM suppliers WHERE id = ?', [req.params.id]));
+      const updated = get('SELECT * FROM suppliers WHERE id = ?', [req.params.id]);
+      audit(req.user.id, 'suppliers', req.params.id, 'UPDATE', supplier, updated);
+      res.json(updated);
     } catch (error) { res.status(500).json({ error: 'Error al actualizar proveedor' }); }
   });
 
@@ -52,6 +56,7 @@ export function supplierRoutes(app) {
       const supplier = get('SELECT * FROM suppliers WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!supplier) return res.status(404).json({ error: 'Proveedor no encontrado' });
       run('DELETE FROM suppliers WHERE id = ?', [req.params.id]);
+      audit(req.user.id, 'suppliers', req.params.id, 'DELETE', supplier, null);
       res.json({ success: true });
     } catch (error) { res.status(500).json({ error: 'Error al eliminar proveedor' }); }
   });
@@ -86,6 +91,7 @@ export function customerRoutes(app) {
       );
       const customer = get('SELECT * FROM customers WHERE id = ?', [lastInsertRowid]);
       if (!customer) return res.status(500).json({ error: 'Error al recuperar el cliente creado' });
+      audit(req.user.id, 'customers', customer.id, 'CREATE', null, customer);
       res.status(201).json(customer);
     } catch (error) { res.status(500).json({ error: 'Error al crear cliente' }); }
   });
@@ -93,17 +99,24 @@ export function customerRoutes(app) {
   app.put('/api/customers/:id', authenticateToken, (req, res) => {
     const { name, email, phone, address, city, postal_code, country, credit_limit, payment_days, notes } = req.body;
     try {
+      const customer = get('SELECT * FROM customers WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!customer) return res.status(404).json({ error: 'Cliente no encontrado' });
       run(
         `UPDATE customers SET name = ?, email = ?, phone = ?, address = ?, city = ?, postal_code = ?, country = ?, credit_limit = ?, payment_days = ?, notes = ? WHERE id = ?`,
         [name, email, phone, address, city, postal_code, country, credit_limit, payment_days, notes, req.params.id]
       );
-      res.json(get('SELECT * FROM customers WHERE id = ?', [req.params.id]));
+      const updated = get('SELECT * FROM customers WHERE id = ?', [req.params.id]);
+      audit(req.user.id, 'customers', req.params.id, 'UPDATE', customer, updated);
+      res.json(updated);
     } catch (error) { res.status(500).json({ error: 'Error al actualizar cliente' }); }
   });
 
   app.delete('/api/customers/:id', authenticateToken, (req, res) => {
     try {
+      const customer = get('SELECT * FROM customers WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!customer) return res.status(404).json({ error: 'Cliente no encontrado' });
       run('DELETE FROM customers WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      audit(req.user.id, 'customers', req.params.id, 'DELETE', customer, null);
       res.json({ success: true });
     } catch (error) { res.status(500).json({ error: 'Error al eliminar cliente' }); }
   });

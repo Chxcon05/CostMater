@@ -10,13 +10,23 @@ import { reportRoutes } from './routes/reports.js';
 import { supplierRoutes, customerRoutes } from './routes/entities.js';
 import { quoteRoutes, invoiceRoutes } from './routes/transactions.js';
 import { categoryRoutes } from './routes/categories.js';
+import { aiRoutes } from './routes/ai.js';
+import { userRoutes } from './routes/users.js';
+import { apiLimiter } from './middleware/rateLimit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors());
+const CORS_ORIGIN = process.env.CORS_ORIGIN;
+if (!CORS_ORIGIN) {
+  console.error('ERROR FATAL: CORS_ORIGIN no está definido en las variables de entorno.');
+  console.error('Crea un archivo .env en backend/ basado en .env.example');
+  process.exit(1);
+}
+
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
@@ -24,7 +34,6 @@ app.get('/api/health', (req, res) => {
 });
 
 const frontendDistPath = path.join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendDistPath));
 
 export async function startServer() {
   console.log('Inicializando base de datos...');
@@ -40,11 +49,17 @@ export async function startServer() {
   quoteRoutes(app);
   invoiceRoutes(app);
   categoryRoutes(app);
+  aiRoutes(app);
+  userRoutes(app);
+
+  app.use('/api', apiLimiter);
 
   app.use((err, req, res, next) => {
     console.error('Error del servidor:', err.stack);
     res.status(500).json({ error: 'Error interno del servidor' });
   });
+
+  app.use(express.static(frontendDistPath));
 
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendDistPath, 'index.html'));

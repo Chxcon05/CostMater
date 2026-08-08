@@ -19,19 +19,17 @@ export function costRoutes(app) {
     try {
       const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [product_id, req.user.id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
-      console.log('Creating direct cost with params:', [product_id, type, description, amount, quantity || 1, unit_cost || amount, invoice_number, purchase_date]);
       const { lastInsertRowid } = run(
         `INSERT INTO direct_costs (product_id, type, description, amount, quantity, unit_cost, invoice_number, purchase_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [product_id, type, description, amount, quantity || 1, unit_cost || amount, invoice_number, purchase_date]
       );
       const cost = get('SELECT * FROM direct_costs WHERE id = ?', [lastInsertRowid]);
-      console.log('Direct cost created:', cost);
       if (!cost) return res.status(500).json({ error: 'Error al recuperar el costo creado' });
       audit(req.user.id, 'direct_costs', cost.id, 'CREATE', null, cost);
       res.status(201).json(cost);
     } catch (error) { 
       console.error('Error creating direct cost:', error);
-      res.status(500).json({ error: 'Error al crear costo directo', details: error.message }); 
+      res.status(500).json({ error: 'Error al crear costo directo' }); 
     }
   });
 
@@ -44,6 +42,12 @@ export function costRoutes(app) {
         `UPDATE direct_costs SET product_id = ?, type = ?, description = ?, amount = ?, quantity = ?, unit_cost = ?, invoice_number = ?, purchase_date = ? WHERE id = ?`,
         [product_id, type, description, amount, quantity || 1, unit_cost || amount, invoice_number, purchase_date, req.params.id]
       );
+      if (parseFloat(cost.amount) !== parseFloat(amount)) {
+        run(
+          `INSERT INTO cost_history (cost_type, cost_id, product_id, user_id, old_amount, new_amount, description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ['direct', req.params.id, product_id, req.user.id, cost.amount, amount, description]
+        );
+      }
       const updated = get('SELECT * FROM direct_costs WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'direct_costs', req.params.id, 'UPDATE', cost, updated);
       res.json(updated);
@@ -74,7 +78,6 @@ export function costRoutes(app) {
   app.post('/api/costs/indirect', authenticateToken, (req, res) => {
     const { product_id, type, description, amount, proportion } = req.body;
     try {
-      console.log('Creating indirect cost with data:', { product_id, type, description, amount, proportion });
       const params = [
         product_id ? parseInt(product_id) : null,
         String(type || ''),
@@ -82,13 +85,11 @@ export function costRoutes(app) {
         parseFloat(amount) || 0,
         parseFloat(proportion) || 100
       ];
-      console.log('Params:', params);
       const { lastInsertRowid } = run(
         `INSERT INTO indirect_costs (product_id, type, description, amount, proportion) VALUES (?, ?, ?, ?, ?)`,
         params
       );
       const cost = get('SELECT * FROM indirect_costs WHERE id = ?', [lastInsertRowid]);
-      console.log('Indirect cost created:', cost);
       if (!cost) {
         throw new Error('Costo no encontrado después de insertar');
       }
@@ -96,29 +97,33 @@ export function costRoutes(app) {
       res.status(201).json(cost);
     } catch (error) { 
       console.error('Error creating indirect cost:', error);
-      res.status(500).json({ error: 'Error al crear costo indirecto', details: error.message }); 
+      res.status(500).json({ error: 'Error al crear costo indirecto' }); 
     }
   });
 
   app.put('/api/costs/indirect/:id', authenticateToken, (req, res) => {
     const { product_id, type, description, amount, proportion } = req.body;
     try {
-      console.log('Updating indirect cost ID:', req.params.id, 'Body:', req.body);
       const cost = get('SELECT * FROM indirect_costs WHERE id = ?', [req.params.id]);
       if (!cost) {
-        console.log('Indirect cost not found:', req.params.id);
         return res.status(404).json({ error: 'Costo no encontrado' });
       }
       run(
         `UPDATE indirect_costs SET product_id = ?, type = ?, description = ?, amount = ?, proportion = ? WHERE id = ?`,
         [product_id || null, type, description, amount, proportion || 100, req.params.id]
       );
+      if (parseFloat(cost.amount) !== parseFloat(amount)) {
+        run(
+          `INSERT INTO cost_history (cost_type, cost_id, product_id, user_id, old_amount, new_amount, description) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ['indirect', req.params.id, product_id || null, req.user.id, cost.amount, amount, description]
+        );
+      }
       const updated = get('SELECT * FROM indirect_costs WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'indirect_costs', req.params.id, 'UPDATE', cost, updated);
       res.json(updated);
     } catch (error) { 
       console.error('Error updating indirect cost:', error);
-      res.status(500).json({ error: 'Error al actualizar costo indirecto', details: error.message }); 
+      res.status(500).json({ error: 'Error al actualizar costo indirecto' }); 
     }
   });
 

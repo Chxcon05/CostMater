@@ -1,5 +1,6 @@
 import { get, all, run } from '../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { audit } from '../utils/audit.js';
 
 function generateQuoteNumber() {
   const date = new Date();
@@ -39,6 +40,9 @@ export function quoteRoutes(app) {
   app.post('/api/quotes', authenticateToken, (req, res) => {
     const { customer_id, items, discount_percent, tax_percent, validity_days, notes, terms, valid_from } = req.body;
     try {
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Se requiere al menos un artículo' });
+      }
       const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0);
       const discountAmount = subtotal * (discount_percent || 0) / 100;
       const taxableAmount = subtotal - discountAmount;
@@ -66,7 +70,9 @@ export function quoteRoutes(app) {
         });
       }
 
-      res.status(201).json({ ...get('SELECT * FROM quotes WHERE id = ?', [quoteId]), items: all('SELECT * FROM quote_items WHERE quote_id = ?', [quoteId]) });
+      const created = { ...get('SELECT * FROM quotes WHERE id = ?', [quoteId]), items: all('SELECT * FROM quote_items WHERE quote_id = ?', [quoteId]) };
+      audit(req.user.id, 'quotes', quoteId, 'CREATE', null, created);
+      res.status(201).json(created);
     } catch (error) { res.status(500).json({ error: 'Error al crear cotización' }); }
   });
 
@@ -77,14 +83,19 @@ export function quoteRoutes(app) {
       if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
       run('UPDATE quotes SET status = ?, notes = ?, terms = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [status ?? current.status, notes ?? current.notes, terms ?? current.terms, req.params.id]);
-      res.json(get('SELECT * FROM quotes WHERE id = ?', [req.params.id]));
-    } catch (error) { console.error('Error al actualizar cotización:', error); res.status(500).json({ error: 'Error al actualizar cotización: ' + error.message }); }
+      const updated = get('SELECT * FROM quotes WHERE id = ?', [req.params.id]);
+      audit(req.user.id, 'quotes', req.params.id, 'UPDATE', current, updated);
+      res.json(updated);
+    } catch (error) { console.error('Error al actualizar cotización:', error); res.status(500).json({ error: 'Error al actualizar cotización' }); }
   });
 
   app.delete('/api/quotes/:id', authenticateToken, (req, res) => {
     try {
+      const current = get('SELECT * FROM quotes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
       run('DELETE FROM quote_items WHERE quote_id = ?', [req.params.id]);
       run('DELETE FROM quotes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      audit(req.user.id, 'quotes', req.params.id, 'DELETE', current, null);
       res.json({ success: true });
     } catch (error) { res.status(500).json({ error: 'Error al eliminar cotización' }); }
   });
@@ -110,6 +121,9 @@ export function invoiceRoutes(app) {
   app.post('/api/invoices', authenticateToken, (req, res) => {
     const { customer_id, items, tax_percent, payment_method, due_date, notes } = req.body;
     try {
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Se requiere al menos un artículo' });
+      }
       const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0);
       const taxAmount = subtotal * (tax_percent || 16) / 100;
       const total = subtotal + taxAmount;
@@ -132,7 +146,9 @@ export function invoiceRoutes(app) {
         });
       }
 
-      res.status(201).json({ ...get('SELECT * FROM invoices WHERE id = ?', [invoiceId]), items: all('SELECT * FROM invoice_items WHERE invoice_id = ?', [invoiceId]) });
+      const created = { ...get('SELECT * FROM invoices WHERE id = ?', [invoiceId]), items: all('SELECT * FROM invoice_items WHERE invoice_id = ?', [invoiceId]) };
+      audit(req.user.id, 'invoices', invoiceId, 'CREATE', null, created);
+      res.status(201).json(created);
     } catch (error) { res.status(500).json({ error: 'Error al crear factura' }); }
   });
 
@@ -140,16 +156,17 @@ export function invoiceRoutes(app) {
     const { customer_id, status, payment_method, due_date, tax_percent, notes, items } = req.body;
     try {
       const now = new Date().toISOString();
+      const existing = get('SELECT * FROM invoices WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!existing) return res.status(404).json({ error: 'Factura no encontrada' });
       let subtotal, taxAmount, total;
       if (items && items.length > 0) {
         subtotal = items.reduce((sum, item) => sum + (parseFloat(item.quantity) * parseFloat(item.unit_price)), 0);
         taxAmount = subtotal * (tax_percent || 16) / 100;
         total = subtotal + taxAmount;
       } else {
-        const current = get('SELECT subtotal, tax_amount, total FROM invoices WHERE id = ?', [req.params.id]);
-        subtotal = current?.subtotal || 0;
-        taxAmount = current?.tax_amount || 0;
-        total = current?.total || 0;
+        subtotal = existing?.subtotal || 0;
+        taxAmount = existing?.tax_amount || 0;
+        total = existing?.total || 0;
       }
       run('UPDATE invoices SET customer_id = ?, status = ?, payment_method = ?, due_date = ?, tax_percent = ?, notes = ?, subtotal = ?, tax_amount = ?, total = ?, updated_at = ? WHERE id = ? AND user_id = ?',
         [customer_id, status || 'pendiente', payment_method, due_date, tax_percent, notes, subtotal, taxAmount, total, now, req.params.id, req.user.id]);
@@ -163,14 +180,18 @@ export function invoiceRoutes(app) {
       }
       const invoice = get('SELECT * FROM invoices WHERE id = ?', [req.params.id]);
       invoice.items = all('SELECT * FROM invoice_items WHERE invoice_id = ?', [req.params.id]);
+      audit(req.user.id, 'invoices', req.params.id, 'UPDATE', existing, invoice);
       res.json(invoice);
     } catch (error) { res.status(500).json({ error: 'Error al actualizar factura' }); }
   });
 
   app.delete('/api/invoices/:id', authenticateToken, (req, res) => {
     try {
+      const current = get('SELECT * FROM invoices WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      if (!current) return res.status(404).json({ error: 'Factura no encontrada' });
       run('DELETE FROM invoice_items WHERE invoice_id = ?', [req.params.id]);
       run('DELETE FROM invoices WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      audit(req.user.id, 'invoices', req.params.id, 'DELETE', current, null);
       res.json({ success: true });
     } catch (error) { res.status(500).json({ error: 'Error al eliminar factura' }); }
   });

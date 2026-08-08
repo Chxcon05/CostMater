@@ -23,7 +23,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div class="text-left">
             <span class="text-xl font-bold tracking-tight">COSTMASTER</span>
-            <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Contabilidad</p>
+            <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5" data-i18n="sidebar.subtitle">Contabilidad</p>
           </div>
         </a>
       </div>
@@ -53,7 +53,11 @@ import Layout from '../layouts/Layout.astro';
           </button>
         </form>
 
-        <p class="text-center text-[var(--text-muted)] text-sm mt-8">
+        <p class="text-center mt-4">
+          <a href="/forgot-password" class="text-xs text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition-colors" data-i18n="auth.forgot_link">¿Olvidaste tu contraseña?</a>
+        </p>
+
+        <p class="text-center text-[var(--text-muted)] text-sm mt-4">
           <span data-i18n="auth.no_account_text">¿No tienes cuenta?</span>
           <a href="/register" class="text-[var(--accent-primary)] hover:text-[var(--accent-primary)] font-semibold transition-colors ml-1" data-i18n="auth.register_link">
             Regístrate
@@ -109,7 +113,7 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <script>
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = CostMaster.API_URL;
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -119,7 +123,7 @@ import Layout from '../layouts/Layout.astro';
     
     errorDiv.classList.add('hidden');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Ingresando...';
+    submitBtn.textContent = window.t('auth.logging_in');
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -145,7 +149,7 @@ import Layout from '../layouts/Layout.astro';
       errorDiv.textContent = error.message;
       errorDiv.classList.remove('hidden');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Ingresar';
+      submitBtn.textContent = window.t('auth.login_btn');
     }
   });
 </script>

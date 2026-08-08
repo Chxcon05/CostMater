@@ -1,4 +1,4 @@
----
+﻿---
 import Layout from '../../layouts/Layout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import PageHeader from '../../components/PageHeader.astro';
@@ -30,34 +30,41 @@ import PageHeader from '../../components/PageHeader.astro';
           <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="common.name">Nombre</th><th class="table-cell text-left" data-i18n="common.email">Email</th><th class="table-cell text-left" data-i18n="common.phone">Teléfono</th><th class="table-cell text-left" data-i18n="supplier.country">País</th><th class="table-cell text-left" data-i18n="supplier.city">Ciudad</th><th class="table-cell text-left" data-i18n="common.actions">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
-        <div id="empty" class="hidden p-12 text-center">
-          <p class="text-[var(--text-muted)] mb-4" data-i18n="supplier.empty">No hay proveedores registrados</p>
+        <div id="empty-msg" class="empty-state hidden">
+          <div class="empty-state-icon">
+            <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          </div>
+          <p class="empty-state-title" data-i18n="supplier.empty">No hay proveedores registrados</p>
+          <p class="empty-state-desc">Comienza agregando tu primer proveedor</p>
+          <button onclick="document.getElementById('btn-new').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add">+ Agregar</button>
         </div>
       </div>
+
+      <div id="pagination-container"></div>
     </main>
   </div>
 
   <div id="modal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+    <div class="modal-content flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-[var(--border-color)] flex justify-between items-center flex-shrink-0">
         <h3 class="text-lg font-semibold" id="modal-title" data-i18n="supplier.new">Nuevo Proveedor</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
       </div>
-      <form id="form" class="p-6 space-y-4">
+      <form id="form" class="p-6 space-y-4 overflow-y-auto flex-1">
         <input type="hidden" id="record-id" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div><label class="label">Nombre *</label><input type="text" id="name" class="input" required /></div>
-          <div><label class="label">Email</label><input type="email" id="email" class="input" /></div>
+          <div data-tooltip="name"><label class="label" data-i18n="form.name_required">Nombre *</label><input type="text" id="name" class="input" required /><p class="field-error-msg">El nombre es requerido</p></div>
+          <div><label class="label" data-i18n="form.email">Email</label><input type="email" id="email" class="input" /></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div><label class="label">Teléfono</label><input type="text" id="phone" class="input" /></div>
-          <div><label class="label">Dirección</label><input type="text" id="address" class="input" /></div>
+          <div><label class="label" data-i18n="form.phone">Teléfono</label><input type="text" id="phone" class="input" /></div>
+          <div><label class="label" data-i18n="form.address">Dirección</label><input type="text" id="address" class="input" /></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div>
-            <label class="label">País</label>
+            <label class="label" data-i18n="form.country">País</label>
             <select id="country" class="input">
-              <option value="">Seleccionar...</option>
+              <option value="" data-i18n="form.select">Seleccionar...</option>
               <option value="MX">México</option>
               <option value="CR">Costa Rica</option>
               <option value="CO">Colombia</option>
@@ -67,13 +74,13 @@ import PageHeader from '../../components/PageHeader.astro';
             </select>
           </div>
           <div>
-            <label class="label">Ciudad</label><input type="text" id="city" class="input" list="city-list" /><datalist id="city-list"></datalist>
+            <label class="label" data-i18n="form.city">Ciudad</label><input type="text" id="city" class="input" list="city-list" /><datalist id="city-list"></datalist>
           </div>
-          <div><label class="label">Código Postal</label><input type="text" id="postal_code" class="input" /></div>
+          <div><label class="label" data-i18n="form.postal_code">Código Postal</label><input type="text" id="postal_code" class="input" /></div>
         </div>
-        <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
+        <div><label class="label" data-i18n="form.notes">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
       </form>
-      <div class="p-6 border-t border-slate-200 flex gap-3 justify-end">
+      <div class="p-6 border-t border-[var(--border-color)] flex gap-3 justify-end flex-shrink-0">
         <button type="button" id="modal-cancel" class="btn-secondary rounded-lg text-sm px-3 py-1.5" data-i18n="common.cancel">Cancelar</button>
         <button type="button" id="modal-save" class="btn-primary rounded-lg text-sm px-3 py-1.5" data-i18n="common.save">Guardar</button>
       </div>
@@ -95,12 +102,18 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 </Layout>
 
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/pagination.js"></script>
 <script>
   console.log('Suppliers script loaded');
   
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = CostMaster.API_URL;
   let data = [];
   let currentId = null;
+  let currentPage = 1;
+  const perPage = 10;
+
+  const $ = id => document.getElementById(id);
 
   function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -117,9 +130,9 @@ import PageHeader from '../../components/PageHeader.astro';
     US: ['Nueva York', 'Los Ángeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego'],
   };
 
-  const countrySelect = document.getElementById('country');
-  const cityInput = document.getElementById('city');
-  let cityList = document.getElementById('city-list');
+  const countrySelect = $('country');
+  const cityInput = $('city');
+  let cityList = $('city-list');
 
   if (countrySelect) {
     countrySelect.addEventListener('change', function () {
@@ -138,30 +151,31 @@ import PageHeader from '../../components/PageHeader.astro';
     if (!headers) return;
     try {
       const res = await fetch(`${API_URL}/suppliers`, { headers });
+      if (!res.ok) throw new Error('Error al cargar');
       data = await res.json();
+      currentPage = 1;
       render();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast.error(window.t ? window.t('common.error_loading') : 'Error al cargar datos');
+    }
   }
 
   function render() {
-    const search = document.getElementById('search-input').value.toLowerCase();
+    const search = $('search-input').value.toLowerCase();
     const filtered = data.filter(d => !search || d.name.toLowerCase().includes(search) || (d.email && d.email.toLowerCase().includes(search)));
-    const tbody = document.getElementById('table');
-    const empty = document.getElementById('empty');
-    
-    if (filtered.length === 0) {
-      tbody.innerHTML = '';
-      empty.classList.remove('hidden');
-      return;
-    }
-    empty.classList.add('hidden');
-    tbody.innerHTML = filtered.map(d => `
+    const tbody = $('table');
+
+    const { items, totalPages } = CostMaster.Pagination.paginate(filtered, currentPage, perPage);
+
+    const esc = CostMaster.sanitize.escapeHtml;
+    tbody.innerHTML = items.map(d => `
       <tr class="hover:bg-[#22222c]">
-        <td class="table-cell font-medium text-[var(--text-primary)]">${d.name}</td>
-        <td class="table-cell">${d.email || '-'}</td>
-        <td class="table-cell">${d.phone || '-'}</td>
-        <td class="table-cell">${d.country || '-'}</td>
-        <td class="table-cell">${d.city || '-'}</td>
+        <td class="table-cell font-medium text-[var(--text-primary)]">${esc(d.name)}</td>
+        <td class="table-cell">${esc(d.email) || '-'}</td>
+        <td class="table-cell">${esc(d.phone) || '-'}</td>
+        <td class="table-cell">${esc(d.country) || '-'}</td>
+        <td class="table-cell">${esc(d.city) || '-'}</td>
         <td class="table-cell">
           <div class="flex gap-2">
             <button data-id="${d.id}" class="edit-btn p-1 text-slate-400 hover:text-primary-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
@@ -170,7 +184,11 @@ import PageHeader from '../../components/PageHeader.astro';
         </td>
       </tr>
     `).join('');
-    
+
+    $('empty-msg').classList.toggle('hidden', filtered.length > 0);
+
+    CostMaster.Pagination.render($('pagination-container'), { page: currentPage, totalPages, onPageChange: (p) => { currentPage = p; render(); } });
+
     tbody.querySelectorAll('.edit-btn').forEach(btn => {
       btn.addEventListener('click', () => edit(parseInt(btn.dataset.id)));
     });
@@ -179,29 +197,37 @@ import PageHeader from '../../components/PageHeader.astro';
     });
   }
 
+  function validateField(id, condition) {
+    const field = $(id);
+    const group = field.closest('div[data-tooltip]') || field.parentElement;
+    if (!condition) { group.classList.add('field-error'); return false; }
+    group.classList.remove('field-error');
+    return true;
+  }
+
   function openModal(id = null) {
-    document.getElementById('modal').classList.remove('hidden');
-    document.getElementById('form').reset();
-    document.getElementById('record-id').value = '';
-    document.getElementById('modal-title').textContent = 'Nuevo Proveedor';
+    $('modal').classList.remove('hidden');
+    $('form').reset();
+    $('record-id').value = '';
+    $('modal-title').textContent = 'Nuevo Proveedor';
 
     if (id) {
       const r = data.find(d => d.id === id);
       if (r) {
-        document.getElementById('record-id').value = r.id;
+        $('record-id').value = r.id;
         ['name', 'email', 'phone', 'address', 'country', 'city', 'postal_code', 'notes'].forEach(f => {
-          document.getElementById(f).value = r[f] || '';
+          $(f).value = r[f] || '';
         });
-        if (r.country && document.getElementById('country')) {
-          document.getElementById('country').dispatchEvent(new Event('change'));
-          document.getElementById('city').value = r.city || '';
+        if (r.country && $('country')) {
+          $('country').dispatchEvent(new Event('change'));
+          $('city').value = r.city || '';
         }
-        document.getElementById('modal-title').textContent = 'Editar Proveedor';
+        $('modal-title').textContent = 'Editar Proveedor';
       }
     }
   }
 
-  function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+  function closeModal() { $('modal').classList.add('hidden'); }
 
   function edit(id) { openModal(id); }
 
@@ -209,11 +235,19 @@ import PageHeader from '../../components/PageHeader.astro';
     const headers = getAuthHeaders();
     if (!headers) return;
 
-    const id = document.getElementById('record-id').value;
+    if (!validateField('name', $('name').value.trim())) {
+      toast.warning('El nombre del proveedor es requerido');
+      return;
+    }
+
+    const id = $('record-id').value;
     const body = ['name', 'email', 'phone', 'address', 'country', 'city', 'postal_code', 'notes'].reduce((acc, f) => ({
       ...acc,
-      [f]: document.getElementById(f).value
+      [f]: $(f).value
     }), {});
+
+    const btn = $('modal-save');
+    btn.classList.add('btn-loading');
 
     try {
       const res = await fetch(`${API_URL}/suppliers${id ? '/' + id : ''}`, {
@@ -224,33 +258,55 @@ import PageHeader from '../../components/PageHeader.astro';
 
       if (res.ok) {
         closeModal();
+        toast.success(window.t ? window.t('common.saved') : 'Guardado correctamente');
         load();
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Error al guardar' }));
+        toast.error(err.error || 'Error al guardar el proveedor');
       }
     } catch (e) {
-      alert('Error al guardar');
+      console.error(e);
+      toast.error(window.t ? window.t('common.error_saving') : 'Error al guardar');
+    } finally {
+      btn.classList.remove('btn-loading');
     }
   }
 
-  function confirmDelete(id) { currentId = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+  function confirmDelete(id) { currentId = id; $('delete-modal').classList.remove('hidden'); }
 
   async function deleteRecord() {
     const headers = getAuthHeaders();
     if (!headers || !currentId) return;
-    await fetch(`${API_URL}/suppliers/${currentId}`, { method: 'DELETE', headers });
-    document.getElementById('delete-modal').classList.add('hidden');
-    currentId = null;
-    load();
+    try {
+      await fetch(`${API_URL}/suppliers/${currentId}`, { method: 'DELETE', headers });
+      $('delete-modal').classList.add('hidden');
+      currentId = null;
+      toast.success(window.t ? window.t('common.deleted') : 'Eliminado correctamente');
+      load();
+    } catch (e) {
+      console.error(e);
+      toast.error(window.t ? window.t('common.error') : 'Error al eliminar');
+    }
   }
 
-  document.getElementById('search-input').addEventListener('input', render);
-  document.getElementById('btn-new').addEventListener('click', () => openModal());
-  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+  let debounceTimer;
+  $('search-input').addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => { currentPage = 1; render(); }, 300);
+  });
+  $('btn-new').addEventListener('click', () => openModal());
+  $('mobile-menu-btn').addEventListener('click', () => {
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });
-  document.getElementById('modal-close').addEventListener('click', () => closeModal());
-  document.getElementById('modal-cancel').addEventListener('click', () => closeModal());
-  document.getElementById('modal-save').addEventListener('click', () => save());
-  document.getElementById('delete-cancel').addEventListener('click', () => document.getElementById('delete-modal').classList.add('hidden'));
-  document.getElementById('delete-confirm').addEventListener('click', () => deleteRecord());
+  $('modal-close').addEventListener('click', () => closeModal());
+  $('modal-cancel').addEventListener('click', () => closeModal());
+  $('modal-save').addEventListener('click', () => save());
+  $('delete-cancel').addEventListener('click', () => $('delete-modal').classList.add('hidden'));
+  $('delete-confirm').addEventListener('click', () => deleteRecord());
+
+  ['modal', 'delete-modal'].forEach(id => {
+    $(id).addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) $(id).classList.add('hidden'); });
+  });
+
   load();
 </script>

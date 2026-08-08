@@ -30,12 +30,22 @@ async function initDb() {
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      role TEXT DEFAULT 'user',
       company_name TEXT,
       company_rfc TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  try {
+    const ucols = db.exec("PRAGMA table_info(users)");
+    const ucolNames = ucols[0]?.values.map(c => c[1]) || [];
+    if (!ucolNames.includes('role')) {
+      db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+    }
+    saveDb();
+  } catch (e) { console.error('Error altering users:', e); }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS categories (
@@ -344,6 +354,47 @@ async function initDb() {
       old_values TEXT,
       new_values TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      expires_at DATETIME NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS price_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      old_price DECIMAL(10,2),
+      new_price DECIMAL(10,2) NOT NULL,
+      changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cost_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cost_type TEXT NOT NULL CHECK(cost_type IN ('direct', 'indirect')),
+      cost_id INTEGER NOT NULL,
+      product_id INTEGER,
+      user_id INTEGER NOT NULL,
+      old_amount DECIMAL(10,2),
+      new_amount DECIMAL(10,2) NOT NULL,
+      description TEXT,
+      changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);

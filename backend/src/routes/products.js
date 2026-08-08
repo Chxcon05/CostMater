@@ -58,7 +58,7 @@ export function productRoutes(app) {
       res.status(201).json(product);
     } catch (error) {
       console.error('POST /api/products error:', error);
-      res.status(500).json({ error: 'Error al crear producto', details: error.message });
+      res.status(500).json({ error: 'Error al crear producto' });
     }
   });
 
@@ -75,6 +75,13 @@ export function productRoutes(app) {
         `UPDATE products SET name = ?, description = ?, type = ?, unit = ?, quantity = ?, selling_price = ?, wholesale_price = ?, min_quantity = ?, category_id = ?, supplier_id = ?, sku = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
         [name, description || '', type || 'producto', unit || 'unidad', quantity || 1, selling_price || 0, wholesale_price || 0, min_quantity || 0, catId, supId, sku || '', req.params.id]
       );
+
+      if (parseFloat(product.selling_price) !== parseFloat(selling_price || 0)) {
+        run(
+          `INSERT INTO price_history (product_id, user_id, old_price, new_price) VALUES (?, ?, ?, ?)`,
+          [req.params.id, req.user.id, product.selling_price || 0, selling_price || 0]
+        );
+      }
 
       const updated = get('SELECT * FROM products WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'products', req.params.id, 'UPDATE', product, updated);

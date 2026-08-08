@@ -7,7 +7,7 @@ import PageHeader from '../../components/PageHeader.astro';
 <Layout title="Reportes">
   <div class="flex min-h-screen">
     <Sidebar />
-    
+
     <main class="flex-1 p-4 md:p-8 md:ml-56 relative z-10">
       <button id="mobile-menu-btn" class="md:hidden fixed top-4 right-4 z-50 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg hover:border-[var(--accent-primary)] transition-all">
         <svg class="w-6 h-6 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,8 +16,21 @@ import PageHeader from '../../components/PageHeader.astro';
       </button>
 
       <PageHeader title="Reportes" subtitle="Análisis financiero y estadísticas" i18nTitle="report.page_title" i18nSubtitle="report.page_subtitle" />
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+
+      <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-[var(--text-muted)]" data-i18n="report.start_date">Fecha inicio</label>
+          <input type="date" id="filter-start-date" class="px-3 py-2 text-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none transition-colors" />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-[var(--text-muted)]" data-i18n="report.end_date">Fecha fin</label>
+          <input type="date" id="filter-end-date" class="px-3 py-2 text-sm bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none transition-colors" />
+        </div>
+        <button id="filter-apply" class="px-4 py-2 text-sm font-medium bg-[var(--accent-primary)] text-white rounded-lg hover:opacity-90 transition-opacity" data-i18n="common.apply">Aplicar</button>
+        <button id="filter-clear" class="px-4 py-2 text-sm font-medium border border-[var(--border-color)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors" data-i18n="common.clear">Limpiar</button>
+      </div>
+
+      <div id="kpi-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         <div class="card p-5">
           <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.total_costs">Total Costos</div>
           <div class="text-2xl font-bold font-mono text-gradient" id="kpi-total">$0</div>
@@ -36,21 +49,28 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
       </div>
 
+      <div class="card p-6 mb-6">
+        <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.trend_title">Tendencia de Costos (Últimos 6 meses)</h3>
+        <div id="trend-chart-container" class="h-64">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
       <div class="grid grid-cols-2 gap-6 mb-6">
         <div class="card p-6">
           <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.distribution_title">Distribución de Costos por Tipo</h3>
-          <div class="h-64"><canvas id="typeChart"></canvas></div>
+          <div id="type-chart-container" class="h-64"><canvas id="typeChart"></canvas></div>
         </div>
         <div class="card p-6">
           <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.by_product_title">Costos por Producto</h3>
-          <div class="h-64"><canvas id="productChart"></canvas></div>
+          <div id="product-chart-container" class="h-64"><canvas id="productChart"></canvas></div>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-6">
         <div class="card p-6">
           <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.rentability_title">Análisis de Rentabilidad</h3>
-          <div class="overflow-x-auto">
+          <div id="rentability-container" class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="report.cost">Costo</th><th class="table-cell" data-i18n="report.selling_price">Venta</th><th class="table-cell" data-i18n="report.margin">Margen</th></tr></thead>
               <tbody id="rentability-table" class="divide-y divide-[var(--border-color)]"></tbody>
@@ -59,7 +79,7 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
         <div class="card p-6">
           <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.audit_title">Historial de Auditoría</h3>
-          <div class="overflow-y-auto max-h-64">
+          <div id="audit-container" class="overflow-y-auto max-h-64">
             <div id="audit-list" class="space-y-2"></div>
           </div>
         </div>
@@ -69,48 +89,181 @@ import PageHeader from '../../components/PageHeader.astro';
 </Layout>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/skeleton.js"></script>
 <script>
-  const API_URL = 'http://localhost:3000/api';
-  let typeChart, productChart;
+  const API_URL = CostMaster.API_URL;
+  let typeChart, productChart, trendChart;
 
   function getAuthHeaders() { const token = localStorage.getItem('token'); if (!token) { window.location.href = '/login'; return null; } return { 'Authorization': `Bearer ${token}` }; }
+
+  function getDateParams() {
+    const start = document.getElementById('filter-start-date').value;
+    const end = document.getElementById('filter-end-date').value;
+    const params = new URLSearchParams();
+    if (start) params.set('start', start);
+    if (end) params.set('end', end);
+    const qs = params.toString();
+    return qs ? `?${qs}` : '';
+  }
+
+  function showSkeletons() {
+    const kpiGrid = document.getElementById('kpi-container');
+    if (kpiGrid) CostMaster.Skeleton.show(kpiGrid, 'cards', { count: 4 });
+    const trendContainer = document.getElementById('trend-chart-container');
+    if (trendContainer) CostMaster.Skeleton.show(trendContainer, 'chart', { height: 'h-60' });
+    const typeContainer = document.getElementById('type-chart-container');
+    if (typeContainer) CostMaster.Skeleton.show(typeContainer, 'chart', { height: 'h-60' });
+    const productContainer = document.getElementById('product-chart-container');
+    if (productContainer) CostMaster.Skeleton.show(productContainer, 'chart', { height: 'h-60' });
+    const rentabilityContainer = document.getElementById('rentability-container');
+    if (rentabilityContainer) CostMaster.Skeleton.table(rentabilityContainer, 4, 5);
+    const auditContainer = document.getElementById('audit-container');
+    if (auditContainer) CostMaster.Skeleton.show(auditContainer, 'rows', { count: 5 });
+  }
+
+  function renderKPICards(kpiTotal, avg, max, min) {
+    const kpiGrid = document.getElementById('kpi-container');
+    kpiGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8';
+    kpiGrid.innerHTML = `
+      <div class="card p-5">
+        <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.total_costs">Total Costos</div>
+        <div class="text-2xl font-bold font-mono text-gradient" id="kpi-total">${formatCurrency(kpiTotal)}</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.avg_cost">Costo Promedio</div>
+        <div class="text-2xl font-bold font-mono text-[var(--text-primary)]" id="kpi-avg">${formatCurrency(avg)}</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.max_cost">Mayor Costo</div>
+        <div class="text-2xl font-bold font-mono text-red-400" id="kpi-max">${formatCurrency(max)}</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-sm text-[var(--text-muted)] mb-1" data-i18n="report.min_cost">Menor Costo</div>
+        <div class="text-2xl font-bold font-mono text-emerald-400" id="kpi-min">${formatCurrency(min)}</div>
+      </div>`;
+  }
+
+  function renderEmptyState(container, message) {
+    container.innerHTML = `<div class="flex flex-col items-center justify-center h-full py-8 text-[var(--text-muted)]">
+      <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+      </svg>
+      <p class="text-sm font-medium">${message}</p>
+    </div>`;
+  }
 
   async function load() {
     const headers = getAuthHeaders();
     if (!headers) return;
 
+    showSkeletons();
+
     try {
-      const [distRes, rentRes, auditRes] = await Promise.all([
-        fetch(`${API_URL}/reports/distribution`, { headers }),
-        fetch(`${API_URL}/reports/rentability`, { headers }),
-        fetch(`${API_URL}/audit?limit=20`, { headers })
+      const dateParams = getDateParams();
+      const [distRes, rentRes, auditRes, periodRes] = await Promise.all([
+        fetch(`${API_URL}/reports/distribution${dateParams}`, { headers }),
+        fetch(`${API_URL}/reports/rentability${dateParams}`, { headers }),
+        fetch(`${API_URL}/audit?limit=20${dateParams ? '&' + dateParams.slice(1) : ''}`, { headers }),
+        fetch(`${API_URL}/reports/period`, { headers })
       ]);
+
+      if (!distRes.ok || !rentRes.ok || !auditRes.ok || !periodRes.ok) {
+        throw new Error('Error al cargar los datos del reporte');
+      }
 
       const distribution = await distRes.json();
       const rentability = await rentRes.json();
       const audit = await auditRes.json();
+      const period = await periodRes.json();
 
       const costs = [...(distribution.direct?.items || []), ...(distribution.indirect?.items || [])];
       const totals = costs.map(c => c.total);
       const kpiTotal = distribution.grandTotal || 0;
 
-      document.getElementById('kpi-total').textContent = formatCurrency(kpiTotal);
-      document.getElementById('kpi-avg').textContent = formatCurrency(totals.length ? totals.reduce((a, b) => a + b, 0) / totals.length : 0);
-      document.getElementById('kpi-max').textContent = formatCurrency(Math.max(...totals, 0));
-      document.getElementById('kpi-min').textContent = formatCurrency(totals.length ? Math.min(...totals) : 0);
+      renderKPICards(
+        kpiTotal,
+        totals.length ? totals.reduce((a, b) => a + b, 0) / totals.length : 0,
+        Math.max(...totals, 0),
+        totals.length ? Math.min(...totals) : 0
+      );
 
+      renderTrendChart(period);
       renderTypeChart(distribution);
       renderProductChart(rentability);
       renderRentability(rentability);
       renderAudit(audit);
     } catch (e) {
       console.error(e);
+      if (window.toast) window.toast.error('Error al cargar los reportes. Intenta de nuevo.');
+      renderKPICards(0, 0, 0, 0);
+      renderEmptyState(document.getElementById('trend-chart-container'), 'No hay datos de tendencia disponibles');
+      renderEmptyState(document.getElementById('type-chart-container'), 'No hay costos registrados');
+      renderEmptyState(document.getElementById('product-chart-container'), 'No hay productos con costos');
+      renderEmptyState(document.getElementById('rentability-container'), 'No hay datos de rentabilidad');
+      renderEmptyState(document.getElementById('audit-container'), 'Sin actividad registrada');
     }
   }
 
   function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
+  function renderTrendChart(data) {
+    const container = document.getElementById('trend-chart-container');
+    container.innerHTML = '<canvas id="trendChart"></canvas>';
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (trendChart) trendChart.destroy();
+
+    if (!data || data.length === 0 || data.every(m => m.direct === 0 && m.indirect === 0)) {
+      renderEmptyState(container, 'No hay datos de tendencia para mostrar');
+      return;
+    }
+
+    const totals = data.map(m => (m.direct || 0) + (m.indirect || 0));
+
+    trendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.map(m => m.label),
+        datasets: [
+          {
+            label: 'Costo Directo',
+            data: data.map(m => m.direct || 0),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Costo Indirecto',
+            data: data.map(m => m.indirect || 0),
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Total',
+            data: totals,
+            borderColor: '#ef4444',
+            borderDash: [5, 5],
+            backgroundColor: 'transparent',
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true } },
+        interaction: { intersect: false, mode: 'index' }
+      }
+    });
+  }
+
   function renderTypeChart(data) {
+    const container = document.getElementById('type-chart-container');
+    container.innerHTML = '<canvas id="typeChart"></canvas>';
     const ctx = document.getElementById('typeChart').getContext('2d');
     if (typeChart) typeChart.destroy();
 
@@ -133,10 +286,7 @@ import PageHeader from '../../components/PageHeader.astro';
     const allZero = Object.values(totals).every(v => v === 0);
 
     if (allZero) {
-      ctx.font = '14px DM Sans';
-      ctx.fillStyle = '#9ca3af';
-      ctx.textAlign = 'center';
-      ctx.fillText('No hay costos registrados', ctx.canvas.width / 2, ctx.canvas.height / 2);
+      renderEmptyState(container, 'No hay costos registrados');
       return;
     }
 
@@ -160,14 +310,13 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function renderProductChart(data) {
+    const container = document.getElementById('product-chart-container');
+    container.innerHTML = '<canvas id="productChart"></canvas>';
     const ctx = document.getElementById('productChart').getContext('2d');
     if (productChart) productChart.destroy();
 
     if (!data || data.length === 0 || data.every(p => p.total_cost === 0)) {
-      ctx.font = '14px DM Sans';
-      ctx.fillStyle = '#9ca3af';
-      ctx.textAlign = 'center';
-      ctx.fillText('No hay productos con costos', ctx.canvas.width / 2, ctx.canvas.height / 2);
+      renderEmptyState(container, 'No hay productos con costos');
       return;
     }
 
@@ -191,32 +340,59 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function renderRentability(data) {
-    const tbody = document.getElementById('rentability-table');
-    tbody.innerHTML = data.slice(0, 8).map(p => `
-      <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
-        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
-        <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.total_cost)}</td>
-        <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.selling_price || 0)}</td>
-        <td class="table-cell"><span class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.margin >= 20 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : p.margin >= 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">${p.margin.toFixed(1)}%</span></td>
-      </tr>
-    `).join('') || '<tr><td colspan="4" class="table-cell text-center text-[var(--text-muted)]">Sin datos</td></tr>';
+    const container = document.getElementById('rentability-container');
+    if (!data || data.length === 0) {
+      container.innerHTML = '';
+      renderEmptyState(container, 'No hay datos de rentabilidad');
+      return;
+    }
+
+    const esc = CostMaster.sanitize.escapeHtml;
+    container.innerHTML = `
+      <table class="w-full text-sm">
+        <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="report.cost">Costo</th><th class="table-cell" data-i18n="report.selling_price">Venta</th><th class="table-cell" data-i18n="report.margin">Margen</th></tr></thead>
+        <tbody id="rentability-table" class="divide-y divide-[var(--border-color)]">
+          ${data.slice(0, 8).map(p => `
+            <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+              <td class="table-cell font-medium text-[var(--text-primary)]">${esc(p.name)}</td>
+              <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.total_cost)}</td>
+              <td class="table-cell font-mono text-[var(--text-secondary)]">${formatCurrency(p.selling_price || 0)}</td>
+              <td class="table-cell"><span class="px-3 py-1.5 rounded-lg text-xs font-semibold ${p.margin >= 20 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : p.margin >= 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">${p.margin.toFixed(1)}%</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
   }
 
   function renderAudit(data) {
-    const container = document.getElementById('audit-list');
-    container.innerHTML = data.map(d => `
+    const container = document.getElementById('audit-container');
+    if (!data || data.length === 0) {
+      container.innerHTML = '';
+      renderEmptyState(container, 'Sin actividad registrada');
+      return;
+    }
+
+    const esc = CostMaster.sanitize.escapeHtml;
+    container.innerHTML = `<div id="audit-list" class="space-y-2">${data.map(d => `
       <div class="text-xs p-3 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
         <div class="flex justify-between">
-          <span class="font-medium text-[var(--text-primary)]">${d.table_name}</span>
+          <span class="font-medium text-[var(--text-primary)]">${esc(d.table_name)}</span>
           <span class="text-[var(--text-muted)]">${new Date(d.created_at).toLocaleDateString('es-MX')}</span>
         </div>
-        <div class="text-[var(--text-muted)]">${d.action} - Registro #${d.record_id}</div>
+        <div class="text-[var(--text-muted)]">${esc(d.action)} - Registro #${d.record_id}</div>
       </div>
-    `).join('') || '<p class="text-[var(--text-muted)] text-sm">Sin actividad registrada</p>';
+    `).join('')}</div>`;
   }
 
   document.getElementById('mobile-menu-btn').addEventListener('click', () => {
     document.querySelector('aside').classList.toggle('-translate-x-full');
+  });
+
+  document.getElementById('filter-apply').addEventListener('click', load);
+  document.getElementById('filter-clear').addEventListener('click', () => {
+    document.getElementById('filter-start-date').value = '';
+    document.getElementById('filter-end-date').value = '';
+    load();
   });
 
   load();

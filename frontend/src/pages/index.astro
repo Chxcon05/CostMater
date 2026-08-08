@@ -97,12 +97,12 @@ import Layout from '../layouts/Layout.astro';
         
         <h1 class="text-4xl md:text-7xl font-bold mb-5 tracking-tight leading-tight">
           <span class="hero-title" style="opacity: 0; transform: translateY(40px); display: inline-block;">
-            Calcula tus <span class="text-[var(--accent-primary)]">costos</span>, <br class="hidden md:block"/>
-            escala tu <span class="text-[var(--accent-secondary)]">negocio</span>
+            <span data-i18n="landing.hero_title_calc">Calcula tus</span> <span class="text-[var(--accent-primary)]">costos</span>, <br class="hidden md:block"/>
+            <span data-i18n="landing.hero_title_scale">escala tu</span> <span class="text-[var(--accent-secondary)]">negocio</span>
           </span>
         </h1>
         
-        <p class="text-base md:text-lg text-[var(--text-secondary)] mb-8 max-w-xl mx-auto hero-subtitle" style="opacity: 0; transform: translateY(30px);">
+        <p class="text-base md:text-lg text-[var(--text-secondary)] mb-8 max-w-xl mx-auto hero-subtitle" style="opacity: 0; transform: translateY(30px);" data-i18n="landing.hero_subtitle">
           La herramienta profesional para calcular, analizar y optimizar cada peso de tu negocio. 
           Decisiones basadas en datos reales.
         </p>
@@ -123,25 +123,25 @@ import Layout from '../layouts/Layout.astro';
           <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9);">
             <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10">
               <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]">100%</div>
-              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2">Online</div>
+              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-i18n="landing.stat_online">Online</div>
             </div>
           </div>
           <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.05s;">
             <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-secondary)]/10">
               <div class="text-3xl font-bold font-mono text-[var(--accent-secondary)]">0$</div>
-              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2">Costo inicial</div>
+              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-i18n="landing.stat_cost">Costo inicial</div>
             </div>
           </div>
           <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.1s;">
             <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-tertiary)]/10">
               <div class="text-3xl font-bold font-mono text-[var(--accent-tertiary)]">∞</div>
-              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2">Productos</div>
+              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-i18n="landing.stat_products">Productos</div>
             </div>
           </div>
           <div class="stat-card" style="opacity: 0; transform: translateY(30px) scale(0.9); animation-delay: 0.15s;">
             <div class="card p-5 hover:-translate-y-2 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10">
               <div class="text-3xl font-bold font-mono text-[var(--accent-primary)]">24/7</div>
-              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2">Acceso</div>
+              <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mt-2" data-i18n="landing.stat_access">Acceso</div>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-primary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-primary)]/20 transition-all"></div>
               <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.products">Gestión de Productos</h3>
-              <p class="text-sm text-[var(--text-muted)] relative z-10">Registra y organiza todos tus productos y servicios con facilidad. Control total de tu inventario.</p>
+              <p class="text-sm text-[var(--text-muted)] relative z-10" data-i18n="landing.feat_products_desc">Registra y organiza todos tus productos y servicios con facilidad. Control total de tu inventario.</p>
               <div class="feature-line feature-line-1"></div>
             </div>
           </div>
@@ -197,7 +197,7 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-secondary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-secondary)]/20 transition-all"></div>
               <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="landing.cost_title">Costos Detallados</h3>
-              <p class="text-sm text-[var(--text-muted)] relative z-10">Controla costos directos e indirectos por producto. Calcula márgenes precisos.</p>
+              <p class="text-sm text-[var(--text-muted)] relative z-10" data-i18n="landing.feat_costs_desc">Controla costos directos e indirectos por producto. Calcula márgenes precisos.</p>
               <div class="feature-line feature-line-2"></div>
             </div>
           </div>
@@ -211,7 +211,7 @@ import Layout from '../layouts/Layout.astro';
               </div>
               <div class="absolute -right-8 -top-8 w-24 h-24 bg-[var(--accent-tertiary)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-tertiary)]/20 transition-all"></div>
               <h3 class="text-lg font-semibold mb-3 relative z-10" data-i18n="page.reports">Reportes y Análisis</h3>
-              <p class="text-sm text-[var(--text-muted)] relative z-10">Visualiza rentabilidad y toma decisiones informadas con gráficos.</p>
+              <p class="text-sm text-[var(--text-muted)] relative z-10" data-i18n="landing.feat_reports_desc">Visualiza rentabilidad y toma decisiones informadas con gráficos.</p>
               <div class="feature-line feature-line-3"></div>
             </div>
           </div>

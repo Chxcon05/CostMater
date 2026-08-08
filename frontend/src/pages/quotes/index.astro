@@ -1,4 +1,4 @@
----
+﻿---
 import Layout from '../../layouts/Layout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import PageHeader from '../../components/PageHeader.astro';
@@ -49,15 +49,21 @@ import PageHeader from '../../components/PageHeader.astro';
           <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="quote.folio">Folio</th><th class="table-cell text-left" data-i18n="quote.customer">Cliente</th><th class="table-cell text-left" data-i18n="common.date">Fecha</th><th class="table-cell text-right" data-i18n="common.total">Total</th><th class="table-cell text-center" data-i18n="common.status">Estado</th><th class="table-cell text-center" data-i18n="common.actions">Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
-        <div id="empty" class="hidden p-12 text-center">
-          <p class="text-[var(--text-muted)] mb-4" data-i18n="quote.empty">No hay cotizaciones</p>
+        <div id="empty" class="empty-state hidden">
+          <div class="empty-state-icon">
+            <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <p class="empty-state-title" data-i18n="quote.empty">No hay cotizaciones</p>
+          <p class="empty-state-desc">Crea tu primera cotización para comenzar</p>
         </div>
       </div>
+
+      <div id="pagination-container"></div>
     </main>
   </div>
 
   <div id="modal" class="modal-overlay hidden">
-    <div class="modal-content max-w-2xl">
+    <div class="modal-content max-w-2xl border border-[var(--border-color)]">
       <div class="p-6 border-b border-[var(--border-color)] flex justify-between items-center">
         <h3 class="text-lg font-semibold" id="modal-title" data-i18n="quote.new">Nueva Cotización</h3>
         <button id="modal-close" class="text-slate-400 hover:text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -65,15 +71,15 @@ import PageHeader from '../../components/PageHeader.astro';
       <form id="form" class="p-6 space-y-4">
         <input type="hidden" id="record-id" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div><label class="label">Cliente</label><select id="customer_id" class="input"><option value="">Sin cliente</option></select></div>
-          <div><label class="label">Validez (días)</label><input type="number" id="validity_days" class="input" value="15" /></div>
+          <div><label class="label" data-i18n="quote.form_client">Cliente</label><select id="customer_id" class="input"><option value="" data-i18n="quote.no_client">Sin cliente</option></select></div>
+          <div><label class="label" data-i18n="quote.form_validity">Validez (días) *</label><input type="number" id="validity_days" class="input" value="15" required /><p class="field-error-msg">La validez es requerida</p></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div><label class="label">Descuento (%)</label><input type="number" id="discount_percent" class="input" step="0.01" value="0" /></div>
-          <div><label class="label">IVA (%)</label><input type="number" id="tax_percent" class="input" step="0.01" value="16" /></div>
-          <div><label class="label">Válida desde</label><input type="date" id="valid_from" class="input" /></div>
+          <div><label class="label" data-i18n="quote.form_discount">Descuento (%)</label><input type="number" id="discount_percent" class="input" step="0.01" value="0" /></div>
+          <div><label class="label" data-i18n="quote.form_vat">IVA (%)</label><input type="number" id="tax_percent" class="input" step="0.01" value="16" /></div>
+          <div><label class="label" data-i18n="quote.form_valid_from">Válida desde *</label><input type="date" id="valid_from" class="input" required /><p class="field-error-msg">La fecha es requerida</p></div>
         </div>
-        <div><label class="label">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
+        <div><label class="label" data-i18n="quote.form_notes">Notas</label><textarea id="notes" class="input" rows="2"></textarea></div>
         
         <div class="border border-[var(--border-color)] rounded-lg p-4">
           <div class="flex justify-between items-center mb-4">
@@ -97,8 +103,9 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 
   <div id="delete-modal" class="modal-overlay hidden">
-    <div class="modal-content max-w-sm p-6 text-center">
+    <div class="modal-content max-w-sm p-6 text-center border border-[var(--border-color)]">
       <h3 class="text-lg font-semibold mb-2" data-i18n="quote.delete_confirm">¿Eliminar cotización?</h3>
+      <p class="text-sm text-[var(--text-muted)] mb-4">Esta acción no se puede deshacer</p>
       <div class="flex gap-3 justify-center">
         <button id="delete-cancel" class="btn-secondary rounded-lg" data-i18n="common.cancel">Cancelar</button>
         <button id="delete-confirm" class="btn-danger rounded-lg" data-i18n="common.delete">Eliminar</button>
@@ -107,7 +114,7 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 
   <div id="status-modal" class="modal-overlay hidden">
-    <div class="modal-content max-w-sm p-6">
+    <div class="modal-content max-w-sm p-6 border border-[var(--border-color)]">
       <h3 class="text-lg font-semibold mb-4" data-i18n="quote.change_status">Cambiar Estado</h3>
       <select id="new-status" class="input mb-4">
         <option value="borrador" data-i18n="quote.draft">Borrador</option>
@@ -123,11 +130,15 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 </Layout>
 
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/pagination.js"></script>
 <script>
-  console.log('Quotes script loaded');
-  
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = CostMaster.API_URL;
   let data = [], customers = [], products = [], currentId = null, items = [];
+  let currentPage = 1;
+  const perPage = 10;
+
+  const $ = id => document.getElementById(id);
 
   function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -144,31 +155,42 @@ import PageHeader from '../../components/PageHeader.astro';
         fetch(`${API_URL}/customers`, { headers }),
         fetch(`${API_URL}/products`, { headers })
       ]);
+      if (!quotesRes.ok) throw new Error('Error al cargar cotizaciones');
       data = await quotesRes.json();
       customers = await custRes.json();
       products = await prodRes.json();
+      currentPage = 1;
       populateCustomers();
       render();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      toast.error(window.t ? window.t('common.error_loading') : 'Error al cargar datos');
+    }
   }
 
   function populateCustomers() {
-    const sel = document.getElementById('customer_id');
-    sel.innerHTML = '<option value="">Sin cliente</option>' + customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    const esc = CostMaster.sanitize.escapeHtml;
+    const sel = $('customer_id');
+    sel.innerHTML = '<option value="">Sin cliente</option>' + customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
   }
 
   function render() {
-    const status = document.getElementById('status-filter').value;
+    const status = $('status-filter').value;
     const filtered = data.filter(d => !status || d.status === status);
-    const tbody = document.getElementById('table');
-    const empty = document.getElementById('empty');
+    const tbody = $('table');
+    const empty = $('empty');
     
-    if (filtered.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    if (filtered.length === 0) { tbody.innerHTML = ''; empty.classList.remove('hidden'); $('table').closest('.card').querySelector('table').style.display = 'none'; CostMaster.Pagination.render($('pagination-container'), { page: 1, totalPages: 0 }); return; }
     empty.classList.add('hidden');
-    tbody.innerHTML = filtered.map(d => `
+    $('table').closest('.card').querySelector('table').style.display = '';
+
+    const { items: pageItems, totalPages } = CostMaster.Pagination.paginate(filtered, currentPage, perPage);
+
+    const esc = CostMaster.sanitize.escapeHtml;
+    tbody.innerHTML = pageItems.map(d => `
       <tr class="hover:bg-[#22222c]">
-        <td class="table-cell font-mono font-medium text-left">${d.quote_number}</td>
-        <td class="table-cell text-left">${d.customer_name || '-'}</td>
+        <td class="table-cell font-mono font-medium text-left">${esc(d.quote_number)}</td>
+        <td class="table-cell text-left">${esc(d.customer_name) || '-'}</td>
         <td class="table-cell text-left">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
         <td class="table-cell font-mono font-medium text-right">${formatCurrency(d.total)}</td>
         <td class="table-cell text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status}</span></td>
@@ -181,6 +203,8 @@ import PageHeader from '../../components/PageHeader.astro';
       </tr>
     `).join('');
     
+    CostMaster.Pagination.render($('pagination-container'), { page: currentPage, totalPages, onPageChange: (p) => { currentPage = p; render(); } });
+
     tbody.querySelectorAll('.status-btn').forEach(btn => {
       btn.addEventListener('click', () => changeStatus(parseInt(btn.dataset.id)));
     });
@@ -196,16 +220,29 @@ import PageHeader from '../../components/PageHeader.astro';
 
   function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
+  function validateField(id, condition) {
+    const field = $(id);
+    const group = field.closest('div') || field.parentElement;
+    if (!condition) { group.classList.add('field-error'); return false; }
+    group.classList.remove('field-error');
+    return true;
+  }
+
+  function clearValidation() {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+  }
+
   function addItem() {
     items.push({ description: '', quantity: 1, unit_price: 0, cost: 0 });
     renderItems();
   }
 
   function renderItems() {
-    const container = document.getElementById('items-container');
+    const container = $('items-container');
+    const esc = CostMaster.sanitize.escapeHtml;
     container.innerHTML = items.map((item, i) => `
       <div class="grid grid-cols-4 gap-2 items-center" data-index="${i}">
-        <input type="text" placeholder="Descripción" class="input item-desc" value="${item.description}" />
+        <input type="text" placeholder="Descripción" class="input item-desc" value="${esc(item.description)}" />
         <input type="number" placeholder="Cantidad" class="input item-qty" value="${item.quantity}" />
         <input type="number" placeholder="Precio" class="input item-price" step="0.01" value="${item.unit_price}" />
         <button type="button" class="text-red-500 hover:text-red-700 item-remove">✕</button>
@@ -214,80 +251,135 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function openModal(id = null) {
-    document.getElementById('modal').classList.remove('hidden');
-    document.getElementById('form').reset();
-    document.getElementById('record-id').value = '';
-    document.getElementById('modal-title').textContent = 'Nueva Cotización';
+    clearValidation();
+    $('modal').classList.remove('hidden');
+    $('form').reset();
+    $('record-id').value = '';
+    $('modal-title').textContent = 'Nueva Cotización';
     items = [];
     renderItems();
-    document.getElementById('valid_from').value = new Date().toISOString().split('T')[0];
-    if (id) { const r = data.find(d => d.id === id); if (r) { document.getElementById('record-id').value = r.id; document.getElementById('customer_id').value = r.customer_id || ''; document.getElementById('validity_days').value = r.validity_days; document.getElementById('discount_percent').value = r.discount_percent; document.getElementById('notes').value = r.notes || ''; document.getElementById('modal-title').textContent = 'Editar Cotización'; }}
+    $('valid_from').value = new Date().toISOString().split('T')[0];
+    if (id) { const r = data.find(d => d.id === id); if (r) { $('record-id').value = r.id; $('customer_id').value = r.customer_id || ''; $('validity_days').value = r.validity_days; $('discount_percent').value = r.discount_percent; $('notes').value = r.notes || ''; $('modal-title').textContent = 'Editar Cotización'; }}
   }
 
-  function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+  function closeModal() { $('modal').classList.add('hidden'); clearValidation(); }
 
   async function save() {
     const headers = getAuthHeaders();
     if (!headers) return;
-    const id = document.getElementById('record-id').value;
+
+    if (!validateField('validity_days', $('validity_days').value)) {
+      toast.warning('La validez es requerida');
+      return;
+    }
+    if (!validateField('valid_from', $('valid_from').value)) {
+      toast.warning('La fecha es requerida');
+      return;
+    }
+
+    const id = $('record-id').value;
     const body = {
-      customer_id: document.getElementById('customer_id').value || null,
-      validity_days: parseInt(document.getElementById('validity_days').value) || 15,
-      discount_percent: parseFloat(document.getElementById('discount_percent').value) || 0,
-      tax_percent: parseFloat(document.getElementById('tax_percent').value) || 16,
-      valid_from: document.getElementById('valid_from').value,
-      notes: document.getElementById('notes').value,
+      customer_id: $('customer_id').value || null,
+      validity_days: parseInt($('validity_days').value) || 15,
+      discount_percent: parseFloat($('discount_percent').value) || 0,
+      tax_percent: parseFloat($('tax_percent').value) || 16,
+      valid_from: $('valid_from').value,
+      notes: $('notes').value,
       items: items.filter(i => i.description)
     };
+
+    const btn = $('modal-save');
+    btn.classList.add('btn-loading');
+
     try {
       const res = await fetch(`${API_URL}/quotes${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (res.ok) { closeModal(); load(); }
-    } catch (e) { alert('Error al guardar'); }
+      if (res.ok) {
+        closeModal();
+        toast.success(window.t ? window.t('common.saved') : 'Guardado correctamente');
+        load();
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Error al guardar' }));
+        toast.error(err.error || 'Error al guardar la cotización');
+      }
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error_saving') : 'Error al guardar');
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
   }
 
   function changeStatus(id) {
     currentId = id;
     const r = data.find(d => d.id === id);
-    if (r) document.getElementById('new-status').value = r.status || 'borrador';
-    document.getElementById('status-modal').classList.remove('hidden');
+    if (r) $('new-status').value = r.status || 'borrador';
+    $('status-modal').classList.remove('hidden');
   }
 
   async function updateStatus() {
     const headers = getAuthHeaders();
     if (!headers || !currentId) return;
-    const status = document.getElementById('new-status').value;
+    const status = $('new-status').value;
+
+    const btn = $('status-confirm');
+    btn.classList.add('btn-loading');
+
     try {
       const res = await fetch(`${API_URL}/quotes/${currentId}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-      if (res.ok) { document.getElementById('status-modal').classList.add('hidden'); currentId = null; load(); }
-    } catch (e) { alert('Error al actualizar estado'); }
+      if (res.ok) {
+        $('status-modal').classList.add('hidden');
+        currentId = null;
+        toast.success(window.t ? window.t('common.saved') : 'Estado actualizado');
+        load();
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Error al actualizar' }));
+        toast.error(err.error || 'Error al actualizar estado');
+      }
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error_saving') : 'Error al actualizar estado');
+    } finally {
+      btn.classList.remove('btn-loading');
+    }
   }
 
-  function confirmDelete(id) { currentId = id; document.getElementById('delete-modal').classList.remove('hidden'); }
+  function confirmDelete(id) { currentId = id; $('delete-modal').classList.remove('hidden'); }
 
   async function deleteRecord() {
     const headers = getAuthHeaders();
     if (!headers || !currentId) return;
-    await fetch(`${API_URL}/quotes/${currentId}`, { method: 'DELETE', headers });
-    document.getElementById('delete-modal').classList.add('hidden');
-    currentId = null;
-    load();
+    try {
+      const res = await fetch(`${API_URL}/quotes/${currentId}`, { method: 'DELETE', headers });
+      if (res.ok) {
+        toast.success(window.t ? window.t('common.deleted') : 'Eliminado');
+      } else {
+        toast.error('Error al eliminar la cotización');
+      }
+      $('delete-modal').classList.add('hidden');
+      currentId = null;
+      load();
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error al eliminar');
+    }
   }
 
-  document.getElementById('status-filter').addEventListener('change', render);
-  document.getElementById('btn-new').addEventListener('click', () => openModal());
-  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+  $('status-filter').addEventListener('change', () => { currentPage = 1; render(); });
+  $('btn-new').addEventListener('click', () => openModal());
+  $('mobile-menu-btn').addEventListener('click', () => {
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });
-  document.getElementById('modal-close').addEventListener('click', () => closeModal());
-  document.getElementById('modal-cancel').addEventListener('click', () => closeModal());
-  document.getElementById('modal-save').addEventListener('click', () => save());
-  document.getElementById('add-item-btn').addEventListener('click', () => addItem());
-  document.getElementById('delete-cancel').addEventListener('click', () => document.getElementById('delete-modal').classList.add('hidden'));
-  document.getElementById('delete-confirm').addEventListener('click', () => deleteRecord());
-  document.getElementById('status-cancel').addEventListener('click', () => document.getElementById('status-modal').classList.add('hidden'));
-  document.getElementById('status-confirm').addEventListener('click', () => updateStatus());
+  $('modal-close').addEventListener('click', () => closeModal());
+  $('modal-cancel').addEventListener('click', () => closeModal());
+  $('modal-save').addEventListener('click', () => save());
+  $('add-item-btn').addEventListener('click', () => addItem());
+  $('delete-cancel').addEventListener('click', () => $('delete-modal').classList.add('hidden'));
+  $('delete-confirm').addEventListener('click', () => deleteRecord());
+  $('status-cancel').addEventListener('click', () => $('status-modal').classList.add('hidden'));
+  $('status-confirm').addEventListener('click', () => updateStatus());
 
-  document.getElementById('items-container').addEventListener('input', e => {
+  ['modal', 'delete-modal', 'status-modal'].forEach(id => {
+    $(id).addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) $(id).classList.add('hidden'); });
+  });
+
+  $('items-container').addEventListener('input', e => {
     const div = e.target.closest('[data-index]');
     if (!div) return;
     const i = parseInt(div.dataset.index);
@@ -295,7 +387,7 @@ import PageHeader from '../../components/PageHeader.astro';
     if (e.target.classList.contains('item-qty')) items[i].quantity = parseFloat(e.target.value) || 1;
     if (e.target.classList.contains('item-price')) items[i].unit_price = parseFloat(e.target.value) || 0;
   });
-  document.getElementById('items-container').addEventListener('click', e => {
+  $('items-container').addEventListener('click', e => {
     if (e.target.classList.contains('item-remove')) {
       const div = e.target.closest('[data-index]');
       if (!div) return;

@@ -15,12 +15,27 @@ import PageHeader from '../components/PageHeader.astro';
       </button>
 
       <PageHeader title="Dashboard" subtitle="Resumen de tu contabilidad" i18nTitle="dashboard.title" i18nSubtitle="dashboard.subtitle" />
-      
-      <div id="loading" class="flex items-center justify-center h-64">
-        <div class="flex flex-col items-center gap-4">
-          <div class="w-10 h-10 border-2 border-[var(--border-color)] border-t-[var(--accent-primary)] rounded-full animate-spin"></div>
-          <p class="text-[var(--text-muted)] text-sm" data-i18n="dashboard.loading">Cargando datos...</p>
+
+      <div id="skeleton-container">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6">
+          <div class="skeleton-rows" style="--rows:2;--h:60px"></div>
+          <div class="skeleton-rows" style="--rows:2;--h:60px"></div>
+          <div class="skeleton-rows" style="--rows:2;--h:60px"></div>
+          <div class="skeleton-rows" style="--rows:2;--h:60px"></div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-5">
+          <div class="skeleton-chart" style="--h:240px"></div>
+          <div class="skeleton-rows" style="--rows:5;--h:48px"></div>
+        </div>
+        <div class="skeleton-table"></div>
+      </div>
+
+      <div id="error-state" class="hidden text-center py-16">
+        <svg class="w-16 h-16 mx-auto text-[var(--text-muted)] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <p class="text-[var(--text-muted)] text-sm mb-4" data-i18n="common.error_loading">Error al cargar datos</p>
+        <button onclick="loadDashboard()" class="btn-primary px-4 py-2 text-sm" data-i18n="common.retry">Reintentar</button>
       </div>
 
       <div id="content" class="hidden">
@@ -35,7 +50,7 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl" id="kpi-products">0</p>
-            <p class="stat-label" data-i18n="dashboard.products_label">Productos registrados</p>
+            <p class="stat-label flex items-center gap-1" data-i18n="dashboard.products_label">Productos registrados <span class="tooltip-trigger" data-tooltip="dashboard.tooltip_products">?</span></p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="50">
@@ -48,7 +63,7 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl text-[var(--accent-secondary)]" id="kpi-direct-costs">$0</p>
-            <p class="stat-label" data-i18n="dashboard.direct_costs_label">Materia prima y mano de obra</p>
+            <p class="stat-label flex items-center gap-1" data-i18n="dashboard.direct_costs_label">Materia prima y mano de obra <span class="tooltip-trigger" data-tooltip="dashboard.tooltip_direct">?</span></p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="100">
@@ -61,7 +76,7 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl text-[var(--accent-warning)]" id="kpi-indirect-costs">$0</p>
-            <p class="stat-label" data-i18n="dashboard.indirect_costs_label">Gastos generales</p>
+            <p class="stat-label flex items-center gap-1" data-i18n="dashboard.indirect_costs_label">Gastos generales <span class="tooltip-trigger" data-tooltip="dashboard.tooltip_indirect">?</span></p>
           </div>
 
           <div class="kpi-card animate-element" data-delay="150">
@@ -74,7 +89,7 @@ import PageHeader from '../components/PageHeader.astro';
               </div>
             </div>
             <p class="stat-value text-2xl" id="kpi-profitable">0</p>
-            <p class="stat-label" data-i18n="dashboard.profitable_label">Con margen positivo</p>
+            <p class="stat-label flex items-center gap-1" data-i18n="dashboard.profitable_label">Con margen positivo <span class="tooltip-trigger" data-tooltip="dashboard.tooltip_profitable">?</span></p>
           </div>
         </div>
 
@@ -151,7 +166,10 @@ import PageHeader from '../components/PageHeader.astro';
   }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/skeleton.js"></script>
+<script is:inline src="/js/tooltips.js"></script>
 <script>
   const animatedElements = document.querySelectorAll('.animate-element');
 
@@ -174,25 +192,7 @@ import PageHeader from '../components/PageHeader.astro';
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });
 
-  async function init() {
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    while (typeof Chart === 'undefined' && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-    
-    if (typeof Chart === 'undefined') {
-      console.error('Chart.js no se cargó');
-      document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Error al cargar Chart.js</p>';
-      return;
-    }
-    
-    loadDashboard();
-  }
-
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = CostMaster.API_URL;
 
   function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -203,9 +203,20 @@ import PageHeader from '../components/PageHeader.astro';
     return { 'Authorization': `Bearer ${token}` };
   }
 
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(amount || 0);
+  }
+
   async function loadDashboard() {
     const headers = getAuthHeaders();
     if (!headers) return;
+
+    document.getElementById('skeleton-container').classList.remove('hidden');
+    document.getElementById('content').classList.add('hidden');
+    document.getElementById('error-state').classList.add('hidden');
 
     try {
       const [summaryRes, rentabilityRes] = await Promise.all([
@@ -221,14 +232,8 @@ import PageHeader from '../components/PageHeader.astro';
       }
 
       const summary = await summaryRes.json();
-      const rentabilityData = await rentabilityRes.json();
-      const rentability = Array.isArray(rentabilityData) ? rentabilityData : [];
-
-      let profitabilityData = [];
-      try {
-        const profRes = await fetch(`${API_URL}/reports/rentability`, { headers });
-        if (profRes.ok) profitabilityData = await profRes.json();
-      } catch (e) { console.error(e); }
+      const rentability = await rentabilityRes.json();
+      const rentabilityData = Array.isArray(rentability) ? rentability : [];
 
       document.getElementById('kpi-products').textContent = summary.totalProducts || 0;
       document.getElementById('kpi-direct-costs').textContent = formatCurrency(summary.totalDirectCosts);
@@ -243,25 +248,27 @@ import PageHeader from '../components/PageHeader.astro';
       const avgCost = summary.totalProducts > 0 ? totalCosts / summary.totalProducts : 0;
       document.getElementById('avg-cost').textContent = formatCurrency(avgCost);
       
-      const productsNoCosts = rentability.filter(p => (p.total_cost || 0) === 0).length;
+      const productsNoCosts = rentabilityData.filter(p => (p.total_cost || 0) === 0).length;
       document.getElementById('products-no-costs').textContent = productsNoCosts;
 
-      renderMarginChart(profitabilityData);
-      renderTopProductsTable(rentability);
+      renderMarginChart(rentabilityData);
+      renderTopProductsTable(rentabilityData);
 
-      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('skeleton-container').classList.add('hidden');
+      document.getElementById('error-state').classList.add('hidden');
       document.getElementById('content').classList.remove('hidden');
+
+      if (typeof CostMaster !== 'undefined' && CostMaster.Tooltips) {
+        CostMaster.Tooltips.injectAll();
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Error al cargar el dashboard</p>';
+      document.getElementById('skeleton-container').classList.add('hidden');
+      document.getElementById('error-state').classList.remove('hidden');
+      if (typeof CostMaster !== 'undefined' && CostMaster.Toast) {
+        CostMaster.Toast.error('Error al cargar el dashboard');
+      }
     }
-  }
-
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(amount || 0);
   }
 
   function renderMarginChart(data) {
@@ -321,9 +328,10 @@ import PageHeader from '../components/PageHeader.astro';
       return;
     }
 
+    const esc = CostMaster.sanitize.escapeHtml;
     tbody.innerHTML = top5.map(p => `
       <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
-        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
+        <td class="table-cell font-medium text-[var(--text-primary)]">${esc(p.name)}</td>
         <td class="table-cell font-mono hidden sm:table-cell text-xs">${formatCurrency(p.total_cost)}</td>
         <td class="table-cell font-mono text-xs">${formatCurrency(p.selling_price)}</td>
         <td class="table-cell">
@@ -336,6 +344,24 @@ import PageHeader from '../components/PageHeader.astro';
         </td>
       </tr>
     `).join('');
+  }
+
+  async function init() {
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (typeof Chart === 'undefined' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js no se cargó');
+      document.getElementById('skeleton-container').innerHTML = '<p class="text-red-400 text-sm">Error al cargar Chart.js</p>';
+      return;
+    }
+    
+    loadDashboard();
   }
 
   init();

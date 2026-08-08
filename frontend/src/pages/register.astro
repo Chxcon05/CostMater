@@ -22,7 +22,7 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div class="text-left">
             <span class="text-xl font-bold tracking-tight">COSTMASTER</span>
-            <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Contabilidad</p>
+            <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5" data-i18n="sidebar.subtitle">Contabilidad</p>
           </div>
         </a>
       </div>
@@ -118,7 +118,7 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <script>
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = CostMaster.API_URL;
 
   document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -128,7 +128,7 @@ import Layout from '../layouts/Layout.astro';
     
     errorDiv.classList.add('hidden');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Creando cuenta...';
+    submitBtn.textContent = window.t('auth.creating_account');
 
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
@@ -136,10 +136,10 @@ import Layout from '../layouts/Layout.astro';
     const confirmPassword = document.getElementById('confirm-password').value;
 
     if (password !== confirmPassword) {
-      errorDiv.textContent = 'Las contraseñas no coinciden';
+      errorDiv.textContent = window.t('auth.passwords_mismatch');
       errorDiv.classList.remove('hidden');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear Cuenta';
+      submitBtn.textContent = window.t('auth.signup');
       return;
     }
 
@@ -164,7 +164,7 @@ import Layout from '../layouts/Layout.astro';
       errorDiv.textContent = error.message;
       errorDiv.classList.remove('hidden');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Crear Cuenta';
+      submitBtn.textContent = window.t('auth.signup');
     }
   });
 </script>

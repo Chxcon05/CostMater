@@ -20,7 +20,7 @@ import PageHeader from '../../components/PageHeader.astro';
       <div class="flex gap-3 mb-6 flex-wrap">
         <input type="text" id="search-input" placeholder="Buscar..." class="input max-w-xs" data-i18n-placeholder="common.search" />
         <select id="category-filter" class="input w-44">
-<option value="" data-i18n="common.category">Categoría</option>
+          <option value="" data-i18n="common.category">Categoría</option>
         </select>
         <select id="type-filter" class="input w-36">
           <option value="" data-i18n="common.type">Tipo</option>
@@ -31,10 +31,10 @@ import PageHeader from '../../components/PageHeader.astro';
         <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.category">Categorías</button>
       </div>
 
-      <div class="card mb-6 overflow-x-auto">
+      <div class="card mb-4 overflow-x-auto">
         <table class="w-full text-sm min-w-[640px]">
           <thead><tr class="table-header">
-            <th class="table-cell" data-i18n="product.sku">SKU</th>
+            <th class="table-cell" data-i18n="product.table_sku">SKU</th>
             <th class="table-cell" data-i18n="common.name">Producto</th>
             <th class="table-cell" data-i18n="common.category">Categoría</th>
             <th class="table-cell" data-i18n="common.type">Tipo</th>
@@ -45,8 +45,17 @@ import PageHeader from '../../components/PageHeader.astro';
           </tr></thead>
           <tbody id="products-table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
-        <div id="empty-msg" class="hidden p-12 text-center text-[var(--text-muted)]" data-i18n="product.empty">No hay productos</div>
+        <div id="empty-msg" class="empty-state hidden">
+          <div class="empty-state-icon">
+            <svg class="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <p class="empty-state-title" data-i18n="product.empty">No hay productos</p>
+          <p class="empty-state-desc">Comienza agregando tu primer producto o servicio</p>
+          <button onclick="document.getElementById('btn-new-product').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add">+ Agregar</button>
+        </div>
       </div>
+
+      <div id="pagination-container"></div>
 
       <div id="cats-section" class="hidden">
         <div class="flex justify-between items-center mb-4">
@@ -60,28 +69,28 @@ import PageHeader from '../../components/PageHeader.astro';
 
   <div id="product-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-lg">
-      <div class="p-4 border-b flex justify-between">
-        <h3 class="font-semibold" id="prod-title" data-i18n="product.new">Nuevo Producto</h3>
-        <button id="prod-close" class="text-slate-400 hover:text-slate-600">✕</button>
+      <div class="p-4 border-b border-[var(--border-color)] flex justify-between">
+        <h3 class="font-semibold text-[var(--text-primary)]" id="prod-title" data-i18n="product.new">Nuevo Producto</h3>
+        <button id="prod-close" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">✕</button>
       </div>
-       <form class="p-4 space-y-3">
+       <form class="p-4 space-y-3" id="product-form">
          <input type="hidden" id="prod-id" />
-         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-           <div><label class="label">Nombre *</label><input type="text" id="prod-name" class="input" required /></div>
-           <div><label class="label">SKU</label><input type="text" id="prod-sku" class="input" /></div>
-         </div>
-         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-           <div><label class="label">Tipo</label><select id="prod-type" class="input"><option value="producto">Producto</option><option value="servicio">Servicio</option></select></div>
-           <div><label class="label">Categoría</label><select id="prod-cat" class="input"><option value="">Sin categoría</option></select></div>
-         </div>
-         <div><label class="label">Descripción</label><textarea id="prod-desc" class="input" rows="2"></textarea></div>
-         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-           <div><label class="label">Unidad</label><input type="text" id="prod-unit" class="input" value="unidad" /></div>
-           <div><label class="label">Cantidad</label><input type="number" id="prod-qty" class="input" value="1" /></div>
-           <div><label class="label">Precio Venta</label><input type="number" id="prod-price" class="input" step="0.01" /></div>
-         </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div data-tooltip="sku"><label class="label" data-i18n="form.name_required">Nombre *</label><input type="text" id="prod-name" class="input" required /><p class="field-error-msg">El nombre es requerido</p></div>
+            <div data-tooltip="sku"><label class="label" data-i18n="form.sku">SKU</label><input type="text" id="prod-sku" class="input" /></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div><label class="label" data-i18n="common.type">Tipo</label><select id="prod-type" class="input"><option value="producto">Producto</option><option value="servicio">Servicio</option></select></div>
+            <div><label class="label" data-i18n="common.category">Categoría</label><select id="prod-cat" class="input"><option value="">Sin categoría</option></select></div>
+          </div>
+          <div><label class="label" data-i18n="form.description">Descripción</label><textarea id="prod-desc" class="input" rows="2"></textarea></div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div><label class="label" data-i18n="form.unit">Unidad</label><input type="text" id="prod-unit" class="input" value="unidad" /></div>
+            <div><label class="label" data-i18n="form.quantity">Cantidad</label><input type="number" id="prod-qty" class="input" value="1" min="0" /></div>
+            <div data-tooltip="selling_price"><label class="label" data-i18n="form.unit_price">Precio Venta</label><input type="number" id="prod-price" class="input" step="0.01" min="0" /></div>
+          </div>
        </form>
-      <div class="p-4 border-t flex gap-2 justify-end">
+      <div class="p-4 border-t border-[var(--border-color)] flex gap-2 justify-end">
         <button type="button" id="prod-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
         <button type="button" id="prod-save" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
@@ -90,26 +99,27 @@ import PageHeader from '../../components/PageHeader.astro';
 
   <div id="delete-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm p-6 text-center">
-      <h3 class="font-semibold mb-2" data-i18n="common.delete">¿Eliminar?</h3>
+      <h3 class="font-semibold mb-2 text-[var(--text-primary)]" data-i18n="common.delete">¿Eliminar?</h3>
+      <p class="text-sm text-[var(--text-muted)] mb-4">Esta acción no se puede deshacer</p>
       <div class="flex gap-3 justify-center mt-4">
         <button id="del-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
-        <button id="del-confirm" class="btn-danger rounded-lg text-sm py-2 px-4" data-i18n="common.delete">Eliminar</button>
+        <button id="del-confirm" class="btn-primary rounded-lg text-sm py-2 px-4" style="background:var(--accent-danger)" data-i18n="common.delete">Eliminar</button>
       </div>
     </div>
   </div>
 
   <div id="cat-modal" class="modal-overlay hidden">
     <div class="modal-content max-w-sm">
-      <div class="p-4 border-b flex justify-between">
-        <h3 class="font-semibold" id="cat-title" data-i18n="product.new_category">Nueva Categoría</h3>
-        <button id="cat-close" class="text-slate-400 hover:text-slate-600">✕</button>
+      <div class="p-4 border-b border-[var(--border-color)] flex justify-between">
+        <h3 class="font-semibold text-[var(--text-primary)]" id="cat-title" data-i18n="product.new_category">Nueva Categoría</h3>
+        <button id="cat-close" class="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">✕</button>
       </div>
       <form class="p-4 space-y-3">
         <input type="hidden" id="cat-id" />
-        <div><label class="label">Nombre *</label><input type="text" id="cat-name" class="input" /></div>
-        <div><label class="label">Color</label><input type="color" id="cat-color" class="w-full h-10" value="#3b82f6" /></div>
+        <div><label class="label" data-i18n="form.name_required">Nombre *</label><input type="text" id="cat-name" class="input" required /><p class="field-error-msg">El nombre es requerido</p></div>
+        <div><label class="label" data-i18n="form.color">Color</label><input type="color" id="cat-color" class="w-full h-10 rounded-lg border border-[var(--border-color)]" value="#3b82f6" /></div>
       </form>
-      <div class="p-4 border-t flex gap-2 justify-end">
+      <div class="p-4 border-t border-[var(--border-color)] flex gap-2 justify-end">
         <button type="button" id="cat-cancel" class="btn-secondary rounded-lg text-sm py-2 px-4" data-i18n="common.cancel">Cancelar</button>
         <button type="button" id="cat-save" class="btn-primary rounded-lg text-sm py-2 px-4" data-i18n="common.save">Guardar</button>
       </div>
@@ -117,37 +127,47 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 </Layout>
 
+<script is:inline src="/js/toast.js"></script>
+<script is:inline src="/js/pagination.js"></script>
+<script is:inline src="/js/tooltips.js"></script>
 <script>
-  const API = 'http://localhost:3000/api';
+  const API = CostMaster.API_URL;
   let products = [], categories = [], delId = null, editCatId = null;
+  let currentPage = 1;
+  const perPage = 10;
 
   const $ = id => document.getElementById(id);
 
   function auth() {
     const t = localStorage.getItem('token');
-    if (!t) location.href = '/login';
+    if (!t) { location.href = '/login'; return null; }
     return { Authorization: `Bearer ${t}` };
   }
 
   async function load() {
     const h = auth();
     if (!h) return;
-    [products, categories] = await Promise.all([
-      fetch(`${API}/products`, { headers: h }).then(r => r.json()),
-      fetch(`${API}/categories`, { headers: h }).then(r => r.json())
-    ]);
-    render();
-    renderCats();
+    try {
+      [products, categories] = await Promise.all([
+        fetch(`${API}/products`, { headers: h }).then(r => r.json()),
+        fetch(`${API}/categories`, { headers: h }).then(r => r.json())
+      ]);
+      currentPage = 1;
+      render();
+      renderCats();
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error_loading') : 'Error al cargar datos');
+    }
   }
 
   function populateCategoryDropdowns() {
     const cats = Array.isArray(categories) ? categories : [];
-    const opts = '<option value="">Categoría</option>' + cats.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+    const esc = CostMaster.sanitize.escapeHtml;
+    const opts = '<option value="">Categoría</option>' + cats.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
     const currentCatFilter = $('category-filter').value;
     $('category-filter').innerHTML = opts;
     if (currentCatFilter) $('category-filter').value = currentCatFilter;
-
-    $('prod-cat').innerHTML = '<option value="">Sin categoría</option>' + cats.map(x => `<option value="${x.id}">${x.name}</option>`).join('');
+    $('prod-cat').innerHTML = '<option value="">Sin categoría</option>' + cats.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('');
   }
 
   function render() {
@@ -165,13 +185,17 @@ import PageHeader from '../../components/PageHeader.astro';
 
     const cats = Array.isArray(categories) ? categories : [];
     const catMap = {}; cats.forEach(x => catMap[x.id] = x);
-    $('products-table').innerHTML = list.map(p => {
+
+    const { items, totalPages } = CostMaster.Pagination.paginate(list, currentPage, perPage);
+
+    const esc = CostMaster.sanitize.escapeHtml;
+    $('products-table').innerHTML = items.map(p => {
       const cat = catMap[p.category_id];
       const margin = p.selling_price > 0 ? ((p.selling_price - (p.unit_cost || 0)) / p.selling_price * 100).toFixed(0) : 0;
       return `<tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
-        <td class="table-cell text-xs font-mono text-[var(--text-muted)]">${p.sku || '-'}</td>
-        <td class="table-cell font-medium text-[var(--text-primary)]">${p.name}</td>
-        <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-medium" style="background:${cat?.color || '#6b7280'}20;color:${cat?.color || '#9ca3af'}">${cat?.name || '-'}</span></td>
+        <td class="table-cell text-xs font-mono text-[var(--text-muted)]">${esc(p.sku) || '-'}</td>
+        <td class="table-cell font-medium text-[var(--text-primary)]">${esc(p.name)}</td>
+        <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-medium" style="background:${esc(cat?.color) || '#6b7280'}20;color:${esc(cat?.color) || '#9ca3af'}">${esc(cat?.name) || '-'}</span></td>
         <td class="table-cell"><span class="px-2 py-1 rounded-lg text-xs font-medium ${p.type === 'producto' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'}">${p.type === 'producto' ? 'Prod' : 'Serv'}</span></td>
         <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.unit_cost || 0).toFixed(2)}</td>
         <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.selling_price || 0).toFixed(2)}</td>
@@ -188,6 +212,9 @@ import PageHeader from '../../components/PageHeader.astro';
     }).join('');
     
     $('empty-msg').classList.toggle('hidden', list.length > 0);
+    if (list.length > 0) $('products-table').parentElement.querySelector('table').style.display = '';
+
+    CostMaster.Pagination.render($('pagination-container'), { page: currentPage, totalPages, onPageChange: (p) => { currentPage = p; render(); } });
 
     $('products-table').querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openProd(parseInt(b.dataset.id))));
     $('products-table').querySelectorAll('.del-btn').forEach(b => b.addEventListener('click', () => { delId = parseInt(b.dataset.id); $('delete-modal').classList.remove('hidden'); }));
@@ -196,10 +223,11 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   function renderCats() {
+    const esc = CostMaster.sanitize.escapeHtml;
     $('cats-list').innerHTML = categories.length ? categories.map(c => `<div class="card p-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <div class="w-4 h-4 rounded-lg" style="background:${c.color}"></div>
-        <span class="text-[var(--text-primary)]">${c.name}</span>
+        <div class="w-4 h-4 rounded-lg" style="background:${esc(c.color)}"></div>
+        <span class="text-[var(--text-primary)]">${esc(c.name)}</span>
       </div>
       <div class="flex gap-1">
         <button class="edit-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-id="${c.id}">
@@ -214,9 +242,20 @@ import PageHeader from '../../components/PageHeader.astro';
     $('cats-list').querySelectorAll('.edit-cat').forEach(b => b.addEventListener('click', () => openCat(parseInt(b.dataset.id))));
     $('cats-list').querySelectorAll('.del-cat').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('¿Eliminar?')) return;
-      await fetch(`${API}/categories/${b.dataset.id}`, { method: 'DELETE', headers: auth() });
-      load();
+      try {
+        await fetch(`${API}/categories/${b.dataset.id}`, { method: 'DELETE', headers: auth() });
+        toast.success(window.t ? window.t('common.deleted') : 'Eliminado');
+        load();
+      } catch (e) { toast.error(window.t ? window.t('common.error') : 'Error'); }
     }));
+  }
+
+  function validateField(id, condition) {
+    const field = $(id);
+    const group = field.closest('div[data-tooltip]') || field.parentElement;
+    if (!condition) { group.classList.add('field-error'); return false; }
+    group.classList.remove('field-error');
+    return true;
   }
 
   function openProd(id = null) {
@@ -265,6 +304,11 @@ import PageHeader from '../../components/PageHeader.astro';
     const h = auth();
     if (!h) return;
 
+    if (!validateField('prod-name', $('prod-name').value.trim())) {
+      toast.warning('El nombre del producto es requerido');
+      return;
+    }
+
     const id = $('prod-id').value;
     const catSelect = $('prod-cat');
     const catVal = catSelect.value;
@@ -281,19 +325,29 @@ import PageHeader from '../../components/PageHeader.astro';
       selling_price: parseFloat($('prod-price').value) || 0
     };
 
-    const url = id ? `${API}/products/${id}` : `${API}/products`;
-    const res = await fetch(url, {
-      method: id ? 'PUT' : 'POST',
-      headers: { ...h, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+    const btn = $('prod-save');
+    btn.classList.add('btn-loading');
 
-    if (res.ok) {
-      $('product-modal').classList.add('hidden');
-      load();
-    } else {
-      const err = await res.json().catch(() => ({ error: 'Error al guardar' }));
-      alert(err.error || 'Error al guardar el producto');
+    try {
+      const url = id ? `${API}/products/${id}` : `${API}/products`;
+      const res = await fetch(url, {
+        method: id ? 'PUT' : 'POST',
+        headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        $('product-modal').classList.add('hidden');
+        toast.success(window.t ? window.t('common.saved') : 'Guardado correctamente');
+        load();
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Error al guardar' }));
+        toast.error(err.error || 'Error al guardar el producto');
+      }
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error_saving') : 'Error al guardar');
+    } finally {
+      btn.classList.remove('btn-loading');
     }
   }
 
@@ -301,36 +355,49 @@ import PageHeader from '../../components/PageHeader.astro';
     const h = auth();
     if (!h) return;
 
+    if (!validateField('cat-name', $('cat-name').value.trim())) {
+      toast.warning('El nombre de la categoría es requerido');
+      return;
+    }
+
     const id = $('cat-id').value;
     const data = { name: $('cat-name').value, color: $('cat-color').value };
 
-    const res = await fetch(`${API}/categories${id ? '/' + id : ''}`, {
-      method: id ? 'PUT' : 'POST',
-      headers: { ...h, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+    try {
+      const res = await fetch(`${API}/categories${id ? '/' + id : ''}`, {
+        method: id ? 'PUT' : 'POST',
+        headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
 
-    if (res.ok) {
-      $('cat-modal').classList.add('hidden');
-      load();
+      if (res.ok) {
+        $('cat-modal').classList.add('hidden');
+        toast.success(window.t ? window.t('common.saved') : 'Guardado');
+        load();
+      } else {
+        toast.error(window.t ? window.t('common.error_saving') : 'Error al guardar');
+      }
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error');
     }
   }
 
   async function deleteProd() {
     if (!delId) return;
-    await fetch(`${API}/products/${delId}`, { method: 'DELETE', headers: auth() });
-    $('delete-modal').classList.add('hidden');
-    delId = null;
-    load();
+    try {
+      await fetch(`${API}/products/${delId}`, { method: 'DELETE', headers: auth() });
+      $('delete-modal').classList.add('hidden');
+      delId = null;
+      toast.success(window.t ? window.t('common.deleted') : 'Eliminado');
+      load();
+    } catch (e) {
+      toast.error(window.t ? window.t('common.error') : 'Error al eliminar');
+    }
   }
 
-  // Events
-  $('search-input').addEventListener('input', render);
-  $('type-filter').addEventListener('change', render);
-  $('category-filter').addEventListener('change', () => {
-    console.log('Category filter changed:', $('category-filter').value);
-    render();
-  });
+  $('search-input').addEventListener('input', () => { currentPage = 1; render(); });
+  $('type-filter').addEventListener('change', () => { currentPage = 1; render(); });
+  $('category-filter').addEventListener('change', () => { currentPage = 1; render(); });
   $('btn-new-product').addEventListener('click', () => openProd());
   $('btn-manage-cats').addEventListener('click', () => $('cats-section').classList.toggle('hidden'));
   $('btn-new-cat').addEventListener('click', () => openCat());
@@ -351,5 +418,6 @@ import PageHeader from '../../components/PageHeader.astro';
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });
 
+  if (window.Tooltips) Tooltips.injectAll();
   load();
 </script>

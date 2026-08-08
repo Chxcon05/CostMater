@@ -116,15 +116,13 @@ export function reportRoutes(app) {
         const indirect = get(`
           SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
           FROM indirect_costs ic
-          LEFT JOIN products p ON ic.product_id = p.id
-          WHERE (ic.user_id = ? OR p.user_id = ?) 
+          JOIN products p ON ic.product_id = p.id
+          WHERE p.user_id = ?
             AND (ic.created_at BETWEEN ? AND ? OR ic.created_at IS NULL)
-        `, [req.user.id, req.user.id, start, end])?.total || 0;
+        `, [req.user.id, start, end])?.total || 0;
         
-        console.log(`Period ${label}: direct=${direct}, indirect=${indirect}`);
         months.push({ label, direct, indirect });
       }
-      console.log('Period data:', months);
       res.json(months);
     } catch (error) { 
       console.error('Error in /api/reports/period:', error);

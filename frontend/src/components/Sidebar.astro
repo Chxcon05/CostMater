@@ -6,6 +6,7 @@ const navItems = [
   { path: '/products', label: 'Productos', key: 'nav.products', icon: 'package' },
   { path: '/costs', label: 'Costos', key: 'nav.costs', icon: 'wallet' },
   { path: '/reports', label: 'Reportes', key: 'nav.reports', icon: 'bar-chart-2' },
+  { path: '/ai', label: 'Análisis IA', key: 'nav.ai', icon: 'brain' },
   { path: '/customers', label: 'Clientes', key: 'nav.customers', icon: 'users' },
   { path: '/suppliers', label: 'Proveedores', key: 'nav.suppliers', icon: 'truck' },
   { path: '/invoices', label: 'Facturas', key: 'nav.invoices', icon: 'file-text' },
@@ -15,7 +16,7 @@ const navItems = [
 const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null;
 ---
 
-<aside id="sidebar" class="w-56 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] min-h-screen fixed left-0 top-0 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40 md:w-56">
+<aside id="sidebar" class="w-56 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] min-h-screen fixed left-0 top-0 bottom-0 flex flex-col overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40 md:w-56">
   <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 md:hidden hidden"></div>
   <div class="p-5 border-b border-[var(--border-color)]">
     <a href="/dashboard" class="flex items-center gap-3 group">
@@ -26,7 +27,7 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
       </div>
       <div>
         <span class="text-lg font-bold tracking-tight">COSTMASTER</span>
-        <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Contabilidad</p>
+        <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5" data-i18n="sidebar.subtitle">Contabilidad</p>
       </div>
     </a>
   </div>
@@ -81,9 +82,24 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
             <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         )}
+        {item.icon === 'brain' && (
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+        )}
         <span data-i18n={item.key}>{item.label}</span>
       </a>
     ))}
+    <a
+      id="admin-users-link"
+      href="/admin/users"
+      class="hidden items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 4a4 4 0 100 8 4 4 0 000-8zM20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2m12-9a4 4 0 100-8m2 8h.01" />
+      </svg>
+      <span data-i18n="nav.users">Usuarios</span>
+    </a>
   </nav>
 
   <div class="p-3 border-t border-[var(--border-color)] space-y-0.5">
@@ -121,6 +137,15 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
       </div>
     </div>
     <button
+      id="tutorial-btn"
+      class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] rounded-lg transition-colors"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      </svg>
+      <span data-i18n="tutorial.replay">Ver tutorial</span>
+    </button>
+    <button
       id="logout-btn"
       class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--accent-danger)] rounded-lg transition-colors"
     >
@@ -137,9 +162,21 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
   if (user) {
     document.getElementById('sidebar-user-name').textContent = user.name;
     document.getElementById('sidebar-user-email').textContent = user.email;
+    if (user.role === 'admin') {
+      const adminLink = document.getElementById('admin-users-link');
+      if (adminLink) adminLink.classList.remove('hidden');
+      adminLink.classList.add('flex');
+    }
   }
 
   document.getElementById('logout-btn').addEventListener('click', () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`${CostMaster.API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(() => {});
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/login';
@@ -162,6 +199,11 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
       const emailEl = document.getElementById('sidebar-user-email');
       if (nameEl) nameEl.textContent = user.name;
       if (emailEl) emailEl.textContent = user.email;
+      const adminLink = document.getElementById('admin-users-link');
+      if (adminLink) {
+        adminLink.classList.toggle('hidden', user.role !== 'admin');
+        adminLink.classList.toggle('flex', user.role === 'admin');
+      }
     }
   });
 </script>
