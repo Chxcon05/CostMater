@@ -10,8 +10,9 @@ if (!DATABASE_URL) {
 pg.types.setTypeParser(20, (v) => parseInt(v, 10));
 
 const useSSL = /neon\.tech|supabase\.co|sslmode=require|ssl=true/i.test(DATABASE_URL);
+const connectionString = DATABASE_URL.replace(/[?&]sslmode=[^&]+/i, '');
 const pool = new pg.Pool({
-  connectionString: DATABASE_URL,
+  connectionString,
   ssl: useSSL ? { rejectUnauthorized: false } : undefined,
   max: 10
 });
