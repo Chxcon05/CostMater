@@ -55,7 +55,7 @@ El primer usuario registrado recibe el rol **admin**.
 
 ## Despliegue (Vercel + Render)
 
-La app se divide en dos: el **frontend** (Astro) se publica en **Vercel** y el **backend** (Express + sql.js) en **Render.com** con disco persistente. El frontend usa rutas relativas `/api`, que Vercel reenvía al backend mediante el rewrite definido en `frontend/vercel.json`.
+La app se divide en dos: el **frontend** (Astro) se publica en **Vercel** y el **backend** (Express + sql.js) en **Render.com** con disco persistente. El frontend usa rutas relativas `/api`, que Vercel reenvía al backend mediante el rewrite definido en `vercel.json` (raíz).
 
 ### 1. Backend en Render.com
 
@@ -76,8 +76,8 @@ La app se divide en dos: el **frontend** (Astro) se publica en **Vercel** y el *
 ### 2. Frontend en Vercel
 
 1. Crear proyecto en Vercel conectando el mismo repositorio.
-2. **Root Directory**: `frontend`. Framework Preset: **Astro**. Build: `npm run build`. Output: `dist`.
-3. Editar `frontend/vercel.json` y reemplazar `https://YOUR-BACKEND-URL.onrender.com` por la URL real del backend en Render.
+2. El `vercel.json` en la raíz ya define build/install/output y los rewrites de `/api`, por lo que **no requiere Root Directory** (se despliega desde la raíz del repo). Si prefieres aislar el frontend, puedes fijar **Root Directory**: `frontend` y el `vercel.json` dentro de `frontend/` se usa en su lugar.
+3. Editar `vercel.json` (y `frontend/vercel.json` si usas Root Directory) reemplazando `https://YOUR-BACKEND-URL.onrender.com` por la URL real del backend en Render.
 4. No se requieren variables de entorno en Vercel.
 
 ### 3. Verificar
