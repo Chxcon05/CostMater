@@ -15,7 +15,7 @@ export function aiRoutes(app) {
       const { product_id } = req.body;
       if (!product_id) return res.status(400).json({ error: 'product_id es requerido' });
 
-      const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [product_id, req.user.id]);
+      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
       const total_cost = getTotalCost(product_id);
@@ -25,8 +25,8 @@ export function aiRoutes(app) {
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as total_direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as total_indirect_costs
         FROM products p
-        WHERE p.user_id = ? AND p.id != ? AND p.selling_price IS NOT NULL AND p.selling_price > 0
-      `, [req.user.id, product_id]);
+        WHERE p.id != ? AND p.selling_price IS NOT NULL AND p.selling_price > 0
+      `, [product_id]);
 
       const margins = otherProducts.map(p => {
         const tc = parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs);
@@ -63,15 +63,15 @@ export function aiRoutes(app) {
 
       const forecastMonths = parseInt(months) || 3;
 
-      const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [product_id, req.user.id]);
+      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
       const costHistory = all(`
         SELECT ch.*, ch.changed_at as date
         FROM cost_history ch
-        WHERE ch.product_id = ? AND ch.user_id = ?
+        WHERE ch.product_id = ?
         ORDER BY ch.changed_at ASC
-      `, [product_id, req.user.id]);
+      `, [product_id]);
 
       const directCosts = all('SELECT created_at FROM direct_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
       const indirectCosts = all('SELECT created_at FROM indirect_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
@@ -163,7 +163,7 @@ export function aiRoutes(app) {
       const { product_id, new_price, new_cost, volume_change } = req.body;
       if (!product_id) return res.status(400).json({ error: 'product_id es requerido' });
 
-      const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [product_id, req.user.id]);
+      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
       const total_cost = getTotalCost(product_id);
@@ -212,9 +212,8 @@ export function aiRoutes(app) {
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as total_direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as total_indirect_costs
         FROM products p
-        WHERE p.user_id = ?
         ORDER BY p.created_at DESC
-      `, [req.user.id]);
+      `);
 
       const result = products.map(p => {
         const totalCost = parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs);
@@ -244,9 +243,9 @@ export function aiRoutes(app) {
 
         const costHistory = all(`
           SELECT new_amount, changed_at FROM cost_history
-          WHERE product_id = ? AND user_id = ?
+          WHERE product_id = ?
           ORDER BY changed_at ASC
-        `, [p.id, req.user.id]);
+        `, [p.id]);
 
         if (costHistory.length >= 2) {
           const first = parseFloat(costHistory[0].new_amount);

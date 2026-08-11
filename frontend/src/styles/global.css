@@ -224,6 +224,10 @@ body::before {
   z-index: 50;
 }
 
+.modal-overlay.hidden {
+  display: none;
+}
+
 .modal-content {
   background: var(--bg-card);
   border: 1px solid var(--border-color);

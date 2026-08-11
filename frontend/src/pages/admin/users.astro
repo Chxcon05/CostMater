@@ -18,6 +18,9 @@ import PageHeader from '../../components/PageHeader.astro';
       <PageHeader title="Gestión de Usuarios" subtitle="Administra roles y permisos del sistema" i18nTitle="admin.users_title" i18nSubtitle="admin.users_subtitle" />
 
       <div class="card p-6">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <input id="search-input" type="search" placeholder="Buscar usuario o correo..." data-i18n-placeholder="common.search" class="input flex-1 min-w-[200px]" />
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -32,6 +35,7 @@ import PageHeader from '../../components/PageHeader.astro';
             <tbody id="users-table" class="divide-y divide-[var(--border-color)]"></tbody>
           </table>
         </div>
+        <div id="pagination-container"></div>
         <div id="error-state" class="hidden flex flex-col items-center justify-center py-10 text-[var(--text-muted)]">
           <p class="text-sm font-medium" id="error-message"></p>
           <button class="mt-4 px-4 py-2 text-sm font-medium bg-[var(--accent-primary)] text-white rounded-lg hover:opacity-90 transition-opacity" onclick="loadUsers()" data-i18n="common.retry">Reintentar</button>
@@ -41,10 +45,14 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 </Layout>
 
-<script src="/js/toast.js"></script>
+<script is:inline src="/js/toast.js"></script>
 <script is:inline src="/js/skeleton.js"></script>
+<script is:inline src="/js/pagination.js"></script>
 <script>
   const API_URL = CostMaster.API_URL;
+  let usersCache = [];
+  let currentPage = 1;
+  const perPage = 10;
 
   function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -83,6 +91,7 @@ import PageHeader from '../../components/PageHeader.astro';
       if (window.toast) window.toast.error(e.message);
     }
   }
+  window.changeRole = changeRole;
 
   window.loadUsers = async function() {
     const headers = getAuthHeaders();
@@ -100,15 +109,37 @@ import PageHeader from '../../components/PageHeader.astro';
         throw new Error('Error al cargar usuarios');
       }
       const users = await res.json();
+      usersCache = users;
       errorState.classList.add('hidden');
       table.classList.remove('hidden');
+      currentPage = 1;
+      renderUsers();
+    } catch (e) {
+      console.error(e);
+      table.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      errorState.classList.add('flex');
+      errorMessage.textContent = e.message;
+    }
+  };
 
-      if (!users || users.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" class="table-cell text-center text-[var(--text-muted)] py-10" data-i18n="admin.no_users">No hay usuarios registrados</td></tr>`;
-        return;
-      }
+  function renderUsers() {
+    const table = document.getElementById('users-table');
+    const errorState = document.getElementById('error-state');
+    const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+    const filtered = usersCache.filter(u =>
+      !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
 
-      table.innerHTML = users.map(u => `
+    if (filtered.length === 0) {
+      table.innerHTML = `<tr><td colspan="5" class="table-cell text-center text-[var(--text-muted)] py-10" data-i18n="admin.no_users">No hay usuarios registrados</td></tr>`;
+      CostMaster.Pagination.render(document.getElementById('pagination-container'), { page: 1, totalPages: 0 });
+      return;
+    }
+
+    const { items, totalPages } = CostMaster.Pagination.paginate(filtered, currentPage, perPage);
+
+    table.innerHTML = items.map(u => `
         <tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
           <td class="table-cell font-medium text-[var(--text-primary)]">${CostMaster.sanitize.escapeHtml(u.name)}</td>
           <td class="table-cell text-[var(--text-secondary)]">${CostMaster.sanitize.escapeHtml(u.email)}</td>
@@ -129,18 +160,19 @@ import PageHeader from '../../components/PageHeader.astro';
           </td>
         </tr>
       `).join('');
-    } catch (e) {
-      console.error(e);
-      table.classList.add('hidden');
-      errorState.classList.remove('hidden');
-      errorState.classList.add('flex');
-      errorMessage.textContent = e.message;
-    }
+
+    CostMaster.Pagination.render(document.getElementById('pagination-container'), {
+      page: currentPage,
+      totalPages,
+      onPageChange: (p) => { currentPage = p; renderUsers(); }
+    });
   };
 
   document.getElementById('mobile-menu-btn').addEventListener('click', () => {
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });
+
+  document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; renderUsers(); });
 
   loadUsers();
 </script>

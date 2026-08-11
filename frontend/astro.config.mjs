@@ -5,11 +5,15 @@ export default defineConfig({
   integrations: [tailwind()],
   output: 'static',
   server: {
-    port: 4321,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
+    port: 4321
+  },
+  vite: {
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true
+        }
       }
     }
   }

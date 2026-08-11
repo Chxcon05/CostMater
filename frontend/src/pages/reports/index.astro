@@ -28,6 +28,9 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
         <button id="filter-apply" class="px-4 py-2 text-sm font-medium bg-[var(--accent-primary)] text-white rounded-lg hover:opacity-90 transition-opacity" data-i18n="common.apply">Aplicar</button>
         <button id="filter-clear" class="px-4 py-2 text-sm font-medium border border-[var(--border-color)] text-[var(--text-secondary)] rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors" data-i18n="common.clear">Limpiar</button>
+        <div class="flex-1"></div>
+        <button id="export-pdf" class="px-4 py-2 text-sm font-medium bg-[var(--accent-danger)]/10 text-[var(--accent-danger)] border border-[var(--accent-danger)]/30 rounded-lg hover:bg-[var(--accent-danger)]/20 transition-colors" data-i18n="common.export_pdf">Exportar PDF</button>
+        <button id="export-excel" class="px-4 py-2 text-sm font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-500/20 transition-colors" data-i18n="common.export_excel">Exportar Excel</button>
       </div>
 
       <div id="kpi-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -49,10 +52,34 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
       </div>
 
+      <div id="breakeven-card" class="card p-6 mb-6">
+        <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.breakeven_title">Punto de Equilibrio</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="breakeven-content">
+          <div class="p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+            <div class="text-xs text-[var(--text-muted)] mb-1" data-i18n="report.fixed_costs">Costos Fijos</div>
+            <div class="text-lg font-bold font-mono text-[var(--text-primary)]" id="breakeven-fixed">$0</div>
+          </div>
+          <div class="p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+            <div class="text-xs text-[var(--text-muted)] mb-1" data-i18n="report.contribution_ratio">Margen de Contribución</div>
+            <div class="text-lg font-bold font-mono text-[var(--text-primary)]" id="breakeven-ratio">0%</div>
+          </div>
+          <div class="p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+            <div class="text-xs text-[var(--text-muted)] mb-1" data-i18n="report.breakeven_revenue">Ventas de Equilibrio</div>
+            <div class="text-lg font-bold font-mono text-gradient" id="breakeven-revenue">$0</div>
+          </div>
+        </div>
+      </div>
+
       <div class="card p-6 mb-6">
         <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.trend_title">Tendencia de Costos (Últimos 6 meses)</h3>
         <div id="trend-chart-container" class="h-64">
           <canvas id="trendChart"></canvas>
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="table-header"><th class="table-cell" data-i18n="report.period">Período</th><th class="table-cell" data-i18n="common.amount">Monto</th><th class="table-cell" data-i18n="report.variation">Variación</th></tr></thead>
+            <tbody id="variations-table" class="divide-y divide-[var(--border-color)]"></tbody>
+          </table>
         </div>
       </div>
 
@@ -67,7 +94,7 @@ import PageHeader from '../../components/PageHeader.astro';
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card p-6">
           <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.rentability_title">Análisis de Rentabilidad</h3>
           <div id="rentability-container" class="overflow-x-auto">
@@ -77,10 +104,18 @@ import PageHeader from '../../components/PageHeader.astro';
             </table>
           </div>
         </div>
-        <div class="card p-6">
-          <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.audit_title">Historial de Auditoría</h3>
-          <div id="audit-container" class="overflow-y-auto max-h-64">
-            <div id="audit-list" class="space-y-2"></div>
+        <div class="space-y-6">
+          <div class="card p-6">
+            <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.audit_title">Historial de Auditoría</h3>
+            <div id="audit-container" class="overflow-y-auto max-h-56">
+              <div id="audit-list" class="space-y-2"></div>
+            </div>
+          </div>
+          <div class="card p-6">
+            <h3 class="font-semibold text-[var(--text-primary)] mb-4" data-i18n="report.cost_history_title">Historial de Costos</h3>
+            <div id="cost-history-container" class="overflow-y-auto max-h-56">
+              <div id="cost-history-list" class="space-y-2"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -89,11 +124,15 @@ import PageHeader from '../../components/PageHeader.astro';
 </Layout>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script is:inline src="/js/toast.js"></script>
 <script is:inline src="/js/skeleton.js"></script>
 <script>
   const API_URL = CostMaster.API_URL;
   let typeChart, productChart, trendChart;
+  let cachedReportData = { distribution: null, rentability: null, audit: null, period: null, variations: null, breakeven: null, costHistory: null };
 
   function getAuthHeaders() { const token = localStorage.getItem('token'); if (!token) { window.location.href = '/login'; return null; } return { 'Authorization': `Bearer ${token}` }; }
 
@@ -120,6 +159,8 @@ import PageHeader from '../../components/PageHeader.astro';
     if (rentabilityContainer) CostMaster.Skeleton.table(rentabilityContainer, 4, 5);
     const auditContainer = document.getElementById('audit-container');
     if (auditContainer) CostMaster.Skeleton.show(auditContainer, 'rows', { count: 5 });
+    const costHistoryContainer = document.getElementById('cost-history-container');
+    if (costHistoryContainer) CostMaster.Skeleton.show(costHistoryContainer, 'rows', { count: 5 });
   }
 
   function renderKPICards(kpiTotal, avg, max, min) {
@@ -161,14 +202,17 @@ import PageHeader from '../../components/PageHeader.astro';
 
     try {
       const dateParams = getDateParams();
-      const [distRes, rentRes, auditRes, periodRes] = await Promise.all([
+      const [distRes, rentRes, auditRes, periodRes, varRes, beRes, chRes] = await Promise.all([
         fetch(`${API_URL}/reports/distribution${dateParams}`, { headers }),
         fetch(`${API_URL}/reports/rentability${dateParams}`, { headers }),
         fetch(`${API_URL}/audit?limit=20${dateParams ? '&' + dateParams.slice(1) : ''}`, { headers }),
-        fetch(`${API_URL}/reports/period`, { headers })
+        fetch(`${API_URL}/reports/period${dateParams}`, { headers }),
+        fetch(`${API_URL}/reports/variations${dateParams}`, { headers }),
+        fetch(`${API_URL}/reports/break-even`, { headers }),
+        fetch(`${API_URL}/costs/history`, { headers })
       ]);
 
-      if (!distRes.ok || !rentRes.ok || !auditRes.ok || !periodRes.ok) {
+      if (!distRes.ok || !rentRes.ok || !auditRes.ok || !periodRes.ok || !varRes.ok || !beRes.ok || !chRes.ok) {
         throw new Error('Error al cargar los datos del reporte');
       }
 
@@ -176,6 +220,11 @@ import PageHeader from '../../components/PageHeader.astro';
       const rentability = await rentRes.json();
       const audit = await auditRes.json();
       const period = await periodRes.json();
+      const variations = await varRes.json();
+      const breakeven = await beRes.json();
+      const costHistory = await chRes.json();
+
+      cachedReportData = { distribution, rentability, audit, period, variations, breakeven, costHistory };
 
       const costs = [...(distribution.direct?.items || []), ...(distribution.indirect?.items || [])];
       const totals = costs.map(c => c.total);
@@ -189,10 +238,13 @@ import PageHeader from '../../components/PageHeader.astro';
       );
 
       renderTrendChart(period);
+      renderVariations(variations);
+      renderBreakEven(breakeven);
       renderTypeChart(distribution);
       renderProductChart(rentability);
       renderRentability(rentability);
       renderAudit(audit);
+      renderCostHistory(costHistory);
     } catch (e) {
       console.error(e);
       if (window.toast) window.toast.error('Error al cargar los reportes. Intenta de nuevo.');
@@ -202,8 +254,171 @@ import PageHeader from '../../components/PageHeader.astro';
       renderEmptyState(document.getElementById('product-chart-container'), 'No hay productos con costos');
       renderEmptyState(document.getElementById('rentability-container'), 'No hay datos de rentabilidad');
       renderEmptyState(document.getElementById('audit-container'), 'Sin actividad registrada');
+      renderEmptyState(document.getElementById('cost-history-container'), 'Sin cambios de costos registrados');
     }
   }
+
+  function renderVariations(data) {
+    const table = document.getElementById('variations-table');
+    if (!data || data.length === 0) { table.innerHTML = ''; return; }
+    const esc = CostMaster.sanitize.escapeHtml;
+    table.innerHTML = data.map(m => {
+      const pct = m.total_variation;
+      let badge = '<span class="text-[var(--text-muted)]">—</span>';
+      if (pct !== null && pct !== undefined) {
+        const cls = pct > 0 ? 'bg-red-500/20 text-red-400' : pct < 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]';
+        badge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold ${cls} border ${pct > 0 ? 'border-red-500/30' : pct < 0 ? 'border-emerald-500/30' : 'border-[var(--border-color)]'}">${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</span>`;
+      }
+      return `<tr class="hover:bg-[var(--bg-tertiary)] transition-colors">
+        <td class="table-cell text-[var(--text-secondary)]">${esc(m.label)}</td>
+        <td class="table-cell font-mono text-[var(--text-primary)]">${formatCurrency(m.total)}</td>
+        <td class="table-cell">${badge}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderBreakEven(data) {
+    if (!data) return;
+    document.getElementById('breakeven-fixed').textContent = formatCurrency(data.fixed_costs || 0);
+    document.getElementById('breakeven-ratio').textContent = `${(data.contribution_ratio || 0).toFixed(1)}%`;
+    document.getElementById('breakeven-revenue').textContent = data.break_even_revenue !== null && data.break_even_revenue !== undefined ? formatCurrency(data.break_even_revenue) : '—';
+  }
+
+  function renderCostHistory(data) {
+    const container = document.getElementById('cost-history-container');
+    if (!data || data.length === 0) {
+      container.innerHTML = '';
+      renderEmptyState(container, 'Sin cambios de costos registrados');
+      return;
+    }
+    const esc = CostMaster.sanitize.escapeHtml;
+    container.innerHTML = `<div id="cost-history-list" class="space-y-2">${data.slice(0, 20).map(h => `
+      <div class="text-xs p-3 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+        <div class="flex justify-between">
+          <span class="font-medium text-[var(--text-primary)]">${esc(h.product_name || 'General')}</span>
+          <span class="text-[var(--text-muted)]">${new Date(h.changed_at).toLocaleDateString('es-MX')}</span>
+        </div>
+        <div class="text-[var(--text-muted)] mt-1">${formatCurrency(h.old_amount || 0)} → ${formatCurrency(h.new_amount)}</div>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  function exportCSV(filename, rows, headers) {
+    const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  window.exportReportPDF = function() {
+    if (!cachedReportData.distribution) return;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const currency = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CostMaster - Reporte Financiero', 14, 20);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, 14, 28);
+    doc.text(`Total de costos: ${currency(cachedReportData.distribution.grandTotal || 0)}`, 14, 34);
+    doc.text(`Rango: ${document.getElementById('filter-start-date').value || 'Inicio'} → ${document.getElementById('filter-end-date').value || 'Hoy'}`, 14, 40);
+
+    const margin = 14;
+    let y = 48;
+
+    const addSectionTitle = (title) => {
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, margin, y);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+    };
+
+    addSectionTitle('Análisis de Rentabilidad');
+    const rentabilityRows = (cachedReportData.rentability || []).map(p => [p.name, currency(p.total_cost), currency(p.selling_price || 0), `${p.margin.toFixed(1)}%`]);
+    doc.autoTable({
+      startY: y,
+      head: [['Producto', 'Costo Total', 'Precio Venta', 'Margen']],
+      body: rentabilityRows,
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [139, 92, 246] }
+    });
+    y = doc.lastAutoTable.finalY + 12;
+
+    addSectionTitle('Distribución de Costos por Tipo');
+    const distRows = [
+      ...(cachedReportData.distribution.direct?.items || []).map(i => [`Directo - ${i.type}`, currency(i.total)]),
+      ...(cachedReportData.distribution.indirect?.items || []).map(i => [`Indirecto - ${i.type}`, currency(i.total)])
+    ];
+    doc.autoTable({
+      startY: y,
+      head: [['Tipo', 'Monto']],
+      body: distRows.length ? distRows : [['Sin datos', '$0']],
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+    y = doc.lastAutoTable.finalY + 12;
+
+    addSectionTitle('Costos por Período');
+    const periodRows = (cachedReportData.period || []).map(m => [m.label, currency(m.direct), currency(m.indirect), currency((m.direct || 0) + (m.indirect || 0))]);
+    doc.autoTable({
+      startY: y,
+      head: [['Período', 'Directo', 'Indirecto', 'Total']],
+      body: periodRows,
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [16, 185, 129] }
+    });
+    y = doc.lastAutoTable.finalY + 12;
+
+    if (cachedReportData.breakeven) {
+      addSectionTitle('Punto de Equilibrio');
+      doc.autoTable({
+        startY: y,
+        head: [['Concepto', 'Valor']],
+        body: [
+          ['Costos Fijos', currency(cachedReportData.breakeven.fixed_costs || 0)],
+          ['Margen de Contribución', `${(cachedReportData.breakeven.contribution_ratio || 0).toFixed(1)}%`],
+          ['Ventas de Equilibrio', cachedReportData.breakeven.break_even_revenue != null ? currency(cachedReportData.breakeven.break_even_revenue) : '—']
+        ],
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [245, 158, 11] }
+      });
+    }
+
+    doc.save(`CostMaster-Reporte-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  window.exportReportExcel = function() {
+    if (!cachedReportData.distribution) return;
+    const wb = XLSX.utils.book_new();
+    const rentability = (cachedReportData.rentability || []).map(p => ({
+      Producto: p.name,
+      'Costo Total': p.total_cost,
+      'Precio Venta': p.selling_price || 0,
+      'Margen (%)': p.margin
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rentability), 'Rentabilidad');
+    const period = (cachedReportData.period || []).map(m => ({ Periodo: m.label, Directo: m.direct, Indirecto: m.indirect, Total: (m.direct || 0) + (m.indirect || 0) }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(period), 'Costos por Periodo');
+    if (cachedReportData.variations && cachedReportData.variations.length) {
+      const variations = cachedReportData.variations.map(v => ({ Periodo: v.label, Total: v.total, 'Variación (%)': v.total_variation ?? '—' }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(variations), 'Variaciones');
+    }
+    if (cachedReportData.breakeven) {
+      const be = [{ 'Costos Fijos': cachedReportData.breakeven.fixed_costs, 'Margen de Contribución (%)': cachedReportData.breakeven.contribution_ratio, 'Ventas de Equilibrio': cachedReportData.breakeven.break_even_revenue ?? '—' }];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(be), 'Punto de Equilibrio');
+    }
+    XLSX.writeFile(wb, `CostMaster-Reporte-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
 
   function formatCurrency(v) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0); }
 
@@ -394,6 +609,9 @@ import PageHeader from '../../components/PageHeader.astro';
     document.getElementById('filter-end-date').value = '';
     load();
   });
+
+  document.getElementById('export-pdf').addEventListener('click', () => window.exportReportPDF());
+  document.getElementById('export-excel').addEventListener('click', () => window.exportReportExcel());
 
   load();
 </script>

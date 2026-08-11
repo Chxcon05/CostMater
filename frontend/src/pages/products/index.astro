@@ -27,8 +27,8 @@ import PageHeader from '../../components/PageHeader.astro';
           <option value="producto" data-i18n="product.product">Producto</option>
           <option value="servicio" data-i18n="product.service">Servicio</option>
         </select>
-        <button id="btn-new-product" class="btn-primary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.new">+ Nuevo</button>
-        <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.category">Categorías</button>
+        <button id="btn-new-product" class="btn-primary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.new" data-admin-only>+ Nuevo</button>
+        <button id="btn-manage-cats" class="btn-secondary rounded-lg px-5 py-2.5 text-sm" data-i18n="common.category" data-admin-only>Categorías</button>
       </div>
 
       <div class="card mb-4 overflow-x-auto">
@@ -41,7 +41,7 @@ import PageHeader from '../../components/PageHeader.astro';
             <th class="table-cell text-right" data-i18n="product.cost">Costo</th>
             <th class="table-cell text-right" data-i18n="product.selling_price">Venta</th>
             <th class="table-cell text-right" data-i18n="product.margin">Margen</th>
-            <th class="table-cell w-24" data-i18n="common.actions">Acciones</th>
+            <th class="table-cell w-24" data-i18n="common.actions" data-admin-only>Acciones</th>
           </tr></thead>
           <tbody id="products-table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
@@ -51,7 +51,7 @@ import PageHeader from '../../components/PageHeader.astro';
           </div>
           <p class="empty-state-title" data-i18n="product.empty">No hay productos</p>
           <p class="empty-state-desc">Comienza agregando tu primer producto o servicio</p>
-          <button onclick="document.getElementById('btn-new-product').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add">+ Agregar</button>
+          <button onclick="document.getElementById('btn-new-product').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add" data-admin-only>+ Agregar</button>
         </div>
       </div>
 
@@ -60,7 +60,7 @@ import PageHeader from '../../components/PageHeader.astro';
       <div id="cats-section" class="hidden">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold text-[var(--text-primary)]" data-i18n="common.category">Categorías</h3>
-          <button id="btn-new-cat" class="btn-primary text-xs rounded-lg px-3 py-1.5" data-i18n="common.new">+Nueva</button>
+          <button id="btn-new-cat" class="btn-primary text-xs rounded-lg px-3 py-1.5" data-i18n="common.new" data-admin-only>+Nueva</button>
         </div>
         <div id="cats-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
       </div>
@@ -200,19 +200,19 @@ import PageHeader from '../../components/PageHeader.astro';
         <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.unit_cost || 0).toFixed(2)}</td>
         <td class="table-cell text-right font-mono text-[var(--text-primary)]">$${(p.selling_price || 0).toFixed(2)}</td>
         <td class="table-cell text-right"><span class="px-2 py-1 rounded-lg text-xs font-semibold ${margin >= 20 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : margin >= 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}">${margin}%</span></td>
-        <td class="table-cell">
+        ${CostMaster.isAdmin() ? `<td class="table-cell">
           <button class="edit-btn p-2 hover:text-[var(--accent-secondary)] transition-colors" data-id="${p.id}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
           </button>
           <button class="del-btn p-2 hover:text-[var(--accent-danger)] transition-colors" data-id="${p.id}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           </button>
-        </td>
+        </td>` : ''}
       </tr>`;
     }).join('');
     
     $('empty-msg').classList.toggle('hidden', list.length > 0);
-    if (list.length > 0) $('products-table').parentElement.querySelector('table').style.display = '';
+    if (list.length > 0) $('products-table').closest('.card').querySelector('table').style.display = '';
 
     CostMaster.Pagination.render($('pagination-container'), { page: currentPage, totalPages, onPageChange: (p) => { currentPage = p; render(); } });
 
@@ -230,12 +230,12 @@ import PageHeader from '../../components/PageHeader.astro';
         <span class="text-[var(--text-primary)]">${esc(c.name)}</span>
       </div>
       <div class="flex gap-1">
-        <button class="edit-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-id="${c.id}">
+        ${CostMaster.isAdmin() ? `<button class="edit-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-id="${c.id}">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
         </button>
         <button class="del-cat p-2 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors" data-id="${c.id}">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </button>
+        </button>` : ''}
       </div>
     </div>`).join('') : '<p class="text-[var(--text-muted)] col-span-4 text-center py-8">Sin categorías</p>';
 

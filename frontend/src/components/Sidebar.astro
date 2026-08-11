@@ -32,6 +32,23 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
     </a>
   </div>
 
+  <div class="relative">
+    <button id="notifications-btn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]" aria-label="Notificaciones">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+      <span data-i18n="nav.notifications">Notificaciones</span>
+      <span id="notifications-badge" class="hidden ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--accent-danger)] text-white text-xs font-semibold flex items-center justify-center">0</span>
+    </button>
+    <div id="notifications-panel" class="hidden absolute left-3 right-3 top-full mt-2 z-50 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-xl overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--border-color)]">
+        <span class="text-sm font-semibold text-[var(--text-primary)]" data-i18n="nav.notifications">Notificaciones</span>
+        <button id="notifications-read-all" class="text-xs text-[var(--accent-primary)] hover:underline" data-i18n="nav.notif_read_all">Marcar todas leídas</button>
+      </div>
+      <div id="notifications-list" class="max-h-72 overflow-y-auto"></div>
+    </div>
+  </div>
+
   <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
     {navItems.map((item, index) => (
       <a
@@ -206,4 +223,93 @@ const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('us
       }
     }
   });
+
+  // Notificaciones
+  (function() {
+    const btn = document.getElementById('notifications-btn');
+    const panel = document.getElementById('notifications-panel');
+    const badge = document.getElementById('notifications-badge');
+    const list = document.getElementById('notifications-list');
+    const readAllBtn = document.getElementById('notifications-read-all');
+    if (!btn || !panel) return;
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('token');
+      return token ? { 'Authorization': `Bearer ${token}` } : null;
+    }
+
+    function renderNotifications(data) {
+      const items = (data && data.items) || [];
+      const unread = (data && data.unread) || 0;
+      if (badge) {
+        badge.textContent = unread;
+        badge.classList.toggle('hidden', unread === 0);
+      }
+      if (!list) return;
+      if (!items.length) {
+        list.innerHTML = `<div class="px-4 py-6 text-center text-sm text-[var(--text-muted)]" data-i18n="nav.notif_empty">No hay notificaciones</div>`;
+        return;
+      }
+      list.innerHTML = items.map(n => {
+        const cls = n.type === 'warning' ? 'text-[var(--accent-warning)]' : n.type === 'success' ? 'text-[var(--accent-success)]' : 'text-[var(--accent-primary)]';
+        return `<a href="${n.link || '/dashboard'}" data-id="${n.id}" data-read="${n.read}" class="block px-4 py-3 border-b border-[var(--border-color)] hover:bg-[var(--bg-tertiary)] transition-colors ${n.read ? 'opacity-60' : ''}">
+          <div class="flex items-start gap-2">
+            <span class="mt-1 w-2 h-2 rounded-full flex-shrink-0 ${n.read ? 'bg-[var(--border-color)]' : 'bg-[var(--accent-danger)]'}"></span>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-[var(--text-primary)] truncate">${window.CostMaster.sanitize.escapeHtml(n.title)}</p>
+              <p class="text-xs text-[var(--text-muted)] mt-0.5 line-clamp-2">${window.CostMaster.sanitize.escapeHtml(n.message || '')}</p>
+              <p class="text-[10px] text-[var(--text-muted)] mt-1">${new Date(n.created_at).toLocaleString('es-MX')}</p>
+            </div>
+          </div>
+        </a>`;
+      }).join('');
+      list.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', async (e) => {
+          const id = a.getAttribute('data-id');
+          const isRead = a.getAttribute('data-read') === '1';
+          if (!isRead) {
+            e.preventDefault();
+            const headers = getAuthHeaders();
+            if (headers) {
+              await fetch(`${CostMaster.API_URL}/notifications/${id}/read`, { method: 'PUT', headers }).catch(() => {});
+            }
+            window.location.href = a.getAttribute('href') || '/dashboard';
+          }
+        });
+      });
+    }
+
+    async function loadNotifications() {
+      const headers = getAuthHeaders();
+      if (!headers) return;
+      try {
+        const res = await fetch(`${CostMaster.API_URL}/notifications?limit=15`, { headers });
+        if (res.ok) renderNotifications(await res.json());
+      } catch (e) { /* silencioso */ }
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) loadNotifications();
+    });
+
+    readAllBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const headers = getAuthHeaders();
+      if (headers) {
+        await fetch(`${CostMaster.API_URL}/notifications/read-all`, { method: 'POST', headers }).catch(() => {});
+        loadNotifications();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        panel.classList.add('hidden');
+      }
+    });
+
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+  })();
 </script>

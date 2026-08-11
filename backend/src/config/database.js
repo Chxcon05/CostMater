@@ -44,6 +44,11 @@ async function initDb() {
     if (!ucolNames.includes('role')) {
       db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
     }
+    // Si no existe ningún administrador, promover al usuario más antiguo
+    const adminCount = get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")?.count || 0;
+    if (adminCount === 0) {
+      db.run("UPDATE users SET role = 'admin' WHERE id = (SELECT MIN(id) FROM users)");
+    }
     saveDb();
   } catch (e) { console.error('Error altering users:', e); }
 
@@ -398,6 +403,30 @@ async function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT DEFAULT 'info',
+      title TEXT NOT NULL,
+      message TEXT,
+      link TEXT,
+      read INTEGER DEFAULT 0,
+      source TEXT DEFAULT 'system',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  try {
+    const ncols = db.exec("PRAGMA table_info(notifications)");
+    const ncolNames = ncols[0]?.values.map(c => c[1]) || [];
+    if (!ncolNames.includes('source')) {
+      db.run("ALTER TABLE notifications ADD COLUMN source TEXT DEFAULT 'system'");
+    }
+    saveDb();
+  } catch (e) { console.error('Error altering notifications:', e); }
 
   saveDb();
   return db;

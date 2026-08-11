@@ -1,6 +1,7 @@
 import { get, all, run } from '../config/database.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { audit } from '../utils/audit.js';
+import { broadcastNotification } from './notifications.js';
 
 export function categoryRoutes(app) {
   app.get('/api/categories', authenticateToken, (req, res) => {
@@ -9,25 +10,25 @@ export function categoryRoutes(app) {
         SELECT c.*, COUNT(p.id) as product_count
         FROM categories c
         LEFT JOIN products p ON c.id = p.category_id
-        WHERE c.user_id = ?
         GROUP BY c.id
         ORDER BY c.name
-      `, [req.user.id]);
+      `);
       res.json(categories);
     } catch (error) { res.status(500).json({ error: 'Error al obtener categorías' }); }
   });
 
-  app.post('/api/categories', authenticateToken, (req, res) => {
+  app.post('/api/categories', authenticateToken, requireRole('admin'), (req, res) => {
     const { name, description, color } = req.body;
     try {
       const result = run('INSERT INTO categories (user_id, name, description, color) VALUES (?, ?, ?, ?)', [req.user.id, name, description || '', color || '#3b82f6']);
       const cat = get('SELECT * FROM categories WHERE id = ?', [result.lastInsertRowid]);
       audit(req.user.id, 'categories', cat.id, 'CREATE', null, cat);
+      broadcastNotification('success', 'Nueva categoría', `El usuario "${req.user.name}" añadió la categoría "${cat.name}".`, '/products');
       res.status(201).json(cat);
     } catch (error) { console.error('POST /api/categories error:', error); res.status(500).json({ error: 'Error al crear categoría' }); }
   });
 
-  app.put('/api/categories/:id', authenticateToken, (req, res) => {
+  app.put('/api/categories/:id', authenticateToken, requireRole('admin'), (req, res) => {
     const { name, description, color } = req.body;
     try {
       const old = get('SELECT * FROM categories WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
@@ -39,7 +40,7 @@ export function categoryRoutes(app) {
     } catch (error) { console.error('PUT /api/categories/:id error:', error); res.status(500).json({ error: 'Error al actualizar categoría' }); }
   });
 
-  app.delete('/api/categories/:id', authenticateToken, (req, res) => {
+  app.delete('/api/categories/:id', authenticateToken, requireRole('admin'), (req, res) => {
     try {
       const cat = get('SELECT * FROM categories WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       run('DELETE FROM categories WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);

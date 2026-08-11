@@ -47,11 +47,11 @@ import PageHeader from '../../components/PageHeader.astro';
           <option value="direct" data-i18n="cost.direct">Directos</option>
           <option value="indirect" data-i18n="cost.indirect">Indirectos</option>
         </select>
-        <button id="btn-new-direct" class="btn-primary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_direct" data-tooltip="cost.add_direct">
+        <button id="btn-new-direct" class="btn-primary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_direct" data-tooltip="cost.add_direct" data-admin-only>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Directo
         </button>
-        <button id="btn-new-indirect" class="btn-secondary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_indirect" data-tooltip="cost.add_indirect">
+        <button id="btn-new-indirect" class="btn-secondary flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap" data-i18n="cost.add_indirect" data-tooltip="cost.add_indirect" data-admin-only>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
           Indirecto
         </button>
@@ -59,7 +59,7 @@ import PageHeader from '../../components/PageHeader.astro';
 
       <div class="card mb-4 overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="common.type">Tipo</th><th class="table-cell" data-i18n="common.description">Descripción</th><th class="table-cell" data-i18n="common.amount">Monto</th><th class="table-cell" data-i18n="common.date">Fecha</th><th class="table-cell" data-i18n="common.actions">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell" data-i18n="common.name">Producto</th><th class="table-cell" data-i18n="common.type">Tipo</th><th class="table-cell" data-i18n="common.description">Descripción</th><th class="table-cell" data-i18n="common.amount">Monto</th><th class="table-cell" data-i18n="common.date">Fecha</th><th class="table-cell" data-i18n="common.actions" data-admin-only>Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
         <div id="empty-msg" class="empty-state hidden">
@@ -68,7 +68,7 @@ import PageHeader from '../../components/PageHeader.astro';
           </div>
           <p class="empty-state-title" data-i18n="cost.empty">No hay costos registrados</p>
           <p class="empty-state-desc">Comienza registrando tu primer costo</p>
-          <button onclick="document.getElementById('btn-new-direct').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add">+ Agregar</button>
+          <button onclick="document.getElementById('btn-new-direct').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add" data-admin-only>+ Agregar</button>
         </div>
       </div>
 
@@ -230,14 +230,14 @@ import PageHeader from '../../components/PageHeader.astro';
         <td class="table-cell text-[var(--text-secondary)]">${esc(c.description)}</td>
         <td class="table-cell font-mono font-semibold text-[var(--text-primary)]">${formatCurrency(parseFloat(c.amount) * (parseFloat(c.quantity) || 1))}</td>
         <td class="table-cell text-[var(--text-muted)]">${new Date(c.created_at).toLocaleDateString('es-MX')}</td>
-        <td class="table-cell">
+        ${CostMaster.isAdmin() ? `<td class="table-cell">
           <button class="btn-edit-cost p-2 text-[var(--text-muted)] hover:text-[var(--accent-secondary)] transition-colors" data-type="${c.costType}" data-id="${c.id}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
           </button>
           <button class="btn-delete-cost p-2 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors" data-type="${c.costType}" data-id="${c.id}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
-        </td>
+        </td>` : ''}
       </tr>
     `).join('');
 

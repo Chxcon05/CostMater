@@ -4,9 +4,15 @@ import { get, run, all } from '../config/database.js';
 import { generateToken, authenticateToken } from '../middleware/auth.js';
 import { loginLimiter, registerLimiter } from '../middleware/rateLimit.js';
 import { audit } from '../utils/audit.js';
+import { sendEmail, isEmailConfigured } from '../utils/mailer.js';
+import { syncNotifications } from './notifications.js';
 
 function publicUser(user) {
   return { id: user.id, name: user.name, email: user.email, role: user.role || 'user' };
+}
+
+function normalizeEmail(email) {
+  return String(email).trim().toLowerCase();
 }
 
 export async function authRoutes(app) {
@@ -25,23 +31,23 @@ export async function authRoutes(app) {
       return res.status(400).json({ error: 'Correo electrónico inválido' });
     }
 
-    if (typeof password !== 'string' || password.length < 6) {
+    if (typeof password !== 'string' || password.trim().length < 6) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
     try {
-      const existing = get('SELECT id FROM users WHERE email = ?', [email]);
+      const existing = get('SELECT id FROM users WHERE email = ?', [normalizeEmail(email)]);
       if (existing) return res.status(400).json({ error: 'El email ya está registrado' });
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password.trim(), 10);
 
       // El primer usuario del sistema obtiene el rol de administrador
       const totalUsers = get('SELECT COUNT(*) as count FROM users')?.count || 0;
       const role = totalUsers === 0 ? 'admin' : 'user';
 
-      run('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)', [name.trim(), email.trim(), passwordHash, role]);
+      run('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)', [name.trim(), normalizeEmail(email), passwordHash, role]);
 
-      const user = get('SELECT id, name, email, role FROM users WHERE email = ?', [email]);
+      const user = get('SELECT id, name, email, role FROM users WHERE email = ?', [normalizeEmail(email)]);
 
       if (!user) {
         throw new Error('Usuario no encontrado después de crear');
@@ -66,14 +72,15 @@ export async function authRoutes(app) {
     }
 
     try {
-      const user = get('SELECT * FROM users WHERE email = ?', [email]);
+      const user = get('SELECT * FROM users WHERE email = ?', [normalizeEmail(email)]);
       if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
 
-      const validPassword = await bcrypt.compare(password, user.password_hash);
+      const validPassword = await bcrypt.compare(password.trim(), user.password_hash);
       if (!validPassword) return res.status(401).json({ error: 'Credenciales inválidas' });
 
       const token = generateToken(user);
       audit(user.id, 'users', user.id, 'LOGIN', null, null);
+      syncNotifications(user.id);
       res.json({ user: publicUser(user), token });
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
@@ -98,8 +105,10 @@ export async function authRoutes(app) {
     }
 
     try {
-      const user = get('SELECT id FROM users WHERE email = ?', [email]);
-      if (!user) return res.status(200).json({ message: 'Si el correo existe, recibirás un enlace de recuperación' });
+      const user = get('SELECT id, email FROM users WHERE email = ?', [normalizeEmail(email)]);
+      if (!user) {
+        return res.status(404).json({ error: 'El correo no está asociado a ninguna cuenta' });
+      }
 
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -111,13 +120,35 @@ export async function authRoutes(app) {
 
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:4321'}/reset-password?token=${token}`;
 
-      // Sin servicio de correo configurado, se devuelve el enlace directamente
-      // para entornos de desarrollo/demostración.
-      res.json({
-        message: 'Solicitud de recuperación registrada',
-        devResetUrl: resetUrl,
-        devToken: token
+      // Enviar correo real si hay SMTP configurado; si no, devolver el enlace
+      // en modo demostración.
+      const emailSent = await sendEmail({
+        to: user.email,
+        subject: 'CostMaster - Recuperación de contraseña',
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px">
+            <h2 style="color:#111827;margin:0 0 12px">Recupera tu contraseña</h2>
+            <p style="color:#374151;font-size:14px;line-height:1.6">Haz clic en el botón para restablecer tu contraseña. Este enlace expira en 1 hora.</p>
+            <p style="text-align:center;margin:24px 0">
+              <a href="${resetUrl}" style="display:inline-block;background:#8b5cf6;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600">Restablecer contraseña</a>
+            </p>
+            <p style="color:#6b7280;font-size:12px">Si no solicitaste esto, ignora este correo. El enlace: ${resetUrl}</p>
+          </div>
+        `,
+        text: `Recupera tu contraseña abriendo este enlace: ${resetUrl} (expira en 1 hora).`
       });
+
+      if (emailSent) {
+        res.json({ message: 'Se ha enviado un enlace de recuperación a tu correo' });
+      } else {
+        res.json({
+          message: isEmailConfigured()
+            ? 'No se pudo enviar el correo, pero se generó un enlace (modo demostración)'
+            : 'Solicitud de recuperación registrada',
+          devResetUrl: resetUrl,
+          devToken: token
+        });
+      }
     } catch (error) {
       console.error('Error en forgot-password:', error);
       res.status(500).json({ error: 'Error al procesar la solicitud' });
@@ -131,7 +162,7 @@ export async function authRoutes(app) {
       return res.status(400).json({ error: 'Token y contraseña son requeridos' });
     }
 
-    if (typeof password !== 'string' || password.length < 6) {
+    if (typeof password !== 'string' || password.trim().length < 6) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
@@ -144,7 +175,7 @@ export async function authRoutes(app) {
         return res.status(400).json({ error: 'El token ha expirado' });
       }
 
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password.trim(), 10);
       run('UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [passwordHash, reset.user_id]);
       run('UPDATE password_resets SET used = 1 WHERE id = ?', [reset.id]);
 
@@ -163,7 +194,7 @@ export async function authRoutes(app) {
       return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
     }
 
-    if (typeof new_password !== 'string' || new_password.length < 6) {
+    if (typeof new_password !== 'string' || new_password.trim().length < 6) {
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
@@ -174,7 +205,7 @@ export async function authRoutes(app) {
       const valid = await bcrypt.compare(current_password, user.password_hash);
       if (!valid) return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
 
-      const passwordHash = await bcrypt.hash(new_password, 10);
+      const passwordHash = await bcrypt.hash(new_password.trim(), 10);
       run('UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [passwordHash, req.user.id]);
 
       audit(req.user.id, 'users', req.user.id, 'PASSWORD_CHANGED', null, null);

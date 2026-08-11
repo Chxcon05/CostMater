@@ -38,7 +38,7 @@ import PageHeader from "../../components/PageHeader.astro";
         />
         <button
           id="btn-new"
-          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap"
+          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap" data-admin-only
         >
           <svg
             class="w-4 h-4"
@@ -65,7 +65,7 @@ import PageHeader from "../../components/PageHeader.astro";
                 class="table-cell text-left" data-i18n="customer.country">País</th><th
                 class="table-cell text-left" data-i18n="customer.city">Ciudad</th
               ><th class="table-cell text-right" data-i18n="customer.credit">Crédito</th
-              ><th class="table-cell text-center" data-i18n="common.actions">Acciones</th></tr
+              ><th class="table-cell text-center" data-i18n="common.actions" data-admin-only>Acciones</th></tr
             ></thead
           >
           <tbody id="table" class="divide-y divide-[var(--border-color)]"
@@ -77,7 +77,7 @@ import PageHeader from "../../components/PageHeader.astro";
           </div>
           <p class="empty-state-title" data-i18n="customer.empty">No hay clientes registrados</p>
           <p class="empty-state-desc">Comienza agregando tu primer cliente</p>
-          <button onclick="document.getElementById('btn-new').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add">+ Agregar</button>
+          <button onclick="document.getElementById('btn-new').click()" class="btn-primary rounded-lg text-xs px-4 py-2" data-i18n="common.add" data-admin-only>+ Agregar</button>
         </div>
       </div>
 
@@ -374,12 +374,12 @@ import PageHeader from "../../components/PageHeader.astro";
         <td class="table-cell text-left">${esc(d.country) || "-"}</td>
         <td class="table-cell text-left">${esc(d.city) || "-"}</td>
         <td class="table-cell font-mono text-right">${formatCurrency(d.credit_limit)}</td>
-        <td class="table-cell text-center">
+        ${CostMaster.isAdmin() ? `<td class="table-cell text-center">
           <div class="flex gap-2 justify-center">
             <button data-id="${d.id}" class="edit-btn p-1 text-slate-400 hover:text-primary-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
             <button data-id="${d.id}" class="delete-btn p-1 text-slate-400 hover:text-red-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           </div>
-        </td>
+        </td>` : ''}
       </tr>
     `,
       )

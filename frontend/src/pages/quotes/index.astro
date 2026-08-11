@@ -18,6 +18,7 @@ import PageHeader from '../../components/PageHeader.astro';
       <PageHeader title="Cotizaciones" subtitle="Genera y gestiona presupuestos" i18nTitle="quote.page_title" i18nSubtitle="quote.page_subtitle" />
       
       <div class="flex flex-wrap gap-3 mb-6">
+        <input id="search-input" type="search" placeholder="Buscar por folio o cliente..." data-i18n-placeholder="common.search" class="input flex-1 min-w-[180px]" />
         <select id="status-filter" class="input flex-1 min-w-[180px]">
           <option value="" data-i18n="common.all">Todos los estados</option>
           <option value="borrador" data-i18n="quote.draft">Borrador</option>
@@ -27,7 +28,7 @@ import PageHeader from '../../components/PageHeader.astro';
         </select>
         <button
           id="btn-new"
-          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap"
+          class="btn-primary flex items-center gap-2 rounded-lg text-sm px-3 py-1.5 whitespace-nowrap" data-admin-only
         >
           <svg
             class="w-4 h-4"
@@ -42,11 +43,12 @@ import PageHeader from '../../components/PageHeader.astro';
           >
           <span data-i18n="common.new">Nueva Cotización</span>
         </button>
+        <button id="export-excel" class="btn-secondary rounded-lg text-sm px-3 py-1.5 whitespace-nowrap" data-i18n="common.export_excel">Exportar Excel</button>
       </div>
 
       <div class="card overflow-x-auto">
         <table class="w-full min-w-[640px]">
-          <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="quote.folio">Folio</th><th class="table-cell text-left" data-i18n="quote.customer">Cliente</th><th class="table-cell text-left" data-i18n="common.date">Fecha</th><th class="table-cell text-right" data-i18n="common.total">Total</th><th class="table-cell text-center" data-i18n="common.status">Estado</th><th class="table-cell text-center" data-i18n="common.actions">Acciones</th></tr></thead>
+          <thead><tr class="table-header"><th class="table-cell text-left" data-i18n="quote.folio">Folio</th><th class="table-cell text-left" data-i18n="quote.customer">Cliente</th><th class="table-cell text-left" data-i18n="common.date">Fecha</th><th class="table-cell text-right" data-i18n="common.total">Total</th><th class="table-cell text-center" data-i18n="common.status">Estado</th><th class="table-cell text-center" data-i18n="common.actions" data-admin-only>Acciones</th></tr></thead>
           <tbody id="table" class="divide-y divide-[var(--border-color)]"></tbody>
         </table>
         <div id="empty" class="empty-state hidden">
@@ -130,6 +132,7 @@ import PageHeader from '../../components/PageHeader.astro';
   </div>
 </Layout>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script is:inline src="/js/toast.js"></script>
 <script is:inline src="/js/pagination.js"></script>
 <script>
@@ -176,7 +179,12 @@ import PageHeader from '../../components/PageHeader.astro';
 
   function render() {
     const status = $('status-filter').value;
-    const filtered = data.filter(d => !status || d.status === status);
+    const q = ($('search-input')?.value || '').toLowerCase();
+    const filtered = data.filter(d => {
+      if (status && d.status !== status) return false;
+      if (q && !(String(d.quote_number || '').toLowerCase().includes(q) || String(d.customer_name || '').toLowerCase().includes(q))) return false;
+      return true;
+    });
     const tbody = $('table');
     const empty = $('empty');
     
@@ -194,12 +202,12 @@ import PageHeader from '../../components/PageHeader.astro';
         <td class="table-cell text-left">${new Date(d.created_at).toLocaleDateString('es-MX')}</td>
         <td class="table-cell font-mono font-medium text-right">${formatCurrency(d.total)}</td>
         <td class="table-cell text-center"><span class="px-2 py-1 rounded text-xs font-medium ${getStatusClass(d.status)}">${d.status}</span></td>
-        <td class="table-cell text-center">
+        ${CostMaster.isAdmin() ? `<td class="table-cell text-center">
           <div class="flex gap-2 justify-center">
             <button data-id="${d.id}" class="status-btn p-1 text-slate-400 hover:text-primary-600" title="Cambiar estado"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
             <button data-id="${d.id}" class="delete-btn p-1 text-slate-400 hover:text-red-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           </div>
-        </td>
+        </td>` : ''}
       </tr>
     `).join('');
     
@@ -362,7 +370,18 @@ import PageHeader from '../../components/PageHeader.astro';
   }
 
   $('status-filter').addEventListener('change', () => { currentPage = 1; render(); });
+  $('search-input')?.addEventListener('input', () => { currentPage = 1; render(); });
   $('btn-new').addEventListener('click', () => openModal());
+
+  $('export-excel').addEventListener('click', () => {
+    if (!data.length) { toast.warning(window.t ? window.t('common.no_results') : 'Sin datos para exportar'); return; }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.map(d => ({
+      Folio: d.quote_number, Cliente: d.customer_name || '', Fecha: d.created_at,
+      Total: d.total, Estado: d.status
+    }))), 'Cotizaciones');
+    XLSX.writeFile(wb, `CostMaster-Cotizaciones-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  });
   $('mobile-menu-btn').addEventListener('click', () => {
     document.querySelector('aside').classList.toggle('-translate-x-full');
   });

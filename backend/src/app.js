@@ -12,6 +12,7 @@ import { quoteRoutes, invoiceRoutes } from './routes/transactions.js';
 import { categoryRoutes } from './routes/categories.js';
 import { aiRoutes } from './routes/ai.js';
 import { userRoutes } from './routes/users.js';
+import { notificationRoutes } from './routes/notifications.js';
 import { apiLimiter } from './middleware/rateLimit.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,6 +29,8 @@ if (!CORS_ORIGIN) {
 
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
+
+app.use('/api', apiLimiter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'CostMaster API is running', version: '2.0.0' });
@@ -51,8 +54,7 @@ export async function startServer() {
   categoryRoutes(app);
   aiRoutes(app);
   userRoutes(app);
-
-  app.use('/api', apiLimiter);
+  notificationRoutes(app);
 
   app.use((err, req, res, next) => {
     console.error('Error del servidor:', err.stack);
@@ -60,6 +62,10 @@ export async function startServer() {
   });
 
   app.use(express.static(frontendDistPath));
+
+  app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'Ruta API no encontrada' });
+  });
 
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendDistPath, 'index.html'));

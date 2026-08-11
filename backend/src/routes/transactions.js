@@ -1,6 +1,7 @@
 import { get, all, run } from '../config/database.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { audit } from '../utils/audit.js';
+import { broadcastNotification } from './notifications.js';
 
 function generateQuoteNumber() {
   const date = new Date();
@@ -23,21 +24,21 @@ function generateInvoiceNumber() {
 export function quoteRoutes(app) {
   app.get('/api/quotes', authenticateToken, (req, res) => {
     try {
-      const quotes = all(`SELECT q.*, c.name as customer_name FROM quotes q LEFT JOIN customers c ON q.customer_id = c.id WHERE q.user_id = ? ORDER BY q.created_at DESC`, [req.user.id]);
+      const quotes = all(`SELECT q.*, c.name as customer_name FROM quotes q LEFT JOIN customers c ON q.customer_id = c.id ORDER BY q.created_at DESC`);
       res.json(quotes);
     } catch (error) { res.status(500).json({ error: 'Error al obtener cotizaciones' }); }
   });
 
   app.get('/api/quotes/:id', authenticateToken, (req, res) => {
     try {
-      const quote = get(`SELECT q.*, c.name as customer_name FROM quotes q LEFT JOIN customers c ON q.customer_id = c.id WHERE q.id = ? AND q.user_id = ?`, [req.params.id, req.user.id]);
+      const quote = get(`SELECT q.*, c.name as customer_name FROM quotes q LEFT JOIN customers c ON q.customer_id = c.id WHERE q.id = ?`, [req.params.id]);
       if (!quote) return res.status(404).json({ error: 'Cotización no encontrada' });
       const items = all('SELECT * FROM quote_items WHERE quote_id = ?', [req.params.id]);
       res.json({ ...quote, items });
     } catch (error) { res.status(500).json({ error: 'Error al obtener cotización' }); }
   });
 
-  app.post('/api/quotes', authenticateToken, (req, res) => {
+  app.post('/api/quotes', authenticateToken, requireRole('admin'), (req, res) => {
     const { customer_id, items, discount_percent, tax_percent, validity_days, notes, terms, valid_from } = req.body;
     try {
       if (!Array.isArray(items) || items.length === 0) {
@@ -65,18 +66,19 @@ export function quoteRoutes(app) {
           const itemTotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
           run(
             'INSERT INTO quote_items (quote_id, product_id, description, quantity, unit_price, cost, total) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [quoteId, item.product_id || null, item.description, item.quantity, item.unit_price, item.cost || 0, itemTotal]
+            [quoteId, item.product_id || null, String(item.description || ''), parseFloat(item.quantity) || 0, parseFloat(item.unit_price) || 0, parseFloat(item.cost) || 0, itemTotal]
           );
         });
       }
 
       const created = { ...get('SELECT * FROM quotes WHERE id = ?', [quoteId]), items: all('SELECT * FROM quote_items WHERE quote_id = ?', [quoteId]) };
       audit(req.user.id, 'quotes', quoteId, 'CREATE', null, created);
+      broadcastNotification('success', 'Nueva cotización', `El usuario "${req.user.name}" creó la cotización ${quote_number} por $${total.toFixed(2)}.`, '/quotes');
       res.status(201).json(created);
     } catch (error) { res.status(500).json({ error: 'Error al crear cotización' }); }
   });
 
-  app.put('/api/quotes/:id', authenticateToken, (req, res) => {
+  app.put('/api/quotes/:id', authenticateToken, requireRole('admin'), (req, res) => {
     const { status, notes, terms } = req.body;
     try {
       const current = get('SELECT * FROM quotes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
@@ -89,7 +91,7 @@ export function quoteRoutes(app) {
     } catch (error) { console.error('Error al actualizar cotización:', error); res.status(500).json({ error: 'Error al actualizar cotización' }); }
   });
 
-  app.delete('/api/quotes/:id', authenticateToken, (req, res) => {
+  app.delete('/api/quotes/:id', authenticateToken, requireRole('admin'), (req, res) => {
     try {
       const current = get('SELECT * FROM quotes WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!current) return res.status(404).json({ error: 'Cotización no encontrada' });
@@ -104,21 +106,21 @@ export function quoteRoutes(app) {
 export function invoiceRoutes(app) {
   app.get('/api/invoices', authenticateToken, (req, res) => {
     try {
-      const invoices = all(`SELECT i.*, c.name as customer_name FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE i.user_id = ? ORDER BY i.created_at DESC`, [req.user.id]);
+      const invoices = all(`SELECT i.*, c.name as customer_name FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id ORDER BY i.created_at DESC`);
       res.json(invoices);
     } catch (error) { res.status(500).json({ error: 'Error al obtener facturas' }); }
   });
 
   app.get('/api/invoices/:id', authenticateToken, (req, res) => {
     try {
-      const invoice = get(`SELECT i.*, c.name as customer_name, c.rfc as customer_rfc FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE i.id = ? AND i.user_id = ?`, [req.params.id, req.user.id]);
+      const invoice = get(`SELECT i.*, c.name as customer_name, c.rfc as customer_rfc FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE i.id = ?`, [req.params.id]);
       if (!invoice) return res.status(404).json({ error: 'Factura no encontrada' });
       const items = all('SELECT * FROM invoice_items WHERE invoice_id = ?', [req.params.id]);
       res.json({ ...invoice, items });
     } catch (error) { res.status(500).json({ error: 'Error al obtener factura' }); }
   });
 
-  app.post('/api/invoices', authenticateToken, (req, res) => {
+  app.post('/api/invoices', authenticateToken, requireRole('admin'), (req, res) => {
     const { customer_id, items, tax_percent, payment_method, due_date, notes } = req.body;
     try {
       if (!Array.isArray(items) || items.length === 0) {
@@ -141,18 +143,19 @@ export function invoiceRoutes(app) {
           const itemTotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
           run(
             'INSERT INTO invoice_items (invoice_id, product_id, description, quantity, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)',
-            [invoiceId, item.product_id || null, item.description, item.quantity, item.unit_price, itemTotal]
+            [invoiceId, item.product_id || null, String(item.description || ''), parseFloat(item.quantity) || 0, parseFloat(item.unit_price) || 0, itemTotal]
           );
         });
       }
 
       const created = { ...get('SELECT * FROM invoices WHERE id = ?', [invoiceId]), items: all('SELECT * FROM invoice_items WHERE invoice_id = ?', [invoiceId]) };
       audit(req.user.id, 'invoices', invoiceId, 'CREATE', null, created);
+      broadcastNotification('success', 'Nueva factura', `El usuario "${req.user.name}" creó la factura ${invoice_number} por $${total.toFixed(2)}.`, '/invoices');
       res.status(201).json(created);
     } catch (error) { res.status(500).json({ error: 'Error al crear factura' }); }
   });
 
-  app.put('/api/invoices/:id', authenticateToken, (req, res) => {
+  app.put('/api/invoices/:id', authenticateToken, requireRole('admin'), (req, res) => {
     const { customer_id, status, payment_method, due_date, tax_percent, notes, items } = req.body;
     try {
       const now = new Date().toISOString();
@@ -175,7 +178,7 @@ export function invoiceRoutes(app) {
         items.forEach(item => {
           const itemTotal = parseFloat(item.quantity) * parseFloat(item.unit_price);
           run('INSERT INTO invoice_items (invoice_id, product_id, description, quantity, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)',
-            [req.params.id, item.product_id || null, item.description, item.quantity, item.unit_price, itemTotal]);
+            [req.params.id, item.product_id || null, String(item.description || ''), parseFloat(item.quantity) || 0, parseFloat(item.unit_price) || 0, itemTotal]);
         });
       }
       const invoice = get('SELECT * FROM invoices WHERE id = ?', [req.params.id]);
@@ -185,7 +188,7 @@ export function invoiceRoutes(app) {
     } catch (error) { res.status(500).json({ error: 'Error al actualizar factura' }); }
   });
 
-  app.delete('/api/invoices/:id', authenticateToken, (req, res) => {
+  app.delete('/api/invoices/:id', authenticateToken, requireRole('admin'), (req, res) => {
     try {
       const current = get('SELECT * FROM invoices WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!current) return res.status(404).json({ error: 'Factura no encontrada' });

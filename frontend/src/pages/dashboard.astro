@@ -134,6 +134,14 @@ import PageHeader from '../components/PageHeader.astro';
           </div>
         </div>
 
+        <div class="card p-5 animate-element" data-delay="275">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 bg-[var(--accent-warning)] rounded-full"></span>
+            <span data-i18n="dashboard.alerts_title">Alertas Automáticas</span>
+          </h3>
+          <div id="alerts-container" class="space-y-2"></div>
+        </div>
+
         <div class="card p-5 animate-element" data-delay="300">
           <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <span class="w-2 h-2 bg-[var(--accent-tertiary)] rounded-full"></span>
@@ -253,6 +261,7 @@ import PageHeader from '../components/PageHeader.astro';
 
       renderMarginChart(rentabilityData);
       renderTopProductsTable(rentabilityData);
+      renderAlerts(rentabilityData);
 
       document.getElementById('skeleton-container').classList.add('hidden');
       document.getElementById('error-state').classList.add('hidden');
@@ -270,6 +279,7 @@ import PageHeader from '../components/PageHeader.astro';
       }
     }
   }
+  window.loadDashboard = loadDashboard;
 
   function renderMarginChart(data) {
     const ctx = document.getElementById('marginChart').getContext('2d');
@@ -343,6 +353,36 @@ import PageHeader from '../components/PageHeader.astro';
           ${formatCurrency(p.profit)}
         </td>
       </tr>
+    `).join('');
+  }
+
+  function renderAlerts(products) {
+    const container = document.getElementById('alerts-container');
+    const esc = CostMaster.sanitize.escapeHtml;
+    const alerts = [];
+
+    products.forEach(p => {
+      const price = parseFloat(p.selling_price) || 0;
+      const cost = parseFloat(p.total_cost) || 0;
+      if (price === 0) alerts.push({ type: 'warn', icon: '💰', text: `${esc(p.name)}: no tiene precio de venta definido` });
+      else if (cost > 0 && p.margin < 10) alerts.push({ type: 'danger', icon: '📉', text: `${esc(p.name)}: margen bajo (${p.margin.toFixed(1)}%)` });
+      if (cost === 0) alerts.push({ type: 'info', icon: '📋', text: `${esc(p.name)}: sin costos registrados` });
+    });
+
+    if (alerts.length === 0) {
+      container.innerHTML = `<div class="text-sm text-[var(--text-muted)] p-4 bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]" data-i18n="dashboard.no_alerts">No hay alertas pendientes. Todo en orden.</div>`;
+      return;
+    }
+
+    container.innerHTML = alerts.slice(0, 6).map(a => `
+      <div class="flex items-start gap-3 p-3 rounded-lg text-sm border ${
+        a.type === 'danger' ? 'bg-[var(--accent-danger)]/10 border-[var(--accent-danger)]/30 text-[var(--accent-danger)]'
+        : a.type === 'warn' ? 'bg-[var(--accent-warning)]/10 border-[var(--accent-warning)]/30 text-[var(--accent-warning)]'
+        : 'bg-[var(--bg-tertiary)] border-[var(--border-color)] text-[var(--text-secondary)]'
+      }">
+        <span class="text-base leading-none mt-0.5">${a.icon}</span>
+        <span>${a.text}</span>
+      </div>
     `).join('');
   }
 

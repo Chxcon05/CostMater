@@ -1,6 +1,7 @@
 import { get, all, run } from '../config/database.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { audit } from '../utils/audit.js';
+import { syncNotifications, broadcastNotification } from './notifications.js';
 
 export function productRoutes(app) {
   app.get('/api/products', authenticateToken, (req, res) => {
@@ -10,14 +11,13 @@ export function productRoutes(app) {
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as total_direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as total_indirect_costs
         FROM products p
-        WHERE p.user_id = ?
         ORDER BY p.created_at DESC
-      `, [req.user.id]);
+      `);
 
       const result = products.map(p => ({
         ...p,
         total_cost: parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs),
-        unit_cost: parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs)
+        unit_cost: (parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs)) / Math.max(parseFloat(p.quantity || 1), 1)
       }));
       res.json(result);
     } catch (error) {
@@ -28,7 +28,7 @@ export function productRoutes(app) {
 
   app.get('/api/products/:id', authenticateToken, (req, res) => {
     try {
-      const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
+      const product = get('SELECT * FROM products WHERE id = ?', [req.params.id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
       const directCosts = all('SELECT * FROM direct_costs WHERE product_id = ?', [product.id]);
@@ -37,24 +37,40 @@ export function productRoutes(app) {
       const totalDirectCosts = directCosts.reduce((sum, c) => sum + (parseFloat(c.amount) * parseFloat(c.quantity || 1)), 0);
       const totalIndirectCosts = indirectCosts.reduce((sum, c) => sum + (parseFloat(c.amount) * parseFloat(c.proportion || 100) / 100), 0);
 
-      res.json({ ...product, directCosts, indirectCosts, totalDirectCosts, totalIndirectCosts, totalCost: totalDirectCosts + totalIndirectCosts });
+      const priceHistory = all('SELECT * FROM price_history WHERE product_id = ? ORDER BY changed_at DESC LIMIT 20', [product.id]);
+
+      res.json({ ...product, directCosts, indirectCosts, totalDirectCosts, totalIndirectCosts, totalCost: totalDirectCosts + totalIndirectCosts, priceHistory });
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener producto' });
     }
   });
 
-  app.post('/api/products', authenticateToken, (req, res) => {
+  app.get('/api/products/:id/price-history', authenticateToken, (req, res) => {
+    try {
+      const product = get('SELECT id FROM products WHERE id = ?', [req.params.id]);
+      if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
+      const history = all('SELECT * FROM price_history WHERE product_id = ? ORDER BY changed_at DESC LIMIT 50', [req.params.id]);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: 'Error al obtener historial de precios' });
+    }
+  });
+
+  app.post('/api/products', authenticateToken, requireRole('admin'), (req, res) => {
     const { name, description, type, unit, quantity, selling_price, wholesale_price, min_quantity, category_id, supplier_id, sku } = req.body;
     try {
+      if (!name || !String(name).trim()) return res.status(400).json({ error: 'El nombre es requerido' });
       const { lastInsertRowid } = run(
         `INSERT INTO products (user_id, name, description, type, unit, quantity, selling_price, wholesale_price, min_quantity, category_id, supplier_id, sku)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [req.user.id, name, description || '', type || 'producto', unit || 'unidad', quantity || 1, selling_price || 0, wholesale_price || 0, min_quantity || 0, category_id || null, supplier_id || null, sku || null]
+        [req.user.id, String(name).trim(), description || '', type || 'producto', unit || 'unidad', quantity || 1, selling_price || 0, wholesale_price || 0, min_quantity || 0, category_id || null, supplier_id || null, sku || null]
       );
 
       const product = get('SELECT * FROM products WHERE id = ?', [lastInsertRowid]);
       if (!product) return res.status(500).json({ error: 'Error al recuperar el producto creado' });
       audit(req.user.id, 'products', product.id, 'CREATE', null, product);
+      syncNotifications(req.user.id);
+      broadcastNotification('success', 'Nuevo producto', `El usuario "${req.user.name}" añadió el producto "${product.name}".`, '/products');
       res.status(201).json(product);
     } catch (error) {
       console.error('POST /api/products error:', error);
@@ -62,9 +78,10 @@ export function productRoutes(app) {
     }
   });
 
-  app.put('/api/products/:id', authenticateToken, (req, res) => {
+  app.put('/api/products/:id', authenticateToken, requireRole('admin'), (req, res) => {
     const { name, description, type, unit, quantity, selling_price, wholesale_price, min_quantity, category_id, supplier_id, sku } = req.body;
     try {
+      if (!name || !String(name).trim()) return res.status(400).json({ error: 'El nombre es requerido' });
       const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
@@ -73,7 +90,7 @@ export function productRoutes(app) {
 
       run(
         `UPDATE products SET name = ?, description = ?, type = ?, unit = ?, quantity = ?, selling_price = ?, wholesale_price = ?, min_quantity = ?, category_id = ?, supplier_id = ?, sku = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-        [name, description || '', type || 'producto', unit || 'unidad', quantity || 1, selling_price || 0, wholesale_price || 0, min_quantity || 0, catId, supId, sku || '', req.params.id]
+        [String(name).trim(), description || '', type || 'producto', unit || 'unidad', quantity || 1, selling_price || 0, wholesale_price || 0, min_quantity || 0, catId, supId, sku || '', req.params.id]
       );
 
       if (parseFloat(product.selling_price) !== parseFloat(selling_price || 0)) {
@@ -85,6 +102,7 @@ export function productRoutes(app) {
 
       const updated = get('SELECT * FROM products WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'products', req.params.id, 'UPDATE', product, updated);
+      syncNotifications(req.user.id);
       res.json(updated);
     } catch (error) {
       console.error('PUT Error:', error);
@@ -92,12 +110,13 @@ export function productRoutes(app) {
     }
   });
 
-  app.delete('/api/products/:id', authenticateToken, (req, res) => {
+  app.delete('/api/products/:id', authenticateToken, requireRole('admin'), (req, res) => {
     try {
       const product = get('SELECT * FROM products WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
       run('DELETE FROM products WHERE id = ?', [req.params.id]);
       audit(req.user.id, 'products', req.params.id, 'DELETE', product, null);
+      syncNotifications(req.user.id);
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Error al eliminar producto' });

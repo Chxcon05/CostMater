@@ -5,6 +5,8 @@ interface Props {
 }
 
 const { title, requireAuth = false } = Astro.props;
+
+import '../styles/global.css';
 ---
 
 <!DOCTYPE html>
@@ -13,7 +15,6 @@ const { title, requireAuth = false } = Astro.props;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title} | CostMaster</title>
-  <link rel="stylesheet" href="/src/styles/global.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 </head>
@@ -32,6 +33,9 @@ const { title, requireAuth = false } = Astro.props;
         'nav.invoices': { es: 'Facturas', en: 'Invoices' },
         'nav.quotes': { es: 'Cotizaciones', en: 'Quotes' },
         'nav.logout': { es: 'Cerrar sesión', en: 'Logout' },
+        'nav.notifications': { es: 'Notificaciones', en: 'Notifications' },
+        'nav.notif_read_all': { es: 'Marcar todas leídas', en: 'Mark all as read' },
+        'nav.notif_empty': { es: 'No hay notificaciones', en: 'No notifications' },
         'theme.light': { es: 'Modo claro', en: 'Light mode' },
         'theme.dark': { es: 'Modo oscuro', en: 'Dark mode' },
         'lang.switch': { es: 'English', en: 'Español' },
@@ -162,6 +166,8 @@ const { title, requireAuth = false } = Astro.props;
         'dashboard.total_cost': { es: 'Costo Total', en: 'Total Cost' },
         'dashboard.avg_cost': { es: 'Costo Promedio', en: 'Average Cost' },
         'dashboard.no_costs': { es: 'Sin Costos', en: 'No Costs' },
+        'dashboard.alerts_title': { es: 'Alertas Automáticas', en: 'Automatic Alerts' },
+        'dashboard.no_alerts': { es: 'No hay alertas pendientes. Todo en orden.', en: 'No pending alerts. All good.' },
         'dashboard.top_products': { es: 'Top 5 Productos Más Rentables', en: 'Top 5 Most Profitable Products' },
         'dashboard.table_product': { es: 'Producto', en: 'Product' },
         'dashboard.table_cost': { es: 'Costo Total', en: 'Total Cost' },
@@ -372,6 +378,17 @@ const { title, requireAuth = false } = Astro.props;
         'report.rentability_empty': { es: 'Sin datos', en: 'No data' },
         'report.audit_title': { es: 'Historial de Auditoría', en: 'Audit History' },
         'report.audit_empty': { es: 'Sin actividad registrada', en: 'No activity recorded' },
+        'report.cost_history_title': { es: 'Historial de Costos', en: 'Cost History' },
+        'report.cost_history_empty': { es: 'Sin cambios de costos registrados', en: 'No cost changes recorded' },
+        'report.breakeven_title': { es: 'Punto de Equilibrio', en: 'Break-even Point' },
+        'report.fixed_costs': { es: 'Costos Fijos', en: 'Fixed Costs' },
+        'report.contribution_ratio': { es: 'Margen de Contribución', en: 'Contribution Margin' },
+        'report.breakeven_revenue': { es: 'Ventas de Equilibrio', en: 'Break-even Sales' },
+        'report.period': { es: 'Periodo', en: 'Period' },
+        'report.variation': { es: 'Variación', en: 'Variation' },
+        'report.variations_empty': { es: 'Sin variaciones', en: 'No variations' },
+        'common.export_pdf': { es: 'Exportar PDF', en: 'Export PDF' },
+        'common.export_excel': { es: 'Exportar Excel', en: 'Export Excel' },
         'report.no_costs': { es: 'No hay costos registrados', en: 'No costs recorded' },
         'report.no_products': { es: 'No hay productos con costos', en: 'No products with costs' },
         'common.edit': { es: 'Editar', en: 'Edit' },
@@ -598,6 +615,35 @@ const { title, requireAuth = false } = Astro.props;
         'common.error_saving': { es: 'Error al guardar', en: 'Error saving' },
         'common.error_loading': { es: 'Error al cargar datos', en: 'Error loading data' },
         'common.no_data': { es: 'Sin datos disponibles', en: 'No data available' },
+        'cost.direct': { es: 'Directos', en: 'Direct' },
+        'cost.indirect': { es: 'Indirectos', en: 'Indirect' },
+        'invoice.draft': { es: 'Borrador', en: 'Draft' },
+        'invoice.issued': { es: 'Emitida', en: 'Issued' },
+        'invoice.paid': { es: 'Pagada', en: 'Paid' },
+        'invoice.cancelled': { es: 'Cancelada', en: 'Cancelled' },
+        'invoice.change_status': { es: 'Cambiar estado', en: 'Change status' },
+        'quote.draft': { es: 'Borrador', en: 'Draft' },
+        'quote.sent': { es: 'Enviada', en: 'Sent' },
+        'quote.approved': { es: 'Aprobada', en: 'Approved' },
+        'quote.rejected': { es: 'Rechazada', en: 'Rejected' },
+        'report.start_date': { es: 'Fecha inicio', en: 'Start date' },
+        'report.end_date': { es: 'Fecha fin', en: 'End date' },
+        'report.trend_title': { es: 'Tendencia de Costos', en: 'Cost Trend' },
+        'ai.total_cost': { es: 'Costo total', en: 'Total cost' },
+        'ai.price_empty': { es: 'Sin precio', en: 'No price' },
+        'ai.generate_forecast': { es: 'Generar proyección', en: 'Generate forecast' },
+        'ai.forecast_chart_title': { es: 'Proyección de Costos', en: 'Cost Forecast' },
+        'ai.forecast_empty': { es: 'Sin datos para proyectar', en: 'No data to forecast' },
+        'ai.sim_resulting_margin': { es: 'Margen resultante', en: 'Resulting margin' },
+        'ai.sim_impact': { es: 'Impacto', en: 'Impact' },
+        'ai.sim_chart_title': { es: 'Simulación de Escenarios', en: 'Scenario Simulation' },
+        'ai.sim_empty': { es: 'Sin simulación', en: 'No simulation' },
+        'ai.optim_title': { es: 'Optimización de Precios', en: 'Price Optimization' },
+        'ai.analyze_products': { es: 'Analizar productos', en: 'Analyze products' },
+        'ai.optim_margin': { es: 'Margen', en: 'Margin' },
+        'ai.optim_issues': { es: 'Problemas', en: 'Issues' },
+        'ai.optim_suggestions': { es: 'Sugerencias', en: 'Suggestions' },
+        'ai.optim_empty': { es: 'Sin recomendaciones', en: 'No recommendations' },
       };
 
       function getLang() {
