@@ -825,6 +825,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
   text-align: center;
 }
 
+.empty-state.hidden {
+  display: none;
+}
+
 .empty-state-icon {
   width: 64px;
   height: 64px;

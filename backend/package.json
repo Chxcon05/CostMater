@@ -15,6 +15,6 @@
     "express": "^4.22.1",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^9.0.5",
-    "sql.js": "^1.10.3"
+    "pg": "^8.14.1"
   }
 }

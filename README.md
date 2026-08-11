@@ -20,12 +20,12 @@ Sistema de contabilidad de costos para pequeñas y medianas empresas. Permite ge
 |---|---|
 | Frontend | Astro 6 + Tailwind CSS + Chart.js |
 | Backend | Node.js + Express 4 |
-| Base de datos | SQLite (sql.js) |
+| Base de datos | PostgreSQL (Neon, Supabase, etc.) |
 | Autenticación | JWT + bcryptjs |
 
 ## Instalación
 
-Requisitos: Node.js 18+.
+Requisitos: Node.js 18+ y una base de datos PostgreSQL (p. ej. Neon o Supabase).
 
 ```bash
 # 1. Instalar dependencias
@@ -35,6 +35,7 @@ npm run install:all
 # Copiar backend/.env.example a backend/.env y ajustar valores
 #   PORT=3000
 #   JWT_SECRET=tu_secreto
+#   DATABASE_URL=postgresql://usuario:password@host/database?sslmode=require
 #   CORS_ORIGIN=http://localhost:4321
 #   FRONTEND_URL=http://localhost:4321
 
@@ -53,49 +54,44 @@ npm start       # Backend sirve la API + el frontend compilado
 
 El primer usuario registrado recibe el rol **admin**.
 
-## Despliegue (Vercel + Render)
+## Despliegue (todo en Vercel, gratis)
 
-La app se divide en dos: el **frontend** (Astro) se publica en **Vercel** y el **backend** (Express + sql.js) en **Render.com** con disco persistente. El frontend usa rutas relativas `/api`, que Vercel reenvía al backend mediante el rewrite definido en `vercel.json` (raíz).
+Toda la app (frontend estático + backend Express como serverless function) vive en **un solo proyecto de Vercel** en el plan Hobby (gratis). La base de datos usa **Neon** o **Supabase** (planes free). El frontend usa rutas relativas `/api`, y `vercel.json` reenvía `/api/*` a la función serverless `api/index.js`.
 
-### 1. Backend en Render.com
+### 1. Base de datos (Neon/Supabase)
 
-1. Crear un **Web Service** conectando el repositorio.
-2. **Root Directory**: `backend`. Build: `npm install`. Start: `npm start`.
-3. Agregar un **Persistent Disk** (p. ej. 1 GB) montado en `/var/data`.
-4. Configurar variables de entorno:
-   - `DATA_DIR=/var/data`
-   - `JWT_SECRET=un_secreto_largo_y_seguro`
-   - `CORS_ORIGIN=https://TU-APP.vercel.app`
-   - `FRONTEND_URL=https://TU-APP.vercel.app`
-   - SMTP (opcional): `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
-5. Health check: `/api/health`.
-6. **Usar una sola instancia** (sql.js escribe en un archivo y no soporta multi-instancia).
+1. Crea un proyecto gratis en [Neon](https://neon.tech) o [Supabase](https://supabase.com).
+2. Copia la cadena de conexión: `postgresql://usuario:password@host/database?sslmode=require`.
 
-> Nota: en el plan gratuito Render duerme tras inactividad y la primera petición tarda unos segundos.
+### 2. Desplegar en Vercel
 
-### 2. Frontend en Vercel
-
-1. Crear proyecto en Vercel conectando el mismo repositorio.
-2. El `vercel.json` en la raíz ya define build/install/output y los rewrites de `/api`, por lo que **no requiere Root Directory** (se despliega desde la raíz del repo). Si prefieres aislar el frontend, puedes fijar **Root Directory**: `frontend` y el `vercel.json` dentro de `frontend/` se usa en su lugar.
-3. Editar `vercel.json` (y `frontend/vercel.json` si usas Root Directory) reemplazando `https://YOUR-BACKEND-URL.onrender.com` por la URL real del backend en Render.
-4. No se requieren variables de entorno en Vercel.
+1. Conecta el repositorio a Vercel (proyecto nuevo) y crea el proyecto.
+2. **No configures Root Directory** (se despliega desde la raíz del repo). El `vercel.json` ya define build (`npm run build`), install (`npm run install:all`), output (`frontend/dist`) y el rewrite `/api → /api/index`.
+3. Configura las variables de entorno en **Settings → Environment Variables**:
+   - `DATABASE_URL=postgresql://...` (obligatorio)
+   - `JWT_SECRET=un_secreto_largo_y_seguro` (obligatorio)
+   - `FRONTEND_URL=https://TU-APP.vercel.app` (links de recuperación de contraseña)
+   - `CORS_ORIGIN` opcional: solo si en el futuro sirves el frontend desde otro dominio.
+   - SMTP opcional: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (si no, la recuperación de contraseña funciona en modo demo).
+4. Deploy. Las tablas se crean automáticamente al arrancar la función (`initDb`).
 
 ### 3. Verificar
 
 - Registra el primer usuario (recibe rol **admin**).
 - Confirma que `GET https://TU-APP.vercel.app/api/health` responde `{"status":"ok"}`.
 
+> Nota: al ser serverless, el rate-limiter funciona en memoria (no persiste el archivo JSON, falla en silencio) y la primera petición tras inactividad tarda unos segundos (cold start).
+
 ## Estructura
 
 ```
 CostMater/
-├── backend/          # API REST (Express + sql.js)
+├── backend/          # API REST (Express + PostgreSQL)
 │   ├── src/
-│   │   ├── config/   # Conexión y esquema de BD
+│   │   ├── config/   # Conexión y esquema de BD (pg)
 │   │   ├── middleware/ # Auth, rate limiting
 │   │   ├── routes/   # auth, products, costs, reports, entities, transactions, ai, users
 │   │   └── utils/    # Auditoría
-│   └── data/         # costmaster.db (SQLite)
 ├── frontend/         # UI (Astro + Tailwind)
 │   └── src/
 │       ├── layouts/

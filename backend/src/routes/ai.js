@@ -1,26 +1,26 @@
 import { get, all } from '../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 
-function getTotalCost(productId) {
-  const directCosts = all('SELECT * FROM direct_costs WHERE product_id = ?', [productId]);
-  const indirectCosts = all('SELECT * FROM indirect_costs WHERE product_id = ?', [productId]);
+async function getTotalCost(productId) {
+  const directCosts = await all('SELECT * FROM direct_costs WHERE product_id = ?', [productId]);
+  const indirectCosts = await all('SELECT * FROM indirect_costs WHERE product_id = ?', [productId]);
   const totalDirect = directCosts.reduce((s, c) => s + (parseFloat(c.amount) * parseFloat(c.quantity || 1)), 0);
   const totalIndirect = indirectCosts.reduce((s, c) => s + (parseFloat(c.amount) * parseFloat(c.proportion || 100) / 100), 0);
   return totalDirect + totalIndirect;
 }
 
 export function aiRoutes(app) {
-  app.post('/api/ai/price-recommendation', authenticateToken, (req, res) => {
+  app.post('/api/ai/price-recommendation', authenticateToken, async (req, res) => {
     try {
       const { product_id } = req.body;
       if (!product_id) return res.status(400).json({ error: 'product_id es requerido' });
 
-      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
+      const product = await get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
-      const total_cost = getTotalCost(product_id);
+      const total_cost = await getTotalCost(product_id);
 
-      const otherProducts = all(`
+      const otherProducts = await all(`
         SELECT p.*,
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as total_direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as total_indirect_costs
@@ -56,25 +56,25 @@ export function aiRoutes(app) {
     }
   });
 
-  app.post('/api/ai/cost-forecast', authenticateToken, (req, res) => {
+  app.post('/api/ai/cost-forecast', authenticateToken, async (req, res) => {
     try {
       const { product_id, months } = req.body;
       if (!product_id) return res.status(400).json({ error: 'product_id es requerido' });
 
       const forecastMonths = parseInt(months) || 3;
 
-      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
+      const product = await get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
-      const costHistory = all(`
+      const costHistory = await all(`
         SELECT ch.*, ch.changed_at as date
         FROM cost_history ch
         WHERE ch.product_id = ?
         ORDER BY ch.changed_at ASC
       `, [product_id]);
 
-      const directCosts = all('SELECT created_at FROM direct_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
-      const indirectCosts = all('SELECT created_at FROM indirect_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
+      const directCosts = await all('SELECT created_at FROM direct_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
+      const indirectCosts = await all('SELECT created_at FROM indirect_costs WHERE product_id = ? ORDER BY created_at ASC', [product_id]);
 
       const dataPoints = [];
 
@@ -86,14 +86,14 @@ export function aiRoutes(app) {
       for (const dc of directCosts) {
         const date = new Date(dc.created_at);
         if (!dataPoints.some(dp => dp.date.getTime() === date.getTime())) {
-          dataPoints.push({ date, cost: getTotalCost(product_id) });
+          dataPoints.push({ date, cost: await getTotalCost(product_id) });
         }
       }
 
       for (const ic of indirectCosts) {
         const date = new Date(ic.created_at);
         if (!dataPoints.some(dp => dp.date.getTime() === date.getTime())) {
-          dataPoints.push({ date, cost: getTotalCost(product_id) });
+          dataPoints.push({ date, cost: await getTotalCost(product_id) });
         }
       }
 
@@ -138,7 +138,7 @@ export function aiRoutes(app) {
       } else {
         const startMonth = new Date();
         const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const currentCost = getTotalCost(product_id);
+        const currentCost = await getTotalCost(product_id);
 
         for (let i = 1; i <= forecastMonths; i++) {
           const nextDate = new Date(startMonth);
@@ -158,15 +158,15 @@ export function aiRoutes(app) {
     }
   });
 
-  app.post('/api/ai/scenario', authenticateToken, (req, res) => {
+  app.post('/api/ai/scenario', authenticateToken, async (req, res) => {
     try {
       const { product_id, new_price, new_cost, volume_change } = req.body;
       if (!product_id) return res.status(400).json({ error: 'product_id es requerido' });
 
-      const product = get('SELECT * FROM products WHERE id = ?', [product_id]);
+      const product = await get('SELECT * FROM products WHERE id = ?', [product_id]);
       if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
 
-      const total_cost = getTotalCost(product_id);
+      const total_cost = await getTotalCost(product_id);
       const currentPrice = parseFloat(product.selling_price) || 0;
       const currentMargin = total_cost > 0 ? ((currentPrice - total_cost) / total_cost) * 100 : 0;
       const currentProfit = currentPrice - total_cost;
@@ -205,9 +205,9 @@ export function aiRoutes(app) {
     }
   });
 
-  app.get('/api/ai/optimization', authenticateToken, (req, res) => {
+  app.get('/api/ai/optimization', authenticateToken, async (req, res) => {
     try {
-      const products = all(`
+      const products = await all(`
         SELECT p.*,
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as total_direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as total_indirect_costs
@@ -215,7 +215,8 @@ export function aiRoutes(app) {
         ORDER BY p.created_at DESC
       `);
 
-      const result = products.map(p => {
+      const result = [];
+      for (const p of products) {
         const totalCost = parseFloat(p.total_direct_costs) + parseFloat(p.total_indirect_costs);
         const sellingPrice = parseFloat(p.selling_price) || 0;
         const margin = sellingPrice > 0 && totalCost > 0
@@ -241,7 +242,7 @@ export function aiRoutes(app) {
           }
         }
 
-        const costHistory = all(`
+        const costHistory = await all(`
           SELECT new_amount, changed_at FROM cost_history
           WHERE product_id = ?
           ORDER BY changed_at ASC
@@ -256,14 +257,14 @@ export function aiRoutes(app) {
           }
         }
 
-        return {
+        result.push({
           id: p.id,
           name: p.name,
           margin: parseFloat(margin.toFixed(2)),
           issues,
           suggestions
-        };
-      });
+        });
+      }
 
       res.json({ products: result });
     } catch (error) {

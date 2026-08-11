@@ -45,22 +45,22 @@ function buildPeriods(req, fallbackMonths = 6) {
 }
 
 export function reportRoutes(app) {
-  app.get('/api/reports/summary', authenticateToken, (req, res) => {
+  app.get('/api/reports/summary', authenticateToken, async (req, res) => {
     try {
-      const productCount = get('SELECT COUNT(*) as count FROM products')?.count || 0;
-      
-      const directTotal = get(`
-        SELECT COALESCE(SUM(dc.amount * COALESCE(dc.quantity, 1)), 0) as total
-        FROM direct_costs dc 
-        JOIN products p ON dc.product_id = p.id 
-      `)?.total || 0;
-      
-      const indirectTotal = get(`
-        SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
-        FROM indirect_costs ic 
-      `)?.total || 0;
+      const productCount = (await get('SELECT COUNT(*) as count FROM products'))?.count || 0;
 
-      const products = all(`
+      const directTotal = (await get(`
+        SELECT COALESCE(SUM(dc.amount * COALESCE(dc.quantity, 1)), 0) as total
+        FROM direct_costs dc
+        JOIN products p ON dc.product_id = p.id
+      `))?.total || 0;
+
+      const indirectTotal = (await get(`
+        SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
+        FROM indirect_costs ic
+      `))?.total || 0;
+
+      const products = await all(`
         SELECT p.id, p.name, p.selling_price,
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as direct_costs,
           COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as indirect_costs
@@ -83,127 +83,142 @@ export function reportRoutes(app) {
     } catch (error) { res.status(500).json({ error: 'Error al obtener resumen' }); }
   });
 
-  app.get('/api/reports/distribution', authenticateToken, (req, res) => {
+  app.get('/api/reports/distribution', authenticateToken, async (req, res) => {
     try {
       const { where, params } = dateRange(req);
-      const directWhere = where ? `WHERE ${where}` : '';
-      const directCosts = all(
-        `SELECT type, SUM(amount * COALESCE(quantity, 1)) as total FROM direct_costs dc ${directWhere} GROUP BY type`,
-        params
-      ) || [];
-
-      const indirectCosts = all(
-        `SELECT type, SUM(amount * proportion / 100) as total FROM indirect_costs ic ${directWhere} GROUP BY type`,
-        params
-      ) || [];
-
-      const totalDirect = directCosts.reduce((s, c) => s + parseFloat(c.total || 0), 0);
-      const totalIndirect = indirectCosts.reduce((s, c) => s + parseFloat(c.total || 0), 0);
-      const grandTotal = totalDirect + totalIndirect;
-
-      res.json({
-        direct: { items: directCosts, total: totalDirect, percentage: grandTotal > 0 ? Math.round(totalDirect / grandTotal * 100) : 0 },
-        indirect: { items: indirectCosts, total: totalIndirect, percentage: grandTotal > 0 ? Math.round(totalIndirect / grandTotal * 100) : 0 },
-        grandTotal
-      });
-    } catch (error) {
-      res.status(500).json({ error: 'Error al obtener distribución' });
-    }
+      let sql = `SELECT c.name as category_name, p.name as product_name, p.id as product_id,
+        COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as direct_cost,
+        COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as indirect_cost
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id`;
+      if (where) sql += ` WHERE ${where}`;
+      const rows = await all(sql, params);
+      res.json(rows);
+    } catch (error) { res.status(500).json({ error: 'Error al obtener distribución' }); }
   });
 
-  app.get('/api/reports/rentability', authenticateToken, (req, res) => {
+  app.get('/api/reports/rentability', authenticateToken, async (req, res) => {
     try {
-      const dcRange = dateRange(req, 'dc');
-      const icRange = dateRange(req, 'ic');
-      const dcWhere = dcRange.where ? ` AND ${dcRange.where}` : '';
-      const icWhere = icRange.where ? ` AND ${icRange.where}` : '';
-      const products = all(`
-        SELECT p.id, p.name, p.type, p.selling_price,
-          COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id${dcWhere}), 0) as direct_costs,
-          COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id${icWhere}), 0) as indirect_costs
+      const { where, params } = dateRange(req, 'p');
+      const rows = await all(`SELECT p.id, p.name, p.selling_price,
+        COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as direct_cost,
+        COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as indirect_cost
         FROM products p
-      `, [...dcRange.params, ...icRange.params]);
-
-      const ranked = products.map(p => {
-        const totalCost = parseFloat(p.direct_costs) + parseFloat(p.indirect_costs);
-        const profit = parseFloat(p.selling_price || 0) - totalCost;
-        const margin = parseFloat(p.selling_price || 0) > 0 ? (profit / parseFloat(p.selling_price) * 100) : 0;
-        return { ...p, total_cost: totalCost, profit, margin: Math.round(margin * 100) / 100 };
-      }).sort((a, b) => b.profit - a.profit);
-
-      res.json(ranked);
+        ${where ? `WHERE ${where}` : ''}`,
+        params
+      );
+      const result = rows.map(r => ({
+        ...r,
+        total_cost: parseFloat(r.direct_cost) + parseFloat(r.indirect_cost),
+        margin: parseFloat(r.selling_price) > 0 ? ((parseFloat(r.selling_price) - (parseFloat(r.direct_cost) + parseFloat(r.indirect_cost))) / parseFloat(r.selling_price)) * 100 : 0
+      }));
+      res.json(result);
     } catch (error) { res.status(500).json({ error: 'Error al obtener rentabilidad' }); }
   });
 
-  app.get('/api/audit', authenticateToken, (req, res) => {
+  app.get('/api/reports/trend', authenticateToken, async (req, res) => {
+    try {
+      const months = buildPeriods(req);
+      const { where, params } = dateRange(req, 'dc');
+      const directData = await all(`
+        SELECT EXTRACT(MONTH FROM dc.created_at::timestamp) as month, EXTRACT(YEAR FROM dc.created_at::timestamp) as year, COALESCE(SUM(dc.amount * COALESCE(dc.quantity, 1)), 0) as total
+        FROM direct_costs dc
+        ${where ? `WHERE ${where}` : ''}
+        GROUP BY EXTRACT(MONTH FROM dc.created_at::timestamp), EXTRACT(YEAR FROM dc.created_at::timestamp)`,
+        params
+      );
+      const indirectData = await all(`
+        SELECT EXTRACT(MONTH FROM ic.created_at::timestamp) as month, EXTRACT(YEAR FROM ic.created_at::timestamp) as year, COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
+        FROM indirect_costs ic
+        ${where ? `WHERE ${where}` : ''}
+        GROUP BY EXTRACT(MONTH FROM ic.created_at::timestamp), EXTRACT(YEAR FROM ic.created_at::timestamp)`,
+        params
+      );
+      res.json({ months, directData, indirectData });
+    } catch (error) { res.status(500).json({ error: 'Error al obtener tendencia' }); }
+  });
+
+  app.get('/api/reports/costs-per-product', authenticateToken, async (req, res) => {
+    try {
+      const rows = await all(`SELECT p.id, p.name,
+        COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as direct_cost,
+        COALESCE((SELECT SUM(ic.amount * ic.proportion / 100) FROM indirect_costs ic WHERE ic.product_id = p.id), 0) as indirect_cost
+        FROM products p`);
+      res.json(rows);
+    } catch (error) { res.status(500).json({ error: 'Error al obtener costos por producto' }); }
+  });
+
+  app.get('/api/audit', authenticateToken, async (req, res) => {
     try {
       const { limit = 100 } = req.query;
-      const logs = all(`SELECT * FROM audit_log WHERE user_id = ? ORDER BY created_at DESC LIMIT ?`, [req.user.id, parseInt(limit)]);
+      const logs = await all('SELECT * FROM audit_log WHERE user_id = ? ORDER BY created_at DESC LIMIT ?', [req.user.id, parseInt(limit)]);
       res.json(logs);
     } catch (error) { res.status(500).json({ error: 'Error al obtener auditoría' }); }
   });
 
-  app.get('/api/reports/period', authenticateToken, (req, res) => {
+  app.get('/api/reports/period', authenticateToken, async (req, res) => {
     try {
       const months = buildPeriods(req);
       const directRange = dateRange(req, 'dc');
       const indirectRange = dateRange(req, 'ic');
 
-      months.forEach(m => {
+      for (const m of months) {
         const directWhere = directRange.where ? ` AND ${directRange.where}` : '';
         const indirectWhere = indirectRange.where ? ` AND ${indirectRange.where}` : '';
-        const direct = get(`
+        const direct = await get(`
           SELECT COALESCE(SUM(dc.amount * COALESCE(dc.quantity, 1)), 0) as total
           FROM direct_costs dc JOIN products p ON dc.product_id = p.id
           WHERE dc.created_at BETWEEN ? AND ?${directWhere}
-        `, [m.start, m.end, ...directRange.params])?.total || 0;
-        
-        const indirect = get(`
+        `, [m.start, m.end, ...directRange.params]);
+
+        const indirect = await get(`
           SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
           FROM indirect_costs ic
           LEFT JOIN products p ON ic.product_id = p.id
           WHERE (ic.created_at BETWEEN ? AND ? OR ic.created_at IS NULL)${indirectWhere}
-        `, [m.start, m.end, ...indirectRange.params])?.total || 0;
-        
-        m.direct = direct;
-        m.indirect = indirect;
-      });
+        `, [m.start, m.end, ...indirectRange.params]);
+
+        m.direct = parseFloat(direct?.total) || 0;
+        m.indirect = parseFloat(indirect?.total) || 0;
+      }
       res.json(months);
-    } catch (error) { 
+    } catch (error) {
       console.error('Error in /api/reports/period:', error);
-      res.status(500).json({ error: 'Error al obtener costos por período' }); 
+      res.status(500).json({ error: 'Error al obtener costos por período' });
     }
   });
 
-  app.get('/api/reports/variations', authenticateToken, (req, res) => {
+  app.get('/api/reports/variations', authenticateToken, async (req, res) => {
     try {
       const months = buildPeriods(req);
       const directRange = dateRange(req, 'dc');
       const indirectRange = dateRange(req, 'ic');
 
-      months.forEach(m => {
+      for (const m of months) {
         const directWhere = directRange.where ? ` AND ${directRange.where}` : '';
         const indirectWhere = indirectRange.where ? ` AND ${indirectRange.where}` : '';
-        m.direct = parseFloat(get(`
+        const direct = await get(`
           SELECT COALESCE(SUM(dc.amount * COALESCE(dc.quantity, 1)), 0) as total
           FROM direct_costs dc JOIN products p ON dc.product_id = p.id
           WHERE dc.created_at BETWEEN ? AND ?${directWhere}
-        `, [m.start, m.end, ...directRange.params])?.total || 0);
+        `, [m.start, m.end, ...directRange.params]);
 
-        m.indirect = parseFloat(get(`
+        const indirect = await get(`
           SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
           FROM indirect_costs ic
           LEFT JOIN products p ON ic.product_id = p.id
           WHERE (ic.created_at BETWEEN ? AND ? OR ic.created_at IS NULL)${indirectWhere}
-        `, [m.start, m.end, ...indirectRange.params])?.total || 0);
+        `, [m.start, m.end, ...indirectRange.params]);
 
+        m.direct = parseFloat(direct?.total) || 0;
+        m.indirect = parseFloat(indirect?.total) || 0;
         m.total = m.direct + m.indirect;
-      });
+      }
 
       const withVariation = months.map((m, idx) => {
         const prev = months[idx - 1];
         const pct = (current, previous) => {
-          if (!previous || previous === 0) return null;
+          if (previous === undefined || previous === null || previous === 0) return null;
           return Math.round(((current - previous) / previous) * 10000) / 100;
         };
         return {
@@ -221,18 +236,19 @@ export function reportRoutes(app) {
     }
   });
 
-  app.get('/api/reports/break-even', authenticateToken, (req, res) => {
+  app.get('/api/reports/break-even', authenticateToken, async (req, res) => {
     try {
-      const products = all(`
+      const products = await all(`
         SELECT p.id, p.name, p.quantity, p.selling_price,
           COALESCE((SELECT SUM(dc.amount * COALESCE(dc.quantity, 1)) FROM direct_costs dc WHERE dc.product_id = p.id), 0) as direct_costs
         FROM products p
       `);
 
-      const fixedCosts = parseFloat(get(`
+      const fixedCostsRow = await get(`
         SELECT COALESCE(SUM(ic.amount * ic.proportion / 100), 0) as total
         FROM indirect_costs ic
-      `)?.total || 0);
+      `);
+      const fixedCosts = parseFloat(fixedCostsRow?.total) || 0;
 
       const perProduct = products.map(p => {
         const totalVariableCost = parseFloat(p.direct_costs) || 0;

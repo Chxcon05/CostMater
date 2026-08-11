@@ -8,7 +8,7 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-export function authenticateToken(req, res, next) {
+export async function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -16,17 +16,19 @@ export function authenticateToken(req, res, next) {
     return res.status(401).json({ error: 'Token requerido' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Token inválido o expirado' });
-    }
-    const dbUser = get('SELECT id, name, email, role FROM users WHERE id = ?', [user.id]);
+  try {
+    const decoded = await new Promise((resolve, reject) => {
+      jwt.verify(token, JWT_SECRET, (err, user) => (err ? reject(err) : resolve(user)));
+    });
+    const dbUser = await get('SELECT id, name, email, role FROM users WHERE id = ?', [decoded.id]);
     if (!dbUser) {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
     req.user = dbUser;
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ error: 'Token inválido o expirado' });
+  }
 }
 
 export function generateToken(user) {

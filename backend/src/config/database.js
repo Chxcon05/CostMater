@@ -1,138 +1,123 @@
-import initSqlJs from 'sql.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import pg from 'pg';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = process.env.DATA_DIR
-  ? path.resolve(process.env.DATA_DIR)
-  : path.join(__dirname, '../../data');
-const dbPath = path.join(dataDir, 'costmaster.db');
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('ERROR FATAL: DATABASE_URL no está definida en las variables de entorno.');
+  console.error('Crea una base de datos PostgreSQL (Neon/Supabase) y agrega DATABASE_URL en .env');
+  process.exit(1);
 }
 
-let db = null;
-let dbReady = false;
+pg.types.setTypeParser(20, (v) => parseInt(v, 10));
+
+const useSSL = /neon\.tech|supabase\.co|sslmode=require|ssl=true/i.test(DATABASE_URL);
+const pool = new pg.Pool({
+  connectionString: DATABASE_URL,
+  ssl: useSSL ? { rejectUnauthorized: false } : undefined,
+  max: 10
+});
+
+function toPg(sql, params = []) {
+  let i = 0;
+  const pgSql = String(sql).replace(/\?/g, () => `$${++i}`);
+  return { sql: pgSql, params };
+}
+
+async function q(sql, params = []) {
+  const { sql: pgSql, params: pgParams } = toPg(sql, params);
+  const result = await pool.query(pgSql, pgParams);
+  return result;
+}
+
+async function get(sql, params = []) {
+  const result = await q(sql, params);
+  return result.rows[0] || null;
+}
+
+async function all(sql, params = []) {
+  const result = await q(sql, params);
+  return result.rows;
+}
+
+async function run(sql, params = []) {
+  let querySql = String(sql);
+  if (/^\s*INSERT/i.test(querySql)) {
+    querySql = querySql.trim().replace(/;?\s*$/, '') + ' RETURNING id';
+  }
+  const result = await q(querySql, params);
+  const lastInsertRowid = result.rows?.[0]?.id ?? 0;
+  return { lastInsertRowid };
+}
+
+async function exec(sql, params = []) {
+  return q(sql, params);
+}
+
+async function saveDb() {}
 
 async function initDb() {
-  const SQL = await initSqlJs();
-  let data = null;
-  if (fs.existsSync(dbPath)) {
-    data = fs.readFileSync(dbPath);
-  }
-  db = new SQL.Database(data);
-  dbReady = true;
-  
-  // Crear tablas
-  db.run(`
+  await q('SELECT 1');
+
+  await q(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       role TEXT DEFAULT 'user',
       company_name TEXT,
       company_rfc TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  try {
-    const ucols = db.exec("PRAGMA table_info(users)");
-    const ucolNames = ucols[0]?.values.map(c => c[1]) || [];
-    if (!ucolNames.includes('role')) {
-      db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
-    }
-    // Si no existe ningún administrador, promover al usuario más antiguo
-    const adminCount = get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")?.count || 0;
-    if (adminCount === 0) {
-      db.run("UPDATE users SET role = 'admin' WHERE id = (SELECT MIN(id) FROM users)");
-    }
-    saveDb();
-  } catch (e) { console.error('Error altering users:', e); }
+  await q(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'`);
 
-  db.run(`
+  try {
+    const adminCount = (await get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'"))?.count || 0;
+    if (adminCount === 0) {
+      await q("UPDATE users SET role = 'admin' WHERE id = (SELECT MIN(id) FROM users)");
+    }
+  } catch (e) { console.error('Error promoviendo admin:', e); }
+
+  await q(`
     CREATE TABLE IF NOT EXISTS categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       description TEXT,
       color TEXT DEFAULT '#3b82f6',
       type TEXT CHECK(type IN ('producto', 'servicio')),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS description TEXT`);
+  await q(`ALTER TABLE categories ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#3b82f6'`);
 
-  // Agregar columnas si no existen (para bases de datos existentes)
-  try {
-    const cols = db.exec("PRAGMA table_info(categories)");
-    const colNames = cols[0]?.values.map(c => c[1]) || [];
-    if (!colNames.includes('description')) {
-      db.run('ALTER TABLE categories ADD COLUMN description TEXT');
-    }
-    if (!colNames.includes('color')) {
-      db.run('ALTER TABLE categories ADD COLUMN color TEXT DEFAULT \'#3b82f6\'');
-    }
-    saveDb();
-  } catch (e) { console.error('Error altering categories:', e); }
-
-
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+  await q(`
+    CREATE TABLE IF NOT EXISTS suppliers (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
-      description TEXT,
-      type TEXT CHECK(type IN ('producto', 'servicio')),
-      unit TEXT DEFAULT 'unidad',
-      quantity INTEGER DEFAULT 1,
-      selling_price DECIMAL(10,2),
-      wholesale_price DECIMAL(10,2),
-      min_quantity INTEGER DEFAULT 0,
-      category_id INTEGER,
-      supplier_id INTEGER,
-      sku TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
-      FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL
+      contact_name TEXT,
+      email TEXT,
+      phone TEXT,
+      address TEXT,
+      country TEXT,
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS city TEXT`);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS postal_code TEXT`);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS notes TEXT`);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS is_active INTEGER DEFAULT 1`);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS updated_at TEXT`);
+  await q(`ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS country TEXT`);
 
-  try {
-    const pcols = db.exec("PRAGMA table_info(products)");
-    const pcolNames = pcols[0]?.values.map(c => c[1]) || [];
-    if (!pcolNames.includes('wholesale_price')) {
-      db.run('ALTER TABLE products ADD COLUMN wholesale_price DECIMAL(10,2)');
-    }
-    if (!pcolNames.includes('min_quantity')) {
-      db.run('ALTER TABLE products ADD COLUMN min_quantity INTEGER DEFAULT 0');
-    }
-    if (!pcolNames.includes('category_id')) {
-      db.run('ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL');
-    }
-    if (!pcolNames.includes('supplier_id')) {
-      db.run('ALTER TABLE products ADD COLUMN supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL');
-    }
-    if (!pcolNames.includes('sku')) {
-      db.run('ALTER TABLE products ADD COLUMN sku TEXT');
-    }
-    if (!pcolNames.includes('updated_at')) {
-      db.run("ALTER TABLE products ADD COLUMN updated_at DATETIME");
-    }
-    saveDb();
-  } catch (e) { console.error('Error altering products:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS customers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       email TEXT,
       phone TEXT,
@@ -140,351 +125,228 @@ async function initDb() {
       city TEXT,
       postal_code TEXT,
       country TEXT,
-      credit_limit DECIMAL(10,2) DEFAULT 0,
+      credit_limit DOUBLE PRECISION DEFAULT 0,
       payment_days INTEGER DEFAULT 0,
       notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS city TEXT`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS postal_code TEXT`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS country TEXT`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS credit_limit DOUBLE PRECISION DEFAULT 0`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS payment_days INTEGER DEFAULT 0`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS notes TEXT`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS updated_at TEXT`);
+  await q(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_active INTEGER DEFAULT 1`);
 
-  try {
-    const ccols = db.exec("PRAGMA table_info(customers)");
-    const ccolNames = ccols[0]?.values.map(c => c[1]) || [];
-    if (!ccolNames.includes('city')) db.run('ALTER TABLE customers ADD COLUMN city TEXT');
-    if (!ccolNames.includes('postal_code')) db.run('ALTER TABLE customers ADD COLUMN postal_code TEXT');
-    if (!ccolNames.includes('country')) db.run('ALTER TABLE customers ADD COLUMN country TEXT');
-    if (!ccolNames.includes('credit_limit')) db.run('ALTER TABLE customers ADD COLUMN credit_limit DECIMAL(10,2) DEFAULT 0');
-    if (!ccolNames.includes('payment_days')) db.run('ALTER TABLE customers ADD COLUMN payment_days INTEGER DEFAULT 0');
-    if (!ccolNames.includes('notes')) db.run('ALTER TABLE customers ADD COLUMN notes TEXT');
-    if (!ccolNames.includes('updated_at')) db.run('ALTER TABLE customers ADD COLUMN updated_at DATETIME');
-    if (!ccolNames.includes('is_active')) db.run('ALTER TABLE customers ADD COLUMN is_active INTEGER DEFAULT 1');
-    saveDb();
-  } catch (e) { console.error('Error altering customers:', e); }
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS suppliers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+  await q(`
+    CREATE TABLE IF NOT EXISTS products (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
-      contact_name TEXT,
-      email TEXT,
-      phone TEXT,
-      address TEXT,
-      country TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      description TEXT,
+      type TEXT CHECK(type IN ('producto', 'servicio')),
+      unit TEXT DEFAULT 'unidad',
+      quantity INTEGER DEFAULT 1,
+      selling_price DOUBLE PRECISION,
+      wholesale_price DOUBLE PRECISION,
+      min_quantity INTEGER DEFAULT 0,
+      category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+      supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+      sku TEXT,
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS wholesale_price DOUBLE PRECISION`);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS min_quantity INTEGER DEFAULT 0`);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL`);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL`);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS sku TEXT`);
+  await q(`ALTER TABLE products ADD COLUMN IF NOT EXISTS updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`);
 
-  try {
-    const scols = db.exec("PRAGMA table_info(suppliers)");
-    const scolNames = scols[0]?.values.map(c => c[1]) || [];
-    if (!scolNames.includes('city')) db.run('ALTER TABLE suppliers ADD COLUMN city TEXT');
-    if (!scolNames.includes('postal_code')) db.run('ALTER TABLE suppliers ADD COLUMN postal_code TEXT');
-    if (!scolNames.includes('notes')) db.run('ALTER TABLE suppliers ADD COLUMN notes TEXT');
-    if (!scolNames.includes('is_active')) db.run('ALTER TABLE suppliers ADD COLUMN is_active INTEGER DEFAULT 1');
-    if (!scolNames.includes('updated_at')) db.run('ALTER TABLE suppliers ADD COLUMN updated_at DATETIME');
-    if (!scolNames.includes('country')) db.run('ALTER TABLE suppliers ADD COLUMN country TEXT');
-    saveDb();
-  } catch (e) { console.error('Error altering suppliers:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS direct_costs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
       type TEXT CHECK(type IN ('materia_prima', 'mano_obra', 'otro')),
       description TEXT NOT NULL,
-      amount DECIMAL(10,2) NOT NULL,
-      quantity DECIMAL(10,2) DEFAULT 1,
-      unit_cost DECIMAL(10,2),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      amount DOUBLE PRECISION NOT NULL,
+      quantity DOUBLE PRECISION DEFAULT 1,
+      unit_cost DOUBLE PRECISION,
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE direct_costs ADD COLUMN IF NOT EXISTS invoice_number TEXT`);
+  await q(`ALTER TABLE direct_costs ADD COLUMN IF NOT EXISTS purchase_date TEXT`);
 
-  try {
-    const dcols = db.exec("PRAGMA table_info(direct_costs)");
-    const dcolNames = dcols[0]?.values.map(c => c[1]) || [];
-    if (!dcolNames.includes('invoice_number')) {
-      db.run('ALTER TABLE direct_costs ADD COLUMN invoice_number TEXT');
-    }
-    if (!dcolNames.includes('purchase_date')) {
-      db.run('ALTER TABLE direct_costs ADD COLUMN purchase_date DATE');
-    }
-    saveDb();
-  } catch (e) { console.error('Error altering direct_costs:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS indirect_costs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
       type TEXT CHECK(type IN ('alquiler', 'servicios', 'depreciacion', 'otro')),
       description TEXT NOT NULL,
-      amount DECIMAL(10,2) NOT NULL,
-      proportion DECIMAL(5,2) DEFAULT 100,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      amount DOUBLE PRECISION NOT NULL,
+      proportion DOUBLE PRECISION DEFAULT 100,
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      customer_id INTEGER,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
       quote_number TEXT,
-      subtotal DECIMAL(10,2) DEFAULT 0,
-      discount_percent DECIMAL(5,2) DEFAULT 0,
-      discount_amount DECIMAL(10,2) DEFAULT 0,
-      tax_percent DECIMAL(5,2) DEFAULT 16,
-      tax_amount DECIMAL(10,2) DEFAULT 0,
-      total DECIMAL(10,2) DEFAULT 0,
+      subtotal DOUBLE PRECISION DEFAULT 0,
+      discount_percent DOUBLE PRECISION DEFAULT 0,
+      discount_amount DOUBLE PRECISION DEFAULT 0,
+      tax_percent DOUBLE PRECISION DEFAULT 16,
+      tax_amount DOUBLE PRECISION DEFAULT 0,
+      total DOUBLE PRECISION DEFAULT 0,
       status TEXT DEFAULT 'borrador',
       validity_days INTEGER DEFAULT 15,
-      valid_from DATE,
-      valid_until DATE,
+      valid_from TEXT,
+      valid_until TEXT,
       notes TEXT,
       terms TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS quote_number TEXT`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS subtotal DOUBLE PRECISION DEFAULT 0`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS discount_percent DOUBLE PRECISION DEFAULT 0`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS discount_amount DOUBLE PRECISION DEFAULT 0`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS tax_percent DOUBLE PRECISION DEFAULT 16`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS tax_amount DOUBLE PRECISION DEFAULT 0`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS validity_days INTEGER DEFAULT 15`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS valid_from TEXT`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS valid_until TEXT`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS terms TEXT`);
+  await q(`ALTER TABLE quotes ADD COLUMN IF NOT EXISTS updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`);
 
-  try {
-    const qcols = db.exec("PRAGMA table_info(quotes)");
-    const qcolNames = qcols[0]?.values.map(c => c[1]) || [];
-    if (!qcolNames.includes('quote_number')) db.run('ALTER TABLE quotes ADD COLUMN quote_number TEXT');
-    if (!qcolNames.includes('subtotal')) db.run('ALTER TABLE quotes ADD COLUMN subtotal DECIMAL(10,2) DEFAULT 0');
-    if (!qcolNames.includes('discount_percent')) db.run('ALTER TABLE quotes ADD COLUMN discount_percent DECIMAL(5,2) DEFAULT 0');
-    if (!qcolNames.includes('discount_amount')) db.run('ALTER TABLE quotes ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0');
-    if (!qcolNames.includes('tax_percent')) db.run('ALTER TABLE quotes ADD COLUMN tax_percent DECIMAL(5,2) DEFAULT 16');
-    if (!qcolNames.includes('tax_amount')) db.run('ALTER TABLE quotes ADD COLUMN tax_amount DECIMAL(10,2) DEFAULT 0');
-    if (!qcolNames.includes('validity_days')) db.run('ALTER TABLE quotes ADD COLUMN validity_days INTEGER DEFAULT 15');
-    if (!qcolNames.includes('valid_from')) db.run('ALTER TABLE quotes ADD COLUMN valid_from DATE');
-    if (!qcolNames.includes('valid_until')) db.run('ALTER TABLE quotes ADD COLUMN valid_until DATE');
-    if (!qcolNames.includes('terms')) db.run('ALTER TABLE quotes ADD COLUMN terms TEXT');
-    if (!qcolNames.includes('updated_at')) db.run('ALTER TABLE quotes ADD COLUMN updated_at DATETIME');
-    saveDb();
-  } catch (e) { console.error('Error altering quotes:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS quote_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_id INTEGER NOT NULL,
-      product_id INTEGER,
+      id SERIAL PRIMARY KEY,
+      quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
       description TEXT,
-      quantity DECIMAL(10,2) DEFAULT 1,
-      unit_price DECIMAL(10,2) DEFAULT 0,
-      cost DECIMAL(10,2) DEFAULT 0,
-      total DECIMAL(10,2) DEFAULT 0,
-      FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+      quantity DOUBLE PRECISION DEFAULT 1,
+      unit_price DOUBLE PRECISION DEFAULT 0,
+      cost DOUBLE PRECISION DEFAULT 0,
+      total DOUBLE PRECISION DEFAULT 0
     );
   `);
+  await q(`ALTER TABLE quote_items ADD COLUMN IF NOT EXISTS description TEXT`);
+  await q(`ALTER TABLE quote_items ADD COLUMN IF NOT EXISTS cost DOUBLE PRECISION DEFAULT 0`);
 
-  try {
-    const qicols = db.exec("PRAGMA table_info(quote_items)");
-    const qicolNames = qicols[0]?.values.map(c => c[1]) || [];
-    if (!qicolNames.includes('description')) db.run('ALTER TABLE quote_items ADD COLUMN description TEXT');
-    if (!qicolNames.includes('cost')) db.run('ALTER TABLE quote_items ADD COLUMN cost DECIMAL(10,2) DEFAULT 0');
-    saveDb();
-  } catch (e) { console.error('Error altering quote_items:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS invoices (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      customer_id INTEGER,
-      quote_id INTEGER,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+      quote_id INTEGER REFERENCES quotes(id) ON DELETE SET NULL,
       invoice_number TEXT,
-      subtotal DECIMAL(10,2),
-      tax DECIMAL(10,2),
-      tax_percent DECIMAL(5,2) DEFAULT 16,
-      tax_amount DECIMAL(10,2),
-      total DECIMAL(10,2),
+      subtotal DOUBLE PRECISION,
+      tax DOUBLE PRECISION,
+      tax_percent DOUBLE PRECISION DEFAULT 16,
+      tax_amount DOUBLE PRECISION,
+      total DOUBLE PRECISION,
       status TEXT DEFAULT 'pendiente',
       payment_method TEXT DEFAULT 'efectivo',
-      issue_date DATE,
-      due_date DATE,
+      issue_date TEXT,
+      due_date TEXT,
       notes TEXT,
-      payment_date DATE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
-      FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL
+      payment_date TEXT,
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  await q(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tax_percent DOUBLE PRECISION DEFAULT 16`);
+  await q(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS tax_amount DOUBLE PRECISION`);
+  await q(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'efectivo'`);
+  await q(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_date TEXT`);
+  await q(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS updated_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`);
 
-  try {
-    const icols = db.exec("PRAGMA table_info(invoices)");
-    const icolNames = icols[0]?.values.map(c => c[1]) || [];
-    if (!icolNames.includes('tax_percent')) db.run('ALTER TABLE invoices ADD COLUMN tax_percent DECIMAL(5,2) DEFAULT 16');
-    if (!icolNames.includes('tax_amount')) db.run('ALTER TABLE invoices ADD COLUMN tax_amount DECIMAL(10,2)');
-    if (!icolNames.includes('payment_method')) db.run('ALTER TABLE invoices ADD COLUMN payment_method TEXT DEFAULT \'efectivo\'');
-    if (!icolNames.includes('payment_date')) db.run('ALTER TABLE invoices ADD COLUMN payment_date DATE');
-    if (!icolNames.includes('updated_at')) db.run('ALTER TABLE invoices ADD COLUMN updated_at DATETIME');
-    saveDb();
-  } catch (e) { console.error('Error altering invoices:', e); }
-
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS invoice_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      invoice_id INTEGER NOT NULL,
-      product_id INTEGER,
+      id SERIAL PRIMARY KEY,
+      invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
       description TEXT,
-      quantity DECIMAL(10,2) DEFAULT 1,
-      unit_price DECIMAL(10,2) DEFAULT 0,
-      total DECIMAL(10,2) DEFAULT 0,
-      FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
+      quantity DOUBLE PRECISION DEFAULT 1,
+      unit_price DOUBLE PRECISION DEFAULT 0,
+      total DOUBLE PRECISION DEFAULT 0
     );
   `);
+  await q(`ALTER TABLE invoice_items ADD COLUMN IF NOT EXISTS description TEXT`);
 
-  try {
-    const iicols = db.exec("PRAGMA table_info(invoice_items)");
-    const iicolNames = iicols[0]?.values.map(c => c[1]) || [];
-    if (!iicolNames.includes('description')) db.run('ALTER TABLE invoice_items ADD COLUMN description TEXT');
-    saveDb();
-  } catch (e) { console.error('Error altering invoice_items:', e); }
-
-  db.run(`
-     CREATE TABLE IF NOT EXISTS audit_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+  await q(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       table_name TEXT NOT NULL,
       record_id INTEGER,
       action TEXT NOT NULL,
       old_values TEXT,
       new_values TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS password_resets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       token TEXT NOT NULL UNIQUE,
-      expires_at DATETIME NOT NULL,
+      expires_at TEXT NOT NULL,
       used INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS price_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      old_price DECIMAL(10,2),
-      new_price DECIMAL(10,2) NOT NULL,
-      changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      id SERIAL PRIMARY KEY,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      old_price DOUBLE PRECISION,
+      new_price DOUBLE PRECISION NOT NULL,
+      changed_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS cost_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       cost_type TEXT NOT NULL CHECK(cost_type IN ('direct', 'indirect')),
       cost_id INTEGER NOT NULL,
-      product_id INTEGER,
-      user_id INTEGER NOT NULL,
-      old_amount DECIMAL(10,2),
-      new_amount DECIMAL(10,2) NOT NULL,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      old_amount DOUBLE PRECISION,
+      new_amount DOUBLE PRECISION NOT NULL,
       description TEXT,
-      changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      changed_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
 
-  db.run(`
+  await q(`
     CREATE TABLE IF NOT EXISTS notifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       type TEXT DEFAULT 'info',
       title TEXT NOT NULL,
       message TEXT,
       link TEXT,
       read INTEGER DEFAULT 0,
       source TEXT DEFAULT 'system',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      created_at TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
-
-  try {
-    const ncols = db.exec("PRAGMA table_info(notifications)");
-    const ncolNames = ncols[0]?.values.map(c => c[1]) || [];
-    if (!ncolNames.includes('source')) {
-      db.run("ALTER TABLE notifications ADD COLUMN source TEXT DEFAULT 'system'");
-    }
-    saveDb();
-  } catch (e) { console.error('Error altering notifications:', e); }
-
-  saveDb();
-  return db;
-}
-
-function saveDb() {
-  if (db) {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(dbPath, buffer);
-  }
-}
-
-function run(sql, params = []) {
-  try {
-    const stmt = db.prepare(sql);
-    if (params.length) stmt.bind(params);
-    stmt.step();
-    stmt.free();
-    const row = get("SELECT last_insert_rowid() as id");
-    const lastInsertRowid = row?.id || 0;
-    saveDb();
-    return { lastInsertRowid };
-  } catch (err) {
-    console.error('DB run error:', err);
-    throw err;
-  }
-}
-
-function get(sql, params = []) {
-  const stmt = db.prepare(sql);
-  if (params.length) stmt.bind(params);
-  if (stmt.step()) {
-    const row = stmt.getAsObject();
-    stmt.free();
-    return row;
-  }
-  stmt.free();
-  return null;
-}
-
-function all(sql, params = []) {
-  const results = [];
-  const stmt = db.prepare(sql);
-  if (params.length) stmt.bind(params);
-  while (stmt.step()) {
-    results.push(stmt.getAsObject());
-  }
-  stmt.free();
-  return results;
-}
-
-function exec(sql) {
-  db.run(sql);
-  saveDb();
+  await q(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'system'`);
 }
 
 export { initDb, run, get, all, exec, saveDb };
-export default db;
+export default pool;
