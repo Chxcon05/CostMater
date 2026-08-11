@@ -33,4 +33,27 @@ export function userRoutes(app) {
       res.status(500).json({ error: 'Error al actualizar el rol' });
     }
   });
+
+  app.delete('/api/users/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+    try {
+      if (req.params.id === String(req.user.id)) {
+        return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
+      }
+      const user = await get('SELECT * FROM users WHERE id = ?', [req.params.id]);
+      if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+      if (user.role === 'admin') {
+        const adminCount = (await get("SELECT COUNT(*) as count FROM users WHERE role = 'admin'"))?.count || 0;
+        if (adminCount <= 1) {
+          return res.status(400).json({ error: 'No puedes eliminar el último administrador' });
+        }
+      }
+
+      await run('DELETE FROM users WHERE id = ?', [req.params.id]);
+      await audit(req.user.id, 'users', user.id, 'DELETE', user, null);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Error al eliminar el usuario' });
+    }
+  });
 }

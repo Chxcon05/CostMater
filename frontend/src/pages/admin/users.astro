@@ -93,6 +93,24 @@ import PageHeader from '../../components/PageHeader.astro';
   }
   window.changeRole = changeRole;
 
+  async function deleteUser(id) {
+    const headers = getAuthHeaders();
+    if (!headers) return;
+    const target = usersCache.find(u => u.id === id);
+    const name = target ? target.name : '';
+    if (!confirm(window.t('admin.delete_confirm').replace('{name}', name))) return;
+    try {
+      const res = await fetch(`${API_URL}/users/${id}`, { method: 'DELETE', headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al eliminar el usuario');
+      if (window.toast) window.toast.success(window.t('admin.user_deleted'));
+      loadUsers();
+    } catch (e) {
+      if (window.toast) window.toast.error(e.message);
+    }
+  }
+  window.deleteUser = deleteUser;
+
   window.loadUsers = async function() {
     const headers = getAuthHeaders();
     if (!headers) return;
@@ -148,15 +166,24 @@ import PageHeader from '../../components/PageHeader.astro';
           </td>
           <td class="table-cell text-[var(--text-secondary)]">${formatDate(u.created_at)}</td>
           <td class="table-cell">
-            <select
-              class="px-2 py-1.5 text-xs bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
-              value="${u.role}"
-              onchange="changeRole(${u.id}, this.value)"
-              ${u.id === user.id ? 'disabled' : ''}
-            >
-              <option value="user" ${u.role === 'user' ? 'selected' : ''}>${window.t('admin.role_user')}</option>
-              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>${window.t('admin.role_admin')}</option>
-            </select>
+            <div class="flex items-center gap-2">
+              <select
+                class="px-2 py-1.5 text-xs bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
+                value="${u.role}"
+                onchange="changeRole(${u.id}, this.value)"
+                ${u.id === user.id ? 'disabled' : ''}
+              >
+                <option value="user" ${u.role === 'user' ? 'selected' : ''}>${window.t('admin.role_user')}</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>${window.t('admin.role_admin')}</option>
+              </select>
+              ${u.id === user.id ? '' : `
+              <button
+                class="px-2.5 py-1.5 text-xs font-medium text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition-colors"
+                onclick="deleteUser(${u.id})"
+                data-i18n="admin.delete_user"
+              >Eliminar</button>
+              `}
+            </div>
           </td>
         </tr>
       `).join('');
